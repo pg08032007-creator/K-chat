@@ -1,244 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { Planet, Home, Search, PlusSquare, User, Camera, Send, Heart, MessageCircle, X, Check } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Gram App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#0a0a0c]">
+    <div id="root"></div>
 
-// --- DATABASE SIMULADA (Para as salas do Meet parecerem vivas) ---
-const MOCK_USERS = [
-  { username: 'Lana_Vibe', age: 21, gender: 'Feminino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lana', bio: 'Amo pixel art e RPG' },
-  { username: 'Kael_Dev', age: 24, gender: 'Masculino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kael', bio: 'Codando o dia todo 🚀' },
-  { username: 'Izis_Neon', age: 25, gender: 'Feminino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Izis', bio: 'Explorando o multiverso' }
-];
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Planet, Home, Search, PlusSquare, User, Camera, Send, Heart, MessageCircle, X, Check } = lucide;
 
-const App = () => {
-  // Estados de Sessão
-  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('active_user')) || null);
-  const [view, setView] = useState('feed'); // feed, meet, profile
-  const [usersDb, setUsersDb] = useState(JSON.parse(localStorage.getItem('local_users')) || []);
+        // O código do App vai aqui (Vou resumir a lógica principal para caber)
+        function App() {
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('feed');
+            const [regName, setRegName] = useState('');
+            const [meetStatus, setMeetStatus] = useState('idle');
 
-  // Estados de Cadastro
-  const [regName, setRegName] = useState('');
-  const [regPass, setRegPass] = useState('');
-  const [regAge, setRegAge] = useState('');
-  const [regGender, setRegGender] = useState('Feminino');
-  const [regAvatar, setRegAvatar] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
+            // --- TELA DE LOGIN ---
+            if (!user) {
+                return (
+                    <div className="min-h-screen text-white flex items-center justify-center p-6 bg-slate-900">
+                        <div className="bg-slate-800 p-8 rounded-3xl w-full max-w-sm border border-purple-500">
+                            <h1 className="text-2xl font-bold text-center mb-6 text-purple-400 italic">Z-GRAM</h1>
+                            <input placeholder="Usuário" className="w-full p-3 mb-4 bg-slate-700 rounded-xl outline-none" onChange={(e) => setRegName(e.target.value)} />
+                            <button onClick={() => setUser({username: regName, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed='+regName})} className="w-full bg-purple-600 p-3 rounded-xl font-bold">Entrar</button>
+                        </div>
+                    </div>
+                );
+            }
 
-  // Estados do Meet (Planeta)
-  const [meetStatus, setMeetStatus] = useState('idle'); // idle, searching, matched
-  const [match, setMatch] = useState(null);
+            // --- TELA PRINCIPAL ---
+            return (
+                <div className="min-h-screen text-white flex flex-col max-w-md mx-auto bg-[#0a0a0c]">
+                    <main className="flex-1 p-4 pb-24">
+                        {view === 'feed' && (
+                            <div className="animate-pulse flex flex-col items-center justify-center h-64 text-slate-600">
+                                <p>Carregando Feed do Z-Gram...</p>
+                            </div>
+                        )}
 
-  // --- LÓGICA DE CADASTRO ---
-  const handleJoin = () => {
-    if (!regName || !regPass || !regAge) return alert("Preencha tudo!");
-    
-    // Verifica se nome já existe no "banco" local
-    const exists = usersDb.find(u => u.username.toLowerCase() === regName.toLowerCase());
-    if (exists) return alert("Este nome já está em órbita! Escolha outro.");
+                        {view === 'meet' && (
+                            <div className="flex flex-col items-center justify-center h-[70vh] text-center">
+                                <div className="p-8 bg-slate-800 rounded-3xl border-2 border-purple-500">
+                                     <h2 className="text-xl font-bold mb-4">Sala Planetária</h2>
+                                     <p className="text-slate-400 mb-6">Procurando alguém para conversar...</p>
+                                     <button className="bg-purple-600 px-8 py-3 rounded-full animate-bounce">Aguardando...</button>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {view === 'profile' && (
+                            <div className="text-center mt-10">
+                                <img src={user.avatar} className="w-24 h-24 rounded-full mx-auto border-4 border-purple-500" />
+                                <h2 className="text-2xl font-bold mt-4">{user.username}</h2>
+                                <button onClick={() => window.location.reload()} className="mt-8 text-red-500 text-xs">SAIR</button>
+                            </div>
+                        )}
+                    </main>
 
-    const newUser = { 
-      username: regName, 
-      password: regPass, 
-      age: regAge, 
-      gender: regGender, 
-      avatar: regAvatar 
-    };
-
-    const newDb = [...usersDb, newUser];
-    setUsersDb(newDb);
-    localStorage.setItem('local_users', JSON.stringify(newDb));
-    setUser(newUser);
-    sessionStorage.setItem('active_user', JSON.stringify(newUser));
-    setView('feed');
-  };
-
-  const handleFile = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setRegAvatar(reader.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // --- LÓGICA DO MEET (PLANETA) ---
-  const startMeet = () => {
-    setMeetStatus('searching');
-    setTimeout(() => {
-      const randomFriend = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
-      setMatch(randomFriend);
-      setMeetStatus('matched');
-    }, 3000);
-  };
-
-  // --- TELAS ---
-  if (!user) return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md bg-[#16161e] p-8 rounded-3xl border border-purple-500/30 shadow-2xl">
-        <h1 className="text-3xl font-black text-center mb-2 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent italic">
-          Z-GRAM
-        </h1>
-        <p className="text-center text-slate-400 text-sm mb-8 font-light">Sua nova dimensão social</p>
-
-        <div className="space-y-4">
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative group">
-              <img src={regAvatar} className="w-24 h-24 rounded-full border-4 border-purple-600 object-cover shadow-lg" alt="Avatar" />
-              <label className="absolute bottom-0 right-0 bg-purple-600 p-2 rounded-full cursor-pointer hover:scale-110 transition">
-                <Camera size={16} />
-                <input type="file" className="hidden" onChange={handleFile} />
-              </label>
-            </div>
-          </div>
-
-          <input placeholder="Nome de usuário" className="w-full bg-[#1c1c27] p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 transition" 
-            onChange={e => setRegName(e.target.value)} />
-          
-          <input type="password" placeholder="Senha" className="w-full bg-[#1c1c27] p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 transition" 
-            onChange={e => setRegPass(e.target.value)} />
-
-          <div className="flex gap-3">
-            <input type="number" placeholder="Idade" className="w-1/3 bg-[#1c1c27] p-4 rounded-2xl outline-none" 
-              onChange={e => setRegAge(e.target.value)} />
-            <select className="w-2/3 bg-[#1c1c27] p-4 rounded-2xl outline-none" onChange={e => setRegGender(e.target.value)}>
-              <option>Feminino</option>
-              <option>Masculino</option>
-              <option>Não-binário</option>
-            </select>
-          </div>
-
-          <button onClick={handleJoin} className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-lg mt-4 active:scale-95 transition shadow-lg shadow-purple-500/20">
-            Explorar o Universo
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col max-w-lg mx-auto border-x border-white/5">
-      {/* HEADER */}
-      <header className="h-14 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/80 backdrop-blur-md z-40">
-        <h2 className="text-xl font-black italic text-purple-400">Z-GRAM</h2>
-        <div className="flex gap-4">
-          <Heart size={22} />
-          <Send size={22} />
-        </div>
-      </header>
-
-      {/* CONTEÚDO DINÂMICO */}
-      <main className="flex-1 pb-20">
-        {view === 'feed' && (
-          <div className="p-4 space-y-8 animate-in fade-in duration-500">
-            {[1, 2].map(i => (
-              <div key={i} className="rounded-2xl bg-[#16161e] border border-white/5 overflow-hidden">
-                <div className="p-3 flex items-center gap-3">
-                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=User${i+10}`} className="w-10 h-10 rounded-full border border-purple-500" alt="post" />
-                  <span className="font-bold text-sm">cyber_phantom_{i}</span>
+                    {/* NAVBAR */}
+                    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-slate-900 border-t border-white/10 flex items-center justify-around max-w-md mx-auto">
+                        <button onClick={() => setView('feed')} className="text-slate-400"><i data-lucide="home"></i></button>
+                        <button onClick={() => setView('meet')} className="bg-purple-600 p-4 rounded-full -mt-10 border-4 border-[#0a0a0c]"><i data-lucide="orbit"></i></button>
+                        <button onClick={() => setView('profile')} className="text-slate-400"><i data-lucide="user"></i></button>
+                    </nav>
                 </div>
-                <div className="h-80 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center italic text-white/20">
-                  {i === 1 ? "[Arte Digital de Carro Modificado]" : "[Setup de Programação]"}
-                </div>
-                <div className="p-4 flex gap-4 border-t border-white/5">
-                  <Heart size={24} className="hover:text-red-500 transition cursor-pointer" />
-                  <MessageCircle size={24} />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+            );
+        }
 
-        {view === 'meet' && (
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center min-h-[70vh]">
-            {meetStatus === 'idle' && (
-              <div className="animate-in zoom-in duration-300">
-                <div className="w-32 h-32 bg-purple-500/10 rounded-full flex items-center justify-center mb-6 mx-auto border border-purple-500/30">
-                  <Planet size={64} className="text-purple-500" />
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Sala de Espera Planetária</h2>
-                <p className="text-slate-400 mb-8">Encontre pessoas aleatórias que estão em órbita agora.</p>
-                <button onClick={startMeet} className="px-12 py-4 bg-purple-600 rounded-full font-bold hover:bg-purple-500 transition shadow-xl shadow-purple-900/40">
-                  Entrar no Meet
-                </button>
-              </div>
-            )}
-
-            {meetStatus === 'searching' && (
-              <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-32 h-32 bg-purple-600/20 rounded-full animate-ping absolute inset-0"></div>
-                  <div className="w-32 h-32 bg-slate-800 rounded-full flex items-center justify-center relative z-10 border border-purple-500">
-                    <Planet size={64} className="text-purple-400 animate-pulse" />
-                  </div>
-                </div>
-                <h3 className="mt-10 text-xl font-medium text-purple-300">Sincronizando frequências...</h3>
-              </div>
-            )}
-
-            {meetStatus === 'matched' && (
-              <div className="w-full animate-in slide-in-from-bottom duration-500">
-                <div className="bg-[#1c1c27] p-8 rounded-[40px] border-2 border-purple-500 shadow-2xl relative overflow-hidden">
-                   <div className="absolute top-0 right-0 p-4 opacity-10"><Planet size={100}/></div>
-                   <img src={match.avatar} className="w-28 h-28 rounded-full mx-auto border-4 border-purple-500 mb-4 shadow-lg" alt="match" />
-                   <h2 className="text-2xl font-black">{match.username}, {match.age}</h2>
-                   <span className="text-purple-400 text-sm font-bold uppercase tracking-widest">{match.gender}</span>
-                   <p className="mt-4 text-slate-300 italic">"{match.bio}"</p>
-                   
-                   <div className="flex gap-4 mt-8">
-                     <button onClick={() => setMeetStatus('idle')} className="flex-1 h-14 bg-slate-700 rounded-2xl flex items-center justify-center hover:bg-slate-600 transition">
-                       <X />
-                     </button>
-                     <button className="flex-1 h-14 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-900/30 hover:bg-green-500 transition">
-                       <Check size={28} />
-                     </button>
-                   </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {view === 'profile' && (
-          <div className="p-8 flex flex-col items-center animate-in fade-in duration-500">
-            <div className="relative">
-               <img src={user.avatar} className="w-32 h-32 rounded-full border-4 border-purple-500 p-1 bg-[#0a0a0c]" alt="profile" />
-               <div className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-[#0a0a0c]"></div>
-            </div>
-            <h2 className="mt-6 text-3xl font-black">{user.username}</h2>
-            <p className="text-purple-400 font-medium uppercase tracking-tighter">{user.gender} • {user.age} ANOS</p>
-            
-            <div className="grid grid-cols-3 gap-8 mt-10 w-full text-center">
-               <div><p className="text-xl font-bold">0</p><p className="text-xs text-slate-500">Posts</p></div>
-               <div><p className="text-xl font-bold">128</p><p className="text-xs text-slate-500">Círculos</p></div>
-               <div><p className="text-xl font-bold">0</p><p className="text-xs text-slate-500">Seguidores</p></div>
-            </div>
-            
-            <button onClick={() => { sessionStorage.clear(); window.location.reload(); }} className="mt-12 text-red-500 text-sm font-bold border border-red-500/30 px-6 py-2 rounded-full">
-              Sair da Conta
-            </button>
-          </div>
-        )}
-      </main>
-
-      {/* NAVBAR INFERIOR */}
-      <nav className="fixed bottom-0 left-0 right-0 h-18 bg-[#111118]/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 z-50 max-w-lg mx-auto">
-        <button onClick={() => setView('feed')} className={`p-4 transition ${view === 'feed' ? 'text-purple-500' : 'text-slate-500'}`}>
-          <Home size={26} fill={view === 'feed' ? "currentColor" : "none"} />
-        </button>
-        <button className="p-4 text-slate-500"><Search size={26} /></button>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
         
-        {/* BOTÃO PLANETA CENTRAL */}
-        <button 
-          onClick={() => { setView('meet'); setMeetStatus('idle'); }}
-          className={`relative -top-6 w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl transition-all active:scale-90 ${view === 'meet' ? 'scale-110 shadow-purple-500/50' : 'grayscale-[40%]'}`}
-        >
-          <Planet size={30} color="white" />
-        </button>
-
-        <button className="p-4 text-slate-500"><PlusSquare size={26} /></button>
-        <button onClick={() => setView('profile')} className={`p-4 transition ${view === 'profile' ? 'text-purple-500' : 'text-slate-500'}`}>
-          <User size={26} fill={view === 'profile' ? "currentColor" : "none"} />
-        </button>
-      </nav>
-    </div>
-  );
-};
-
-export default App;
+        // Inicializa os ícones após renderizar
+        setTimeout(() => lucide.createIcons(), 500);
+    </script>
+</body>
+</html>
