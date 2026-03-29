@@ -3,244 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KChat - Global Connect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>KChat | Future Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #0f0c29;
-            --purple-main: #9d50bb;
-            --accent-green: #2ecc71;
-            --text-white: #ffffff;
-            --glass: rgba(255, 255, 255, 0.1);
+            --primary: #9d50bb;
+            --secondary: #6e48aa;
+            --accent: #00ff88;
+            --bg: #050510;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
         }
 
-        body, html {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-            color: var/(--text-white);
-            height: 100%;
-            overflow: hidden;
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body, html { 
+            margin: 0; font-family: 'Inter', sans-serif; 
+            background: radial-gradient(circle at top right, #1a1a3a, #050510);
+            color: var(--text); height: 100vh; overflow: hidden;
         }
 
-        /* Telas de Login/Registro */
+        /* --- AUTH SCREEN --- */
         #auth-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 20px;
+            display: flex; align-items: center; justify-content: center; height: 100%;
+            background: url('https://w0.peakpx.com/wallpaper/325/943/HD-wallpaper-purple-neon-aesthetic-dark-purple-neon.jpg') center/cover;
         }
 
-        .auth-container {
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 350px;
-            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        .auth-card {
+            background: rgba(10, 10, 25, 0.8); backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 30px; width: 90%; max-width: 400px;
+            border: 1px solid var(--glass-border); text-align: center;
         }
 
-        .tabs { display: flex; margin-bottom: 20px; }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; }
-        .tab.active { border-color: var(--purple-main); font-weight: bold; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: var(--glass); padding: 5px; border-radius: 15px; }
+        .tab { flex: 1; padding: 10px; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 0.9em; }
+        .tab.active { background: var(--primary); box-shadow: 0 4px 15px rgba(157, 80, 187, 0.4); }
 
         input, select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            color: white;
+            width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--glass-border);
+            background: var(--glass); color: white; outline: none;
         }
 
-        .gender-selection { display: flex; justify-content: space-around; margin: 10px 0; }
-        .gender-option { text-align: center; }
-        .gender-option input { width: auto; }
+        .gender-box { display: flex; justify-content: space-between; margin: 15px 0; background: var(--glass); padding: 10px; border-radius: 12px; }
+        .gender-opt { cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 0.8em; opacity: 0.6; }
+        .gender-opt input { display: none; }
+        .gender-opt.selected { opacity: 1; color: var(--accent); }
+        .gender-opt i { font-size: 1.5em; margin-bottom: 5px; }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background: var(--purple-main);
-            border: none;
-            color: white;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
+        .main-btn {
+            width: 100%; padding: 15px; border-radius: 12px; border: none;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white; font-weight: bold; cursor: pointer; margin-top: 15px;
         }
 
-        /* Layout Principal do App */
+        /* --- APP STRUCTURE --- */
         #main-app { display: none; height: 100vh; flex-direction: column; }
-
+        
         header {
-            padding: 15px;
-            text-align: center;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(5, 5, 16, 0.5); backdrop-filter: blur(10px); z-index: 10;
         }
 
-        .content-area { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .content-container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; }
 
-        /* Barra de Navegação */
+        /* --- FEED/HOME --- */
+        .update-bar {
+            background: var(--glass); padding: 15px; border-radius: 20px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .post-card {
+            background: var(--glass); border-radius: 20px; padding: 20px; margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        /* --- SEARCH --- */
+        .user-row {
+            display: flex; align-items: center; background: var(--glass); padding: 15px;
+            border-radius: 18px; margin-bottom: 10px; justify-content: space-between;
+        }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .mini-avatar { width: 45px; height: 45px; border-radius: 15px; background: var(--secondary); }
+        .follow-btn { background: var(--accent); color: #000; border: none; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 0.8em; }
+
+        /* --- PROFILE --- */
+        .profile-card { text-align: center; padding: 30px 20px; }
+        .avatar-container { position: relative; width: 120px; margin: 0 auto 20px; }
+        .p-avatar { width: 120px; height: 120px; border-radius: 40px; border: 3px solid var(--primary); object-fit: cover; }
+        .edit-icon { 
+            position: absolute; bottom: -5px; right: -5px; background: #fff; color: #000;
+            width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+
+        /* --- NAV BAR --- */
         nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(15, 12, 41, 0.95);
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid var(--glass);
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; background: rgba(20, 20, 40, 0.8);
+            backdrop-filter: blur(20px); border-radius: 25px; display: flex;
+            justify-content: space-around; padding: 15px; border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        nav i { font-size: 1.4em; color: rgba(255,255,255,0.3); cursor: pointer; }
+        nav i.active { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
 
-        nav i { font-size: 24px; cursor: pointer; color: #888; }
-        nav i.active { color: var(--purple-main); }
-
-        /* Estilo de Posts e Usuários */
-        .post, .user-card {
-            background: var(--glass);
-            margin-bottom: 15px;
-            padding: 15px;
-            border-radius: 12px;
-        }
-
-        .update-btn {
-            background: var(--accent-green);
-            margin-bottom: 20px;
-        }
-
-        .profile-header { text-align: center; position: relative; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--purple-main); }
-        .edit-pencil { position: absolute; right: 35%; top: 70px; background: white; color: black; border-radius: 50%; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <h1 style="color: var(--purple-main)">KChat</h1>
-        <div class="auth-container">
+        <div class="auth-card">
+            <img src="https://i.imgur.com/8N4N7M8.png" width="60" style="margin-bottom: 10px;">
+            <h2 style="margin-top: 0; letter-spacing: 2px;">KCHAT</h2>
+            
             <div class="tabs">
-                <div class="tab active" onclick="switchAuth('login')">Login</div>
-                <div class="tab" onclick="switchAuth('register')">Registro</div>
+                <div class="tab active" id="tab-login" onclick="toggleAuth('login')">Entrar</div>
+                <div class="tab" id="tab-reg" onclick="toggleAuth('reg')">Registrar</div>
             </div>
 
-            <div id="login-form">
-                <input type="text" placeholder="Nome de usuário" id="l-user">
-                <input type="password" placeholder="Senha" id="l-pass">
-                <button onclick="login()">Entrar</button>
-            </div>
-
-            <div id="register-form" style="display: none;">
-                <input type="text" placeholder="Nome" id="r-user">
-                <input type="password" placeholder="Senha" id="r-pass">
-                <input type="number" placeholder="Idade">
+            <div id="form-body">
+                <input type="text" id="auth-user" placeholder="Usuário">
+                <input type="password" id="auth-pass" placeholder="Senha">
                 
-                <div class="gender-selection">
-                    <div class="gender-option"><i class="fas fa-mars"></i><br><input type="radio" name="gen" checked></div>
-                    <div class="gender-option"><i class="fas fa-venus"></i><br><input type="radio" name="gen"></div>
-                    <div class="gender-option"><i class="fas fa-genderless"></i><br><input type="radio" name="gen"></div>
+                <div id="reg-extras" style="display: none;">
+                    <input type="number" id="auth-age" placeholder="Idade">
+                    <div class="gender-box">
+                        <label class="gender-opt selected"><i class="fas fa-mars"></i><input type="radio" name="g" value="male" checked>M</label>
+                        <label class="gender-opt"><i class="fas fa-venus"></i><input type="radio" name="g" value="female">F</label>
+                        <label class="gender-opt"><i class="fas fa-genderless"></i><input type="radio" name="g" value="non-binary">N-B</label>
+                    </div>
                 </div>
-                <button onclick="login()">Criar Conta</button>
+                
+                <button class="main-btn" onclick="handleAuth()">ACESSAR SISTEMA</button>
             </div>
         </div>
     </div>
 
     <div id="main-app">
         <header>
-            <span style="font-weight: bold; color: var(--purple-main);">KChat</span>
-            <span>Chat</span>
-            <i class="fas fa-bell"></i>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 35px; height: 35px; background: var(--primary); border-radius: 10px;"></div>
+                <span style="font-weight: 800; font-size: 1.2em;">KChat</span>
+            </div>
+            <i class="fa-regular fa-comment-dots" style="font-size: 1.5em;"></i>
         </header>
 
-        <div id="home" class="content-area">
-            <button class="update-btn" onclick="updatePosts()"><i class="fas fa-sync"></i> Update Feed</button>
-            <div id="feed-content">
-                </div>
+        <div id="home" class="content-container">
+            <div class="update-bar">
+                <span>Feed Global</span>
+                <button onclick="syncPosts()" style="background: none; border: none; color: var(--accent); cursor: pointer;">
+                    <i class="fas fa-rotate"></i> Atualizar
+                </button>
+            </div>
+            <div id="feed-list"></div>
         </div>
 
-        <div id="search" class="content-area" style="display: none;">
-            <input type="text" placeholder="Pesquisar usuários..." onkeyup="searchUser()">
-            <div id="user-list">
-                </div>
+        <div id="search" class="content-container" style="display: none;">
+            <input type="text" id="search-input" placeholder="🔍 Buscar usuários reais..." oninput="doSearch()">
+            <div id="search-results" style="margin-top: 20px;"></div>
         </div>
 
-        <div id="profile" class="content-area" style="display: none;">
-            <div class="profile-header">
-                <img src="https://via.placeholder.com/100" class="profile-img" id="p-img">
-                <i class="fas fa-pencil edit-pencil" onclick="editProfile()"></i>
-                <h2 id="p-name">Nome do Usuário</h2>
-                <p id="p-bio">Sua bio aparece aqui...</p>
-                <div style="display: flex; justify-content: center; gap: 20px;">
-                    <span><b>128</b> Seguidores</span>
-                    <span><b>256</b> Seguindo</span>
+        <div id="profile" class="content-container" style="display: none;">
+            <div class="profile-card">
+                <div class="avatar-container">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="p-avatar" id="p-img">
+                    <div class="edit-icon" onclick="editProfile()"><i class="fas fa-pencil-alt"></i></div>
+                </div>
+                <h2 id="p-name">Username</h2>
+                <p id="p-bio" style="opacity: 0.7;">Bio não definida...</p>
+                
+                <div style="display: flex; justify-content: center; gap: 30px; margin-top: 20px;">
+                    <div><b id="p-followers">0</b><br><small>Seguidores</small></div>
+                    <div><b id="p-following">0</b><br><small>Seguindo</small></div>
                 </div>
             </div>
         </div>
 
         <nav>
-            <i class="fas fa-home active" onclick="showTab('home', this)"></i>
-            <i class="fas fa-search" onclick="showTab('search', this)"></i>
-            <i class="fas fa-user" onclick="showTab('profile', this)"></i>
+            <i class="fas fa-th-large active" onclick="nav('home', this)"></i>
+            <i class="fas fa-search" onclick="nav('search', this)"></i>
+            <i class="fas fa-user-circle" onclick="nav('profile', this)"></i>
         </nav>
     </div>
 
     <script>
-        // Lógica de Navegação
-        function switchAuth(type) {
-            document.getElementById('login-form').style.display = type === 'login' ? 'block' : 'none';
-            document.getElementById('register-form').style.display = type === 'register' ? 'block' : 'none';
-            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active'));
+        let currentUser = null;
+        let mode = 'login';
+
+        // Inicializar Banco de Dados Local
+        if(!localStorage.getItem('kchat_users')) {
+            localStorage.setItem('kchat_users', JSON.stringify([
+                {user: 'admin', pass: '123', bio: 'Criador do KChat', followers: 999, img: 'https://api.dicebear.com/7.x/bottts/svg?seed=admin'}
+            ]));
         }
 
-        function login() {
+        function toggleAuth(m) {
+            mode = m;
+            document.getElementById('reg-extras').style.display = m === 'reg' ? 'block' : 'none';
+            document.getElementById('tab-login').classList.toggle('active', m === 'login');
+            document.getElementById('tab-reg').classList.toggle('active', m === 'reg');
+        }
+
+        function handleAuth() {
+            const userVal = document.getElementById('auth-user').value;
+            const passVal = document.getElementById('auth-pass').value;
+            let users = JSON.parse(localStorage.getItem('kchat_users'));
+
+            if(mode === 'reg') {
+                if(users.find(u => u.user === userVal)) return alert("Usuário já existe!");
+                const newUser = {
+                    user: userVal, pass: passVal, bio: 'Novo por aqui!', 
+                    followers: 0, following: 0,
+                    img: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userVal}`
+                };
+                users.push(newUser);
+                localStorage.setItem('kchat_users', JSON.stringify(users));
+                alert("Conta criada! Agora faça login.");
+                toggleAuth('login');
+            } else {
+                const found = users.find(u => u.user === userVal && u.pass === passVal);
+                if(found) {
+                    currentUser = found;
+                    startApp();
+                } else {
+                    alert("Dados incorretos!");
+                }
+            }
+        }
+
+        function startApp() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('main-app').style.display = 'flex';
-            updatePosts();
+            document.getElementById('p-name').innerText = currentUser.user;
+            document.getElementById('p-bio').innerText = currentUser.bio;
+            document.getElementById('p-img').src = currentUser.img;
+            syncPosts();
         }
 
-        function showTab(tabId, el) {
-            document.querySelectorAll('.content-area').forEach(c => c.style.display = 'none');
-            document.getElementById(tabId).style.display = 'block';
+        function nav(page, el) {
+            document.querySelectorAll('.content-container').forEach(c => c.style.display = 'none');
+            document.getElementById(page).style.display = 'block';
             document.querySelectorAll('nav i').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
+            if(page === 'search') doSearch();
         }
 
-        // Funcionalidade de Home (Posts)
-        function updatePosts() {
-            const feed = document.getElementById('feed-content');
-            feed.innerHTML = `<div class="post"><b>@Admin:</b> Bem-vindo ao KChat Global! 🚀</div>` + feed.innerHTML;
-        }
-
-        // Funcionalidade de Busca
-        const users = [
-            {name: 'Luna_Star', followers: 120},
-            {name: 'DevMaster', followers: 540},
-            {name: 'K-Lover', followers: 89}
-        ];
-
-        function searchUser() {
-            const list = document.getElementById('user-list');
-            list.innerHTML = users.map(u => `
-                <div class="user-card">
-                    <b>${u.name}</b> - ${u.followers} seguidores
-                    <button style="width: auto; padding: 5px 10px; float: right;" onclick="this.innerText='Seguindo'">Seguir</button>
+        function syncPosts() {
+            const list = document.getElementById('feed-list');
+            const posts = [
+                {u: 'admin', t: 'A estética Glassmorphism chegou no KChat! ✨'},
+                {u: 'K-Lover', t: 'Alguém online para conversar?'},
+                {u: currentUser.user, t: 'Acabei de entrar na rede!'}
+            ];
+            list.innerHTML = posts.map(p => `
+                <div class="post-card">
+                    <small style="color: var(--accent)">@${p.u}</small>
+                    <p style="margin: 8px 0 0;">${p.t}</p>
                 </div>
             `).join('');
         }
 
-        // Edição de Perfil
-        function editProfile() {
-            const newName = prompt("Novo nome:");
-            const newBio = prompt("Nova bio:");
-            if(newName) document.getElementById('p-name').innerText = newName;
-            if(newBio) document.getElementById('p-bio').innerText = newBio;
+        function doSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const users = JSON.parse(localStorage.getItem('kchat_users'));
+            const results = document.getElementById('search-results');
+            
+            // Filtra apenas usuários que existem no localStorage
+            const filtered = users.filter(u => u.user.toLowerCase().includes(query) && u.user !== currentUser.user);
+            
+            results.innerHTML = filtered.map(u => `
+                <div class="user-row">
+                    <div class="user-info">
+                        <img src="${u.img}" class="mini-avatar">
+                        <div>
+                            <b>${u.user}</b><br>
+                            <small>${u.followers} seguidores</small>
+                        </div>
+                    </div>
+                    <button class="follow-btn" onclick="follow('${u.user}', this)">Seguir</button>
+                </div>
+            `).join('');
         }
+
+        function follow(name, btn) {
+            btn.innerText = 'Seguindo';
+            btn.style.background = 'var(--glass)';
+            btn.style.color = 'white';
+        }
+
+        function editProfile() {
+            const n = prompt("Novo nome:", currentUser.user);
+            const b = prompt("Nova bio:", currentUser.bio);
+            const i = prompt("URL da nova foto:", currentUser.img);
+            
+            if(n) {
+                currentUser.user = n;
+                document.getElementById('p-name').innerText = n;
+            }
+            if(b) {
+                currentUser.bio = b;
+                document.getElementById('p-bio').innerText = b;
+            }
+            if(i) {
+                currentUser.img = i;
+                document.getElementById('p-img').src = i;
+            }
+            // Atualiza no "banco"
+            let users = JSON.parse(localStorage.getItem('kchat_users'));
+            const idx = users.findIndex(u => u.pass === currentUser.pass); // simplificado
+            users[idx] = currentUser;
+            localStorage.setItem('kchat_users', JSON.stringify(users));
+        }
+
+        // Lógica visual dos gêneros
+        document.querySelectorAll('.gender-opt').forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.gender-opt').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+            });
+        });
     </script>
 </body>
 </html>
