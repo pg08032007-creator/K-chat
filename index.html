@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KCHΛT | Global Sync v4</title>
+    <title>KCHΛT | Ultra Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com-react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        body { background-color: #050507; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
-        .glass { background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); }
+        body { background-color: #050507; color: white; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+        .glass { background: rgba(15, 15, 20, 0.85); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .post-card { background: #111118; border: 1px solid rgba(255,255,255,0.05); border-radius: 2rem; overflow: hidden; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .gender-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; border: 2px solid transparent; }
-        .gender-btn.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.2); box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+        .input-dark { background: #1a1a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 12px 16px; width: 100%; outline: none; transition: 0.3s; }
+        .input-dark:focus { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
     </style>
 </head>
 <body>
@@ -31,163 +33,219 @@
         };
 
         function App() {
-            const [user, setUser] = useState(() => DB.get('active_session', null));
-            const [dbUsers, setDbUsers] = useState(() => DB.get('users_list', []));
-            const [posts, setPosts] = useState(() => DB.get('global_posts', []));
-            const [messages, setMessages] = useState(() => DB.get('global_chats', []));
-            
+            const [user, setUser] = useState(() => DB.get('kchat_active_session', null));
+            const [dbUsers, setDbUsers] = useState(() => DB.get('kchat_users', []));
+            const [posts, setPosts] = useState(() => DB.get('kchat_posts', []));
+            const [messages, setMessages] = useState(() => DB.get('kchat_messages', []));
             const [view, setView] = useState('feed');
             const [targetUser, setTargetUser] = useState(null);
-            const [searchQuery, setSearchQuery] = useState('');
+            const [search, setSearch] = useState('');
 
-            // Sincronização Global
             useEffect(() => {
-                DB.save('users_list', dbUsers);
-                DB.save('global_posts', posts);
-                DB.save('global_chats', messages);
-                if (user) DB.save('active_session', user);
+                DB.save('kchat_users', dbUsers);
+                DB.save('kchat_posts', posts);
+                DB.save('kchat_messages', messages);
+                if (user) {
+                    const fresh = dbUsers.find(u => u.id === user.id);
+                    if (fresh) DB.save('kchat_active_session', fresh);
+                }
             }, [dbUsers, posts, messages, user]);
 
+            const handleLogin = (name, pass) => {
+                const found = dbUsers.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
+                if (found) { setUser(found); setView('feed'); } 
+                else alert("Dados incorretos!");
+            };
+
             const handleRegister = (data) => {
-                const newUser = { ...data, id: crypto.randomUUID(), bio: 'Explorador KChat', joined: Date.now() };
+                const newUser = { ...data, id: crypto.randomUUID(), bio: 'Explorando o KCHΛT', joinedAt: new Date().toISOString() };
                 setDbUsers([...dbUsers, newUser]);
                 setUser(newUser);
             };
 
-            const handleLogin = (name, pass) => {
-                const found = dbUsers.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
-                if (found) setUser(found); else alert("Dados inválidos!");
+            const handleSync = (jsonString) => {
+                try {
+                    const data = JSON.parse(jsonString);
+                    if(data.users) setDbUsers(data.users);
+                    if(data.posts) setPosts(data.posts);
+                    alert("Dados sincronizados com sucesso!");
+                } catch(e) { alert("Código de sincronização inválido."); }
             };
 
-            const updateFullProfile = (updatedUser) => {
-                setDbUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-                setPosts(prev => prev.map(p => p.userId === updatedUser.id ? { ...p, user: updatedUser.name, avatar: updatedUser.avatar } : p));
-                setUser(updatedUser);
-            };
-
-            if (!user) return <Auth onLogin={handleLogin} onRegister={handleRegister} />;
+            if (!user) return <AuthScreen onLogin={handleLogin} onRegister={handleRegister} />;
 
             return (
-                <div className="h-screen max-w-md mx-auto bg-[#050507] flex flex-col relative shadow-2xl border-x border-white/5">
-                    {/* Header Fixa */}
-                    <header className="h-16 flex items-center justify-between px-6 shrink-0 z-50 bg-[#050507]/80 backdrop-blur-md">
-                        <h1 className="text-2xl font-black italic text-purple-600 tracking-tighter" onClick={() => setView('feed')}>KCHΛT</h1>
-                        <i className="bi bi-chat-dots text-xl text-slate-400" onClick={() => setView('chats')}></i>
+                <div className="flex flex-col h-screen max-w-md mx-auto bg-[#050507] relative shadow-2xl overflow-hidden">
+                    <header className="h-16 flex items-center justify-between px-6 shrink-0 glass z-50">
+                        <h1 className="text-2xl font-black italic text-purple-500 tracking-tighter cursor-pointer" onClick={() => setView('feed')}>KCHΛT</h1>
+                        <div className="flex gap-4">
+                            <i className="bi bi-chat-dots text-xl text-slate-400" onClick={() => setView('chats')}></i>
+                        </div>
                     </header>
 
-                    {/* Área de Scroll */}
-                    <main className="flex-1 overflow-y-auto pb-24 hide-scrollbar">
-                        {view === 'feed' && <Feed posts={posts} onUserClick={(uId) => {
-                            const u = dbUsers.find(x => x.id === uId);
-                            setTargetUser(u);
-                            setView('other_profile');
-                        }} />}
-
+                    <main className="flex-1 overflow-y-auto pb-24 hide-scrollbar bg-[#050507]">
+                        {view === 'feed' && <Feed posts={posts} onUserClick={(u) => { setTargetUser(u); setView('other_profile'); }} />}
+                        
                         {view === 'search' && (
                             <div className="p-6 fade-in">
                                 <div className="relative mb-6">
                                     <i className="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                                    <input className="w-full bg-[#111118] py-4 pl-12 pr-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" 
-                                        placeholder="Buscar @nome..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                                    <input className="input-dark pl-12" placeholder="Buscar perfis..." value={search} onChange={e => setSearch(e.target.value)} />
                                 </div>
-                                {dbUsers.filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) && u.id !== user.id).map(u => (
-                                    <div key={u.id} onClick={() => { setTargetUser(u); setView('other_profile'); }} className="flex items-center gap-4 p-4 mb-2 bg-[#111118] rounded-2xl active:scale-95 transition">
-                                        <img src={u.avatar} className="w-12 h-12 rounded-full object-cover border border-purple-500/20" />
-                                        <div className="flex-1 font-bold text-sm">@{u.name}</div>
-                                        <i className="bi bi-chevron-right text-slate-700"></i>
-                                    </div>
-                                ))}
+                                <div className="space-y-3">
+                                    {dbUsers.filter(u => u.name.toLowerCase().includes(search.toLowerCase()) && u.id !== user.id).map(u => (
+                                        <div key={u.id} onClick={() => { setTargetUser(u); setView('other_profile'); }} className="flex items-center gap-4 p-4 bg-[#111118] rounded-2xl active:scale-95 transition border border-white/5">
+                                            <img src={u.avatar} className="w-12 h-12 rounded-full object-cover border border-purple-500/30" />
+                                            <div className="flex-1 font-bold">@{u.name}</div>
+                                            <i className="bi bi-arrow-right-short text-slate-600"></i>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        {view === 'profile' && <MyProfile user={user} posts={posts} onSave={updateFullProfile} onLogout={() => { localStorage.removeItem('active_session'); window.location.reload(); }} />}
-                        
-                        {view === 'other_profile' && <OtherProfile profile={targetUser} posts={posts} onMessage={() => setView('room')} />}
+                        {view === 'profile' && (
+                            <ProfileView 
+                                profile={dbUsers.find(u => u.id === user.id)} 
+                                isMe={true} 
+                                posts={posts}
+                                onUpdate={(data) => {
+                                    const updated = dbUsers.map(u => u.id === user.id ? { ...u, ...data } : u);
+                                    setDbUsers(updated);
+                                    setUser({...user, ...data});
+                                }}
+                                onLogout={() => { localStorage.removeItem('kchat_active_session'); setUser(null); }}
+                                allData={{users: dbUsers, posts: posts}}
+                                onSync={handleSync}
+                            />
+                        )}
 
-                        {view === 'chats' && <ChatList users={dbUsers} me={user} messages={messages} onSelect={(u) => { setTargetUser(u); setView('room'); }} />}
-                        
-                        {view === 'room' && <ChatRoom partner={targetUser} me={user} messages={messages} setMessages={setMessages} onBack={() => setView('chats')} />}
+                        {view === 'other_profile' && (
+                            <ProfileView 
+                                profile={targetUser} 
+                                isMe={false} 
+                                posts={posts}
+                                onMessage={(u) => { setTargetUser(u); setView('chat_room'); }}
+                            />
+                        )}
 
+                        {view === 'chats' && <ChatList users={dbUsers} me={user} messages={messages} onSelect={(u) => { setTargetUser(u); setView('chat_room'); }} />}
+                        {view === 'chat_room' && <ChatRoom partner={targetUser} me={user} messages={messages} setMessages={setMessages} onBack={() => setView('chats')} />}
                         {view === 'create' && <CreatePost user={user} onDone={(p) => { setPosts([p, ...posts]); setView('feed'); }} />}
                     </main>
 
-                    {/* Navbar */}
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 glass flex items-center justify-around z-50 max-w-md mx-auto rounded-t-[2rem]">
-                        <i className={`bi bi-house-door${view==='feed'?'-fill text-purple-500':' text-slate-600'} text-2xl`} onClick={()=>setView('feed')}></i>
-                        <i className={`bi bi-search${view==='search'?'-fill text-purple-500':' text-slate-600'} text-2xl`} onClick={()=>setView('search')}></i>
-                        <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/40" onClick={()=>setView('create')}><i className="bi bi-plus-lg text-white text-xl"></i></div>
-                        <i className={`bi bi-person${view==='profile'?'-fill text-purple-500':' text-slate-600'} text-2xl`} onClick={()=>setView('profile')}></i>
+                    <nav className="fixed bottom-0 left-0 right-0 h-20 glass flex items-center justify-around z-50 max-w-md mx-auto rounded-t-[2.5rem] px-4">
+                        <NavBtn icon="house-door" active={view==='feed'} onClick={()=>setView('feed')} />
+                        <NavBtn icon="search" active={view==='search'} onClick={()=>setView('search')} />
+                        <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 active:scale-90 transition mb-4" onClick={()=>setView('create')}>
+                            <i className="bi bi-plus-lg text-white text-2xl"></i>
+                        </div>
+                        <NavBtn icon="chat-left-text" active={view==='chats'} onClick={()=>setView('chats')} />
+                        <NavBtn icon="person" active={view==='profile'} onClick={()=>setView('profile')} />
                     </nav>
                 </div>
             );
         }
 
-        // --- COMPONENTES ATUALIZADOS ---
+        const NavBtn = ({icon, active, onClick}) => (
+            <i className={`bi bi-${icon}${active?'-fill text-purple-500':'-fill text-slate-600'} text-2xl transition-all`} onClick={onClick}></i>
+        );
 
-        function MyProfile({ user, posts, onSave, onLogout }) {
-            const [edit, setEdit] = useState(false);
-            const [form, setForm] = useState({...user});
-            const myPosts = posts.filter(p => p.userId === user.id);
+        function ProfileView({ profile, isMe, posts, onUpdate, onLogout, onMessage, allData, onSync }) {
+            const [isEditing, setIsEditing] = useState(false);
+            const [editForm, setEditForm] = useState({ name: profile?.name, bio: profile?.bio, avatar: profile?.avatar });
+            const myPosts = posts.filter(p => p.userId === profile?.id);
 
-            const handleImg = (e) => {
+            const handleFile = (e) => {
                 const reader = new FileReader();
-                reader.onload = () => setForm({...form, avatar: reader.result});
+                reader.onload = () => setEditForm({...editForm, avatar: reader.result});
                 reader.readAsDataURL(e.target.files[0]);
             };
 
             return (
-                <div className="fade-in">
-                    <div className="p-8 flex flex-col items-center border-b border-white/5 relative">
-                        <button onClick={() => { if(edit) onSave(form); setEdit(!edit); }} className="absolute top-6 right-6 w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
-                            <i className={`bi bi-${edit ? 'check-lg text-green-500 text-xl' : 'pencil text-purple-500'}`}></i>
-                        </button>
-                        
+                <div className="fade-in pb-10">
+                    <div className="p-8 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-purple-500/5 to-transparent">
                         <div className="relative group">
-                            <img src={form.avatar} className="w-24 h-24 rounded-full border-4 border-purple-600 p-1 object-cover" />
-                            {edit && (
-                                <label className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center cursor-pointer">
-                                    <i className="bi bi-camera text-white"></i>
-                                    <input type="file" className="hidden" onChange={handleImg} />
+                            <img src={isEditing ? editForm.avatar : profile?.avatar} className="w-32 h-32 rounded-full border-4 border-[#111118] outline outline-2 outline-purple-500 object-cover shadow-2xl" />
+                            {isEditing && (
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full cursor-pointer">
+                                    <i className="bi bi-camera text-2xl"></i>
+                                    <input type="file" className="hidden" onChange={handleFile} />
                                 </label>
                             )}
                         </div>
 
-                        {edit ? (
+                        {isEditing ? (
                             <div className="w-full mt-6 space-y-3">
-                                <input className="w-full bg-white/5 p-3 rounded-xl text-center text-sm outline-none border border-purple-500/30" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="Nome" />
-                                <textarea className="w-full bg-white/5 p-3 rounded-xl text-center text-sm outline-none border border-purple-500/30" value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="Sua bio..." />
+                                <input className="input-dark text-center font-bold" value={editForm.name} onChange={e=>setEditForm({...editForm, name: e.target.value})} placeholder="Nome de usuário" />
+                                <textarea className="input-dark text-sm" value={editForm.bio} onChange={e=>setEditForm({...editForm, bio: e.target.value})} placeholder="Sua bio..." rows="3" />
+                                <div className="flex gap-2">
+                                    <button className="flex-1 py-3 bg-purple-600 rounded-xl font-bold" onClick={() => { onUpdate(editForm); setIsEditing(false); }}>Salvar</button>
+                                    <button className="flex-1 py-3 bg-white/5 rounded-xl font-bold" onClick={() => setIsEditing(false)}>Cancelar</button>
+                                </div>
                             </div>
                         ) : (
                             <>
-                                <h3 className="text-xl font-black mt-4 uppercase tracking-tighter">@{user.name}</h3>
-                                <p className="text-slate-400 text-sm mt-2 text-center px-6 italic">"{user.bio}"</p>
+                                <h3 className="text-2xl font-black mt-4 uppercase italic">@{profile?.name}</h3>
+                                <p className="text-slate-400 text-sm mt-2 text-center px-10 leading-relaxed italic">"{profile?.bio}"</p>
+                                <div className="flex gap-3 mt-6 w-full">
+                                    {isMe ? (
+                                        <button onClick={() => setIsEditing(true)} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-2xl font-bold text-xs uppercase tracking-widest">Editar Perfil</button>
+                                    ) : (
+                                        <button onClick={() => onMessage(profile)} className="flex-1 py-3 bg-purple-600 rounded-2xl font-bold text-xs uppercase shadow-lg">Enviar Mensagem</button>
+                                    )}
+                                </div>
                             </>
                         )}
-                        <button onClick={onLogout} className="mt-6 text-[10px] font-bold text-red-500 uppercase tracking-widest border border-red-500/20 px-6 py-2 rounded-full">Desconectar</button>
                     </div>
-                    <div className="grid grid-cols-3 gap-1 p-1">
-                        {myPosts.map(p => <img key={p.id} src={p.img} className="aspect-square object-cover rounded-sm" />)}
+
+                    {isMe && !isEditing && (
+                        <div className="p-6 bg-purple-600/5 mx-4 mt-4 rounded-3xl border border-purple-500/10">
+                            <h4 className="text-[10px] font-black uppercase text-purple-400 mb-2">Sincronização Cloud (Manual)</h4>
+                            <div className="flex gap-2">
+                                <button className="flex-1 py-2 bg-white/5 text-[10px] uppercase font-bold rounded-lg border border-white/5" 
+                                    onClick={() => { navigator.clipboard.writeText(JSON.stringify(allData)); alert("Código de sincronização copiado!"); }}>Exportar Dados</button>
+                                <button className="flex-1 py-2 bg-white/5 text-[10px] uppercase font-bold rounded-lg border border-white/5"
+                                    onClick={() => { const code = prompt("Cole o código aqui:"); if(code) onSync(code); }}>Importar</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-3 gap-1 p-1 mt-4">
+                        {myPosts.length > 0 ? myPosts.map(p => (
+                            <div key={p.id} className="aspect-square bg-white/5 rounded-sm overflow-hidden">
+                                <img src={p.img} className="w-full h-full object-cover" />
+                            </div>
+                        )) : (
+                            <div className="col-span-3 py-20 text-center text-slate-700">
+                                <i className="bi bi-grid-3x3 text-4xl block mb-2"></i>
+                                <p className="text-xs uppercase font-black">Nenhuma publicação</p>
+                            </div>
+                        )}
                     </div>
+                    {isMe && <button onClick={onLogout} className="w-[calc(100%-3rem)] mx-6 mt-10 py-4 text-red-500/60 font-bold text-xs uppercase border border-red-500/10 rounded-2xl">Encerrar Sessão</button>}
                 </div>
             );
         }
 
-        function Feed({ posts, onUserClick }) {
+        function ChatList({ users, me, messages, onSelect }) {
+            const others = users.filter(u => u.id !== me.id);
             return (
-                <div className="p-4 space-y-6 fade-in">
-                    {posts.length === 0 ? <div className="text-center py-20 text-slate-700 font-bold uppercase tracking-widest text-xs">O feed está vazio</div> :
-                    posts.map(p => (
-                        <article key={p.id} className="bg-[#111118] rounded-[2.5rem] border border-white/5 overflow-hidden">
-                            <div className="p-4 flex items-center gap-3" onClick={() => onUserClick(p.userId)}>
-                                <img src={p.avatar} className="w-8 h-8 rounded-full object-cover" />
-                                <span className="font-bold text-xs uppercase tracking-widest">@{p.user}</span>
+                <div className="p-6 fade-in space-y-3">
+                    <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Mensagens Diretas</h2>
+                    {others.map(u => {
+                        const last = [...messages].reverse().find(m => (m.from === me.id && m.to === u.id) || (m.from === u.id && m.to === me.id));
+                        return (
+                            <div key={u.id} onClick={() => onSelect(u)} className="flex items-center gap-4 p-4 bg-[#111118] rounded-[1.5rem] border border-white/5 active:scale-95 transition">
+                                <img src={u.avatar} className="w-14 h-14 rounded-full border border-purple-500/20 object-cover" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-sm">@{u.name}</p>
+                                    <p className="text-xs text-slate-500 truncate">{last ? last.text : 'Comece uma conversa...'}</p>
+                                </div>
+                                {last && <span className="text-[10px] text-slate-600">{last.time}</span>}
                             </div>
-                            <img src={p.img} className="w-full aspect-square object-cover" />
-                            <div className="p-5">
-                                <p className="text-sm text-slate-300 leading-relaxed"><span className="font-black mr-2 text-white">@{p.user}</span>{p.text}</p>
-                            </div>
-                        </article>
-                    ))}
+                        );
+                    })}
                 </div>
             );
         }
@@ -195,9 +253,9 @@
         function ChatRoom({ partner, me, messages, setMessages, onBack }) {
             const [text, setText] = useState('');
             const endRef = useRef(null);
-            const chat = messages.filter(m => (m.from === me.id && m.to === partner.id) || (m.from === partner.id && m.to === me.id));
+            const chatLog = messages.filter(m => (m.from === me.id && m.to === partner.id) || (m.from === partner.id && m.to === me.id));
 
-            useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), [chat]);
+            useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [chatLog]);
 
             const send = () => {
                 if(!text.trim()) return;
@@ -207,98 +265,63 @@
             };
 
             return (
-                <div className="fixed inset-0 z-[100] bg-[#050507] max-w-md mx-auto flex flex-col">
-                    <div className="h-16 flex items-center gap-4 px-6 glass">
-                        <i className="bi bi-arrow-left text-xl" onClick={onBack}></i>
-                        <img src={partner.avatar} className="w-9 h-9 rounded-full object-cover" />
-                        <span className="font-bold text-sm">@{partner.name}</span>
+                <div className="flex flex-col h-full fixed inset-0 z-[60] bg-[#050507] max-w-md mx-auto">
+                    <div className="h-20 flex items-center gap-4 px-6 glass">
+                        <i className="bi bi-chevron-left text-xl" onClick={onBack}></i>
+                        <img src={partner.avatar} className="w-10 h-10 rounded-full object-cover" />
+                        <div>
+                            <p className="font-bold text-sm">@{partner.name}</p>
+                            <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Online</p>
+                        </div>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar">
-                        {chat.map(m => (
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.05),transparent)]">
+                        {chatLog.map(m => (
                             <div key={m.id} className={`flex ${m.from === me.id ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[75%] p-4 rounded-[1.5rem] text-sm ${m.from === me.id ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-[#111118] text-slate-300 rounded-tl-none'}`}>
+                                <div className={`max-w-[80%] p-4 rounded-3xl text-sm ${m.from === me.id ? 'bg-purple-600 text-white rounded-tr-none shadow-lg shadow-purple-900/20' : 'bg-[#1a1a24] text-slate-200 rounded-tl-none border border-white/5'}`}>
                                     {m.text}
-                                    <div className="text-[8px] opacity-40 mt-1 text-right">{m.time}</div>
+                                    <p className="text-[9px] opacity-40 mt-1 text-right">{m.time}</p>
                                 </div>
                             </div>
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <div className="p-4 bg-[#050507] border-t border-white/5 flex gap-2">
-                        <input className="flex-1 bg-white/5 p-4 rounded-2xl outline-none" placeholder="Sua mensagem..." value={text} onChange={e => setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} />
-                        <button onClick={send} className="bg-purple-600 w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"><i className="bi bi-send-fill"></i></button>
+                    <div className="p-6 bg-[#050507] border-t border-white/5 flex gap-3 pb-8">
+                        <input className="input-dark" placeholder="Escreva..." value={text} onChange={e => setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} />
+                        <button onClick={send} className="bg-purple-600 w-14 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition"><i className="bi bi-send-fill text-xl"></i></button>
                     </div>
                 </div>
             );
         }
 
-        // --- DEMAIS COMPONENTES (Auth, ChatList, OtherProfile, CreatePost) ---
-
-        function Auth({ onLogin, onRegister }) {
-            const [isReg, setIsReg] = useState(false);
-            const [f, setF] = useState({ name: '', pass: '', gender: 'gender-ambiguous', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky' });
+        function Feed({ posts, onUserClick }) {
             return (
-                <div className="h-screen flex items-center justify-center p-8 bg-[#050507]">
-                    <div className="w-full max-w-sm bg-[#111118] p-10 rounded-[3rem] border border-white/5 text-center fade-in">
-                        <h2 className="text-4xl font-black italic text-purple-600 mb-8 tracking-tighter">KCHΛT</h2>
-                        <div className="space-y-4">
-                            <input className="w-full bg-white/5 p-4 rounded-2xl outline-none" placeholder="Usuário" onChange={e => setF({...f, name: e.target.value})} />
-                            <input className="w-full bg-white/5 p-4 rounded-2xl outline-none" type="password" placeholder="Senha" onChange={e => setF({...f, pass: e.target.value})} />
-                            {isReg && (
-                                <div className="flex justify-center gap-4 py-4">
-                                    {['gender-male', 'gender-female', 'gender-ambiguous'].map(g => (
-                                        <div key={g} className={`gender-btn ${f.gender === g ? 'active' : 'bg-white/5'}`} onClick={() => setF({...f, gender: g})}>
-                                            <i className={`bi bi-${g} text-lg`}></i>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <button className="w-full py-4 bg-purple-600 rounded-2xl font-black uppercase text-xs tracking-[0.2em] mt-4" onClick={() => isReg ? onRegister(f) : onLogin(f.name, f.pass)}>
-                                {isReg ? 'Registrar' : 'Entrar'}
-                            </button>
-                            <p className="text-slate-500 text-[10px] mt-6 cursor-pointer uppercase font-bold" onClick={() => setIsReg(!isReg)}>
-                                {isReg ? 'Voltar ao Login' : 'Criar nova conta'}
-                            </p>
+                <div className="p-4 space-y-6 fade-in">
+                    {posts.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-40 text-slate-700">
+                            <i className="bi bi-rocket-takeoff text-6xl mb-4 opacity-20"></i>
+                            <p className="font-bold uppercase tracking-widest text-xs">Nada por aqui ainda...</p>
                         </div>
-                    </div>
-                </div>
-            );
-        }
-
-        function OtherProfile({ profile, posts, onMessage }) {
-            const myPosts = posts.filter(p => p.userId === profile?.id);
-            return (
-                <div className="fade-in">
-                    <div className="p-8 flex flex-col items-center border-b border-white/5">
-                        <img src={profile?.avatar} className="w-24 h-24 rounded-full border-4 border-purple-600 p-1 object-cover" />
-                        <h3 className="text-xl font-black mt-4 uppercase tracking-tighter">@{profile?.name}</h3>
-                        <p className="text-slate-400 text-sm mt-2 text-center px-6 italic">"{profile?.bio}"</p>
-                        <button onClick={onMessage} className="mt-8 w-full py-4 bg-purple-600 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-purple-500/20">Enviar Mensagem</button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 p-1">
-                        {myPosts.map(p => <img key={p.id} src={p.img} className="aspect-square object-cover rounded-sm" />)}
-                    </div>
-                </div>
-            );
-        }
-
-        function ChatList({ users, me, messages, onSelect }) {
-            const others = users.filter(u => u.id !== me.id);
-            return (
-                <div className="p-6 fade-in space-y-4">
-                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Conversas</h2>
-                    {others.map(u => {
-                        const last = [...messages].reverse().find(m => (m.from === me.id && m.to === u.id) || (m.from === u.id && m.to === me.id));
-                        return (
-                            <div key={u.id} onClick={() => onSelect(u)} className="flex items-center gap-4 p-4 bg-[#111118] rounded-[2rem] border border-white/5">
-                                <img src={u.avatar} className="w-12 h-12 rounded-full border border-purple-500/20 object-cover" />
-                                <div className="flex-1">
-                                    <p className="font-bold text-sm">@{u.name}</p>
-                                    <p className="text-[10px] text-slate-500 truncate">{last ? last.text : 'Nenhuma mensagem...'}</p>
+                    ) : (
+                        posts.map(p => (
+                            <article key={p.id} className="post-card fade-in">
+                                <div className="p-4 flex items-center gap-3 cursor-pointer" onClick={() => onUserClick({id: p.userId, name: p.user, avatar: p.avatar})}>
+                                    <img src={p.avatar} className="w-10 h-10 rounded-full border-2 border-purple-500/20 object-cover" />
+                                    <span className="font-bold text-xs uppercase tracking-tighter">@{p.user}</span>
                                 </div>
-                            </div>
-                        );
-                    })}
+                                <img src={p.img} className="w-full aspect-square object-cover" loading="lazy" />
+                                <div className="p-5">
+                                    <div className="flex gap-4 mb-4">
+                                        <i className="bi bi-heart text-2xl hover:text-purple-500 transition"></i>
+                                        <i className="bi bi-chat-right text-2xl hover:text-purple-500 transition"></i>
+                                        <i className="bi bi-send text-2xl hover:text-purple-500 transition"></i>
+                                    </div>
+                                    <p className="text-sm leading-relaxed text-slate-200">
+                                        <span className="font-black mr-2 text-white">@{p.user}</span>{p.text}
+                                    </p>
+                                </div>
+                            </article>
+                        ))
+                    )}
                 </div>
             );
         }
@@ -312,14 +335,41 @@
                 reader.readAsDataURL(e.target.files[0]);
             };
             return (
-                <div className="p-8 space-y-6 fade-in">
-                    <h2 className="text-xl font-bold italic text-purple-600 uppercase tracking-widest">Novo Post</h2>
-                    <label className="block aspect-square bg-[#111118] border-2 border-dashed border-white/10 rounded-[3rem] overflow-hidden flex items-center justify-center cursor-pointer">
-                        {img ? <img src={img} className="w-full h-full object-cover" /> : <div className="text-center"><i className="bi bi-camera text-4xl text-purple-600 mb-2"></i><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Selecionar Foto</p></div>}
+                <div className="p-8 space-y-6 fade-in h-full flex flex-col">
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-purple-500">Novo Momento</h2>
+                    <label className="block aspect-square bg-[#111118] border-2 border-dashed border-white/10 rounded-[3rem] overflow-hidden flex items-center justify-center cursor-pointer group transition-all hover:border-purple-500/50">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <div className="text-center group-hover:scale-110 transition duration-500"><i className="bi bi-plus-circle text-5xl text-purple-600 block mb-3"></i><span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Selecionar Mídia</span></div>}
                         <input type="file" className="hidden" accept="image/*" onChange={handleFile} />
                     </label>
-                    <textarea className="w-full bg-transparent border-b border-white/10 p-4 outline-none text-white h-24 text-sm" placeholder="Escreva a legenda..." onChange={e => setText(e.target.value)} />
-                    <button onClick={() => img && onDone({id: Date.now(), userId: user.id, user: user.name, avatar: user.avatar, img, text})} className="w-full py-5 bg-purple-600 rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-lg shadow-purple-500/30">Publicar</button>
+                    <textarea className="input-dark flex-1 resize-none" placeholder="O que está acontecendo?" onChange={e => setText(e.target.value)} />
+                    <button onClick={() => img && onDone({id: Date.now(), userId: user.id, user: user.name, avatar: user.avatar, img, text})} 
+                        className="w-full py-5 bg-purple-600 rounded-[2rem] font-black uppercase tracking-widest shadow-xl shadow-purple-500/20 active:scale-95 transition-all mb-10">Publicar</button>
+                </div>
+            );
+        }
+
+        function AuthScreen({ onLogin, onRegister }) {
+            const [isReg, setIsReg] = useState(false);
+            const [form, setForm] = useState({ name: '', pass: '', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}` });
+            return (
+                <div className="min-h-screen flex items-center justify-center p-6 bg-[#050507]">
+                    <div className="w-full max-w-sm text-center fade-in">
+                        <div className="mb-12">
+                            <h2 className="text-6xl font-black italic text-purple-600 tracking-tighter uppercase mb-2">KCHΛT</h2>
+                            <p className="text-slate-500 text-xs uppercase font-bold tracking-[0.3em]">The Social Evolution</p>
+                        </div>
+                        <div className="space-y-4">
+                            <input className="input-dark py-5" placeholder="Usuário" onChange={e => setForm({...form, name: e.target.value})} />
+                            <input className="input-dark py-5" type="password" placeholder="Senha" onChange={e => setForm({...form, pass: e.target.value})} />
+                            <button className="w-full py-5 bg-purple-600 rounded-3xl font-black uppercase tracking-widest mt-4 shadow-2xl shadow-purple-500/40 active:scale-95 transition" 
+                                onClick={() => isReg ? onRegister(form) : onLogin(form.name, form.pass)}>
+                                {isReg ? 'Criar Conta' : 'Entrar'}
+                            </button>
+                            <p className="text-slate-500 text-xs mt-8 cursor-pointer font-bold uppercase tracking-widest hover:text-purple-400" onClick={() => setIsReg(!isReg)}>
+                                {isReg ? 'Já possui conta? Login' : 'Novo por aqui? Cadastre-se'}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             );
         }
