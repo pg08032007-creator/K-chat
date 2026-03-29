@@ -1,0 +1,39 @@
+let currentMode = 'login';
+
+function switchAuth(mode) {
+    currentMode = mode;
+    document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+    document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+    document.getElementById('auth-submit').innerText = mode === 'login' ? 'Entrar' : 'Registrar';
+}
+
+document.getElementById('auth-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    let users = JSON.parse(localStorage.getItem('app_users') || '[]');
+
+    if (currentMode === 'register') {
+        if (users.find(u => u.name === user)) {
+            alert("Este nome já está em uso!");
+            return;
+        }
+        users.push({ name: user, pass: pass });
+        localStorage.setItem('app_users', JSON.stringify(users));
+        showScreen('profile-screen');
+    } else {
+        const found = users.find(u => u.name === user && u.pass === pass);
+        if (found) showScreen('main-screen');
+        else alert("Usuário ou senha incorretos.");
+    }
+});
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function finishProfile() {
+    // Aqui você salvaria idade, foto e gênero
+    showScreen('main-screen');
+}
