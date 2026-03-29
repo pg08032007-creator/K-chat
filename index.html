@@ -11,24 +11,25 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
+        /* Estrutura de Telas */
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; overflow-y: auto; padding-bottom: 100px; }
         .screen.active { display: flex; }
 
         /* Auth Styles */
-        .auth-container { padding: 40px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .auth-container { padding: 40px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; }
         .logo-k { color: var(--primary); font-size: 3.5rem; font-weight: 800; margin-bottom: 30px; }
         .tabs { display: flex; gap: 30px; margin-bottom: 20px; }
-        .tabs button { background: none; border: none; color: #555; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .tabs button { background: none; border: none; color: #555; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; padding-bottom: 5px; }
         .tabs button.active { color: #fff; border-bottom: 2px solid var(--primary); }
-        form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 15px; }
-
+        
         /* Profile Setup */
-        .pfp-wrapper { position: relative; width: 120px; height: 120px; margin: 30px 0; }
-        #pfp-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
+        .pfp-wrapper { position: relative; width: 120px; height: 120px; margin: 20px auto 30px; }
+        #pfp-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
         .pfp-label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         
-        .gender-group { display: flex; gap: 25px; margin: 20px 0; justify-content: center; width: 100%; }
-        .gender-option { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .gender-group { display: flex; gap: 40px; margin: 20px 0; justify-content: center; width: 100%; }
+        .gender-option { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; font-size: 1.5rem; }
+        .gender-option input { transform: scale(1.2); }
 
         /* Feed & Nav */
         .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; z-index: 10; border-bottom: 1px solid #111; }
@@ -41,17 +42,17 @@
         .post-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .post-media { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 400px; object-fit: cover; }
 
-        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 50; }
+        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: none; justify-content: center; z-index: 50; }
         .nav-container { background: rgba(10, 10, 10, 0.9); width: 90%; height: 75px; border-radius: 40px; border: 1px solid #1a1a1a; display: flex; justify-content: space-around; align-items: center; backdrop-filter: blur(10px); }
         .nav-item { font-size: 24px; color: #555; cursor: pointer; }
         .nav-item.active { color: #fff; }
-        .plus-btn { background: var(--accent); width: 65px; height: 65px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-top: -15px; }
+        .plus-btn { background: var(--accent); width: 65px; height: 65px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-top: -15px; box-shadow: 0 5px 15px rgba(192, 38, 211, 0.3); }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .modal-content { background: #111; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px; }
 
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         input[type="text"], input[type="password"], input[type="number"], textarea { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; outline: none; margin-bottom: 10px; }
     </style>
 </head>
@@ -74,9 +75,10 @@
 
     <div id="scr-profile-setup" class="screen">
         <div class="auth-container">
-            <h2>Complete seu Perfil</h2>
+            <h2>Quase lá...</h2>
+            <p style="color: #888; margin-bottom: 20px;">Personalize seu perfil</p>
             <div class="pfp-wrapper">
-                <img src="https://via.placeholder.com/120/8a2be2/ffffff?text=K" id="pfp-preview">
+                <img src="https://via.placeholder.com/120/222/8a2be2?text=?" id="pfp-preview">
                 <label class="pfp-label" for="pfp-input"><i class="fa fa-camera"></i></label>
                 <input type="file" id="pfp-input" hidden accept="image/*">
             </div>
@@ -85,33 +87,34 @@
                 <label class="gender-option"><i class="fa fa-mars" style="color:#0084ff"></i><input type="radio" name="gender" value="m"></label>
                 <label class="gender-option"><i class="fa fa-venus" style="color:#ff007b"></i><input type="radio" name="gender" value="f"></label>
             </div>
-            <button class="btn-main" id="btn-create-account">Finalizar Cadastro</button>
+            <button class="btn-main" id="btn-create-account">Criar minha conta</button>
         </div>
     </div>
 
     <div id="scr-feed" class="screen">
         <header class="top-bar">
             <span class="top-bar-logo">K.</span>
-            <div class="search-container"><input type="text" placeholder="Buscar..."></div>
+            <div class="search-container"><input type="text" placeholder="Buscar no K. Network..."></div>
         </header>
         <div id="posts-container"></div>
     </div>
 
-    <nav class="bottom-nav" id="main-nav" style="display:none">
+    <nav class="bottom-nav" id="main-nav">
         <div class="nav-container">
-            <i class="fa-solid fa-compass nav-item" id="nav-feed" onclick="showScreen('scr-feed')"></i>
+            <i class="fa-solid fa-compass nav-item active" id="nav-feed" onclick="showScreen('scr-feed')"></i>
             <div class="plus-btn" onclick="openModal('modal-post')"><i class="fa-solid fa-plus"></i></div>
-            <i class="fa-solid fa-user nav-item" id="nav-profile" onclick="showScreen('scr-feed')"></i>
+            <i class="fa-solid fa-user nav-item" id="nav-profile"></i>
         </div>
     </nav>
 
     <div id="modal-post" class="modal">
         <div class="modal-content">
-            <h3>Novo Post</h3>
-            <textarea id="post-text" placeholder="O que há de novo?"></textarea>
-            <input type="file" id="post-media" accept="image/*">
-            <button class="btn-main" id="btn-submit-post">Postar</button>
-            <button class="btn-main" style="background:#333; margin-top:10px" onclick="closeModal('modal-post')">Cancelar</button>
+            <h3 style="margin-bottom: 15px;">Novo Post</h3>
+            <textarea id="post-text" rows="4" placeholder="O que você está pensando?"></textarea>
+            <p style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Adicionar mídia:</p>
+            <input type="file" id="post-media" accept="image/*" style="font-size: 0.8rem;">
+            <button class="btn-main" id="btn-submit-post" style="margin-top: 15px;">Postar Agora</button>
+            <button class="btn-main" style="background:#222; margin-top:10px" onclick="closeModal('modal-post')">Cancelar</button>
         </div>
     </div>
 
@@ -120,6 +123,7 @@
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+        // Configuração original do seu Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
             authDomain: "kchat-1debf.firebaseapp.com",
@@ -136,7 +140,7 @@
         let currentUser = null;
         let authMode = 'login';
 
-        // --- NAVEGAÇÃO GLOBAL ---
+        // Funções para o HTML acessar (Global)
         window.showScreen = (id) => {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -153,54 +157,70 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        // --- LÓGICA DE LOGIN / REGISTRO ---
+        // LÓGICA DE LOGIN / REGISTRO
         document.getElementById('btn-auth-trigger').onclick = async () => {
-            const user = document.getElementById('auth-user').value.trim();
+            const user = document.getElementById('auth-user').value.trim().toLowerCase();
             const pass = document.getElementById('auth-pass').value;
 
-            if(!user || !pass) return alert("Preencha tudo!");
+            if(!user || !pass) return alert("Preencha os campos!");
 
             const userRef = doc(db, "users", user);
             const userSnap = await getDoc(userRef);
 
             if(authMode === 'register') {
-                if(userSnap.exists()) return alert("Nome já existe!");
+                if(userSnap.exists()) return alert("Esse nome de usuário já existe!");
+                // Armazena dados temporários e vai para o setup
                 currentUser = { name: user, pass: pass };
-                showScreen('scr-profile-setup');
+                window.showScreen('scr-profile-setup');
             } else {
                 if(userSnap.exists() && userSnap.data().pass === pass) {
                     currentUser = userSnap.data();
                     loginSuccess();
-                } else alert("Dados incorretos!");
+                } else {
+                    alert("Usuário ou senha inválidos!");
+                }
             }
         };
 
+        // FINALIZAR CADASTRO (SALVAR NO FIREBASE)
         document.getElementById('btn-create-account').onclick = async () => {
             const age = document.getElementById('setup-age').value;
             const gender = document.querySelector('input[name="gender"]:checked')?.value;
             const file = document.getElementById('pfp-input').files[0];
 
-            if(!age || !gender) return alert("Faltam dados!");
+            if(!age || !gender) return alert("Preencha idade e gênero!");
 
-            let pfpUrl = "";
-            if(file) {
-                const sRef = ref(storage, `pfps/${Date.now()}`);
-                const up = await uploadBytes(sRef, file);
-                pfpUrl = await getDownloadURL(up.ref);
+            let pfpUrl = "https://via.placeholder.com/150/8a2be2/ffffff?text=" + currentUser.name[0].toUpperCase();
+            
+            try {
+                if(file) {
+                    const sRef = ref(storage, `pfps/${currentUser.name}_${Date.now()}`);
+                    const up = await uploadBytes(sRef, file);
+                    pfpUrl = await getDownloadURL(up.ref);
+                }
+
+                const userData = { 
+                    ...currentUser, 
+                    age, 
+                    gender, 
+                    pfp: pfpUrl, 
+                    bio: "Explorando o K. Network" 
+                };
+
+                await setDoc(doc(db, "users", currentUser.name), userData);
+                currentUser = userData;
+                loginSuccess();
+            } catch (e) {
+                alert("Erro ao salvar dados. Verifique as regras do Firebase.");
             }
-
-            const userData = { ...currentUser, age, gender, pfp: pfpUrl, bio: "Olá!" };
-            await setDoc(doc(db, "users", currentUser.name), userData);
-            currentUser = userData;
-            loginSuccess();
         };
 
         function loginSuccess() {
-            showScreen('scr-feed');
+            window.showScreen('scr-feed');
             document.getElementById('main-nav').style.display = 'flex';
         }
 
-        // --- POSTS ---
+        // CARREGAR FEED
         function loadPosts() {
             const q = query(collection(db, "posts"), orderBy("time", "desc"));
             onSnapshot(q, (snap) => {
@@ -214,18 +234,21 @@
                                 <img src="${p.pfp || 'https://via.placeholder.com/40'}">
                                 <b>${p.user}</b>
                             </div>
-                            <div>${p.text}</div>
+                            <div style="margin: 5px 0">${p.text}</div>
                             ${p.media ? `<img src="${p.media}" class="post-media">` : ''}
                         </div>`;
                 });
             });
         }
 
+        // ENVIAR POST
         document.getElementById('btn-submit-post').onclick = async () => {
             const text = document.getElementById('post-text').value;
             const file = document.getElementById('post-media').files[0];
-            let mUrl = "";
+            
+            if(!text && !file) return alert("O post não pode estar vazio!");
 
+            let mUrl = "";
             if(file) {
                 const sRef = ref(storage, `posts/${Date.now()}`);
                 const up = await uploadBytes(sRef, file);
@@ -239,14 +262,17 @@
                 media: mUrl,
                 time: Date.now()
             });
+
+            document.getElementById('post-text').value = "";
+            document.getElementById('post-media').value = "";
             closeModal('modal-post');
         };
 
-        // Preview de Imagem
+        // Preview da Foto
         document.getElementById('pfp-input').onchange = e => {
             const reader = new FileReader();
             reader.onload = () => document.getElementById('pfp-preview').src = reader.result;
-            reader.readAsDataURL(e.target.files[0]);
+            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
         };
     </script>
 </body>
