@@ -5,52 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>K. Network</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
     <style>
         :root { --primary: #8a2be2; --accent: linear-gradient(45deg, #c026d3, #db2777); --bg: #000; --card: #111; --text: #fff; --gray: #888; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-
         .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; overflow-y: auto; padding-bottom: 100px; }
         .screen.active { display: flex; }
-
-        /* Auth Styles */
         .auth-container { padding: 40px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
         .logo-k { color: var(--primary); font-size: 3.5rem; font-weight: 800; margin-bottom: 30px; }
         .tabs { display: flex; gap: 30px; margin-bottom: 20px; }
-        .tabs button { background: none; border: none; color: #555; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .tabs button { background: none; border: none; color: #555; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
         .tabs button.active { color: #fff; border-bottom: 2px solid var(--primary); }
-        form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 15px; }
-
-        /* Profile Setup */
         .pfp-wrapper { position: relative; width: 120px; height: 120px; margin: 30px 0; }
         #pfp-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
         .pfp-label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        
-        .gender-group { display: flex; gap: 25px; margin: 20px 0; justify-content: center; width: 100%; }
-        .gender-option { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
-
-        /* Feed & Nav */
-        .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; z-index: 10; border-bottom: 1px solid #111; }
+        .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; border-bottom: 1px solid #111; }
         .top-bar-logo { color: var(--primary); font-weight: 800; font-size: 26px; }
         .search-container { background: #121212; flex: 1; display: flex; align-items: center; padding: 10px 15px; border-radius: 12px; border: 1px solid #1a1a1a; }
         .search-container input { background: transparent; border: none; color: #fff; width: 100%; outline: none; }
-        
         .post-card { background: var(--card); margin: 10px 15px; border-radius: 15px; padding: 15px; border: 1px solid #1a1a1a; }
         .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
         .post-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .post-media { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 400px; object-fit: cover; }
-
-        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 50; }
+        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: none; justify-content: center; z-index: 50; }
         .nav-container { background: rgba(10, 10, 10, 0.9); width: 90%; height: 75px; border-radius: 40px; border: 1px solid #1a1a1a; display: flex; justify-content: space-around; align-items: center; backdrop-filter: blur(10px); }
         .nav-item { font-size: 24px; color: #555; cursor: pointer; }
         .nav-item.active { color: #fff; }
         .plus-btn { background: var(--accent); width: 65px; height: 65px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-top: -15px; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .modal-content { background: #111; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px; }
-
         .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
         input[type="text"], input[type="password"], input[type="number"], textarea { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; outline: none; margin-bottom: 10px; }
     </style>
@@ -81,9 +65,9 @@
                 <input type="file" id="pfp-input" hidden accept="image/*">
             </div>
             <input type="number" id="setup-age" placeholder="Sua Idade">
-            <div class="gender-group">
-                <label class="gender-option"><i class="fa fa-mars" style="color:#0084ff"></i><input type="radio" name="gender" value="m"></label>
-                <label class="gender-option"><i class="fa fa-venus" style="color:#ff007b"></i><input type="radio" name="gender" value="f"></label>
+            <div style="display:flex; gap:20px; margin-bottom:20px">
+                <label><input type="radio" name="gender" value="m"> Masc</label>
+                <label><input type="radio" name="gender" value="f"> Fem</label>
             </div>
             <button class="btn-main" id="btn-create-account">Finalizar Cadastro</button>
         </div>
@@ -97,11 +81,11 @@
         <div id="posts-container"></div>
     </div>
 
-    <nav class="bottom-nav" id="main-nav" style="display:none">
+    <nav class="bottom-nav" id="main-nav">
         <div class="nav-container">
-            <i class="fa-solid fa-compass nav-item active" id="nav-feed" onclick="showScreen('scr-feed')"></i>
+            <i class="fa-solid fa-compass nav-item active" onclick="showScreen('scr-feed')"></i>
             <div class="plus-btn" onclick="openModal('modal-post')"><i class="fa-solid fa-plus"></i></div>
-            <i class="fa-solid fa-user nav-item" id="nav-profile"></i>
+            <i class="fa-solid fa-user nav-item" onclick="alert('Perfil em breve')"></i>
         </div>
     </nav>
 
@@ -115,12 +99,11 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
     <script>
-        // Configuração original do seu Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
             authDomain: "kchat-1debf.firebaseapp.com",
@@ -133,11 +116,10 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const storage = firebase.storage();
-
         let currentUser = null;
         let authMode = 'login';
 
-        // --- NAVEGAÇÃO ---
+        // FUNÇÕES GLOBAIS
         window.showScreen = (id) => {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -154,44 +136,33 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        // --- LÓGICA DE AUTH ---
+        // CLIQUE NO BOTÃO DE ENTRAR/PRÓXIMO
         document.getElementById('btn-auth-trigger').onclick = async () => {
             const user = document.getElementById('auth-user').value.trim().toLowerCase();
             const pass = document.getElementById('auth-pass').value;
+            if(!user || !pass) return alert("Preencha os campos!");
 
-            if(!user || !pass) return alert("Preencha tudo!");
-
-            const userRef = db.collection("users").doc(user);
-            const doc = await userRef.get();
-
-            if(authMode === 'register') {
-                if(doc.exists) return alert("Nome já existe!");
-                currentUser = { name: user, pass: pass };
-                showScreen('scr-profile-setup');
-            } else {
-                if(doc.exists && doc.data().pass === pass) {
-                    currentUser = doc.data();
-                    loginSuccess();
-                } else alert("Dados incorretos!");
-            }
+            try {
+                const doc = await db.collection("users").doc(user).get();
+                if(authMode === 'register') {
+                    if(doc.exists) return alert("Usuário já existe!");
+                    currentUser = { name: user, pass: pass };
+                    showScreen('scr-profile-setup');
+                } else {
+                    if(doc.exists && doc.data().pass === pass) {
+                        currentUser = doc.data();
+                        loginSuccess();
+                    } else alert("Dados incorretos!");
+                }
+            } catch(e) { alert("Erro de conexão!"); }
         };
 
         document.getElementById('btn-create-account').onclick = async () => {
             const age = document.getElementById('setup-age').value;
             const gender = document.querySelector('input[name="gender"]:checked')?.value;
-            const file = document.getElementById('pfp-input').files[0];
-
             if(!age || !gender) return alert("Faltam dados!");
 
-            let pfpUrl = "https://via.placeholder.com/120/8a2be2/ffffff?text=" + currentUser.name[0];
-            
-            if(file) {
-                const sRef = storage.ref(`pfps/${Date.now()}`);
-                await sRef.put(file);
-                pfpUrl = await sRef.getDownloadURL();
-            }
-
-            const userData = { ...currentUser, age, gender, pfp: pfpUrl, bio: "Olá!" };
+            const userData = { ...currentUser, age, gender, pfp: "", bio: "Olá!" };
             await db.collection("users").doc(currentUser.name).set(userData);
             currentUser = userData;
             loginSuccess();
@@ -202,55 +173,22 @@
             document.getElementById('main-nav').style.display = 'flex';
         }
 
-        // --- POSTS ---
         function loadPosts() {
-            db.collection("posts").orderBy("time", "desc").onSnapshot((snap) => {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
                 const container = document.getElementById('posts-container');
                 container.innerHTML = "";
                 snap.forEach(d => {
                     const p = d.data();
-                    container.innerHTML += `
-                        <div class="post-card">
-                            <div class="post-user">
-                                <img src="${p.pfp || 'https://via.placeholder.com/40'}">
-                                <b>${p.user}</b>
-                            </div>
-                            <div style="margin-bottom:8px">${p.text}</div>
-                            ${p.media ? `<img src="${p.media}" class="post-media">` : ''}
-                        </div>`;
+                    container.innerHTML += `<div class="post-card"><b>${p.user}</b><p>${p.text}</p></div>`;
                 });
             });
         }
 
         document.getElementById('btn-submit-post').onclick = async () => {
             const text = document.getElementById('post-text').value;
-            const file = document.getElementById('post-media').files[0];
-            let mUrl = "";
-
-            if(file) {
-                const sRef = storage.ref(`posts/${Date.now()}`);
-                await sRef.put(file);
-                mUrl = await sRef.getDownloadURL();
-            }
-
-            await db.collection("posts").add({
-                user: currentUser.name,
-                pfp: currentUser.pfp,
-                text,
-                media: mUrl,
-                time: Date.now()
-            });
-            
-            document.getElementById('post-text').value = "";
-            document.getElementById('post-media').value = "";
+            if(!text) return;
+            await db.collection("posts").add({ user: currentUser.name, text: text, time: Date.now() });
             closeModal('modal-post');
-        };
-
-        // Preview da Foto
-        document.getElementById('pfp-input').onchange = e => {
-            const reader = new FileReader();
-            reader.onload = () => document.getElementById('pfp-preview').src = reader.result;
-            reader.readAsDataURL(e.target.files[0]);
         };
     </script>
 </body>
