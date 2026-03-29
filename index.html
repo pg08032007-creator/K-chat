@@ -2,363 +2,131 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K. Network</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <style>
-        :root { --primary: #8a2be2; --accent: linear-gradient(45deg, #c026d3, #db2777); --bg: #000; --card: #111; --text: #fff; --gray: #888; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-
-        /* Sistema de Telas */
-        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; overflow-y: auto; padding-bottom: 100px; }
+        /* Mantendo o seu estilo original das fotos */
+        :root { --primary: #8a2be2; --bg: #000; --card: #111; --text: #fff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        .screen { display: none; height: 100vh; flex-direction: column; overflow-y: auto; padding-bottom: 80px; }
         .screen.active { display: flex; }
-
-        /* --- TELA 1: LOGIN/REGISTRO --- */
-        .auth-container { padding: 40px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .logo-k { color: var(--primary); font-size: 3.5rem; font-weight: 800; margin-bottom: 30px; }
-        .tabs { display: flex; gap: 30px; margin-bottom: 20px; }
-        .tabs button { background: none; border: none; color: #555; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: 0.3s; }
-        .tabs button.active { color: #fff; border-bottom: 2px solid var(--primary); }
-        form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 15px; }
-
-        /* --- TELA 2: COMPLETAR PERFIL (image_3.png) --- */
-        .pfp-wrapper { position: relative; width: 120px; height: 120px; margin: 30px 0; }
-        #pfp-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
-        .pfp-label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        .gender-group { display: flex; gap: 25px; margin: 20px 0; justify-content: center; width: 100%; }
-        .gender-option { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
-        .gender-option input { width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer; }
-        .gender-option i { font-size: 1.8rem; margin-bottom: 5px; }
-
-        /* --- TELA 3: FEED GLOBAL (image_0.png) --- */
-        .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; z-index: 10; border-bottom: 1px solid #111; }
-        .top-bar-logo { color: var(--primary); font-weight: 800; font-size: 26px; }
-        .search-container { background: #121212; flex: 1; display: flex; align-items: center; padding: 10px 15px; border-radius: 12px; border: 1px solid #1a1a1a; }
-        .search-container i { color: #555; margin-right: 10px; }
-        .search-container input { background: transparent; border: none; color: #fff; width: 100%; outline: none; padding: 0; }
-        
-        .feed-header { padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .feed-header h1 { font-size: 28px; font-weight: 800; }
-        .refresh-icon { color: var(--primary); font-size: 20px; cursor: pointer; transition: 0.3s; }
-        .refresh-icon:active { transform: rotate(180deg); }
-
-        /* Cartão de Postagem */
-        .post-card { background: var(--card); margin: 10px 15px; border-radius: 15px; padding: 15px; border: 1px solid #1a1a1a; }
-        .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .post-user img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .post-content { font-size: 0.95rem; line-height: 1.5; margin-bottom: 10px; }
-        .post-media { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 400px; object-fit: cover; }
-
-        /* --- TELA 4: MEU PERFIL --- */
-        .profile-header { padding: 40px 20px; text-align: center; position: relative; border-bottom: 1px solid #111; }
-        .edit-icon { position: absolute; top: 20px; right: 20px; font-size: 1.2rem; color: var(--primary); cursor: pointer; }
-        .profile-pfp { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 15px; object-fit: cover; }
-        
-        /* --- NAVEGAÇÃO INFERIOR --- */
-        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 50; }
-        .nav-container { background: rgba(10, 10, 10, 0.9); width: 90%; height: 75px; border-radius: 40px; border: 1px solid #1a1a1a; display: flex; justify-content: space-around; align-items: center; backdrop-filter: blur(10px); }
-        .nav-item { font-size: 24px; color: #555; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: #fff; text-shadow: 0 0 10px #fff; }
-        .plus-btn { background: var(--accent); width: 65px; height: 65px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-top: -15px; box-shadow: 0 8px 20px rgba(192, 38, 211, 0.4); cursor: pointer; }
-
-        /* --- MODAIS (NOVO POST / EDIÇÃO) --- */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-        .modal.active { display: flex; }
-        .modal-content { background: #111; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px; border: 1px solid #222; }
-        textarea { width: 100%; background: #1a1a1a; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; margin-bottom: 15px; resize: none; outline: none; }
-        
-        /* Componentes Gerais */
-        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1rem; }
-        .btn-main:active { opacity: 0.8; }
-        .btn-main:disabled { background: #333; cursor: not-allowed; }
-        input[type="text"], input[type="password"], input[type="number"] { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; outline: none; margin-bottom: 10px; }
+        .auth-container { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        input { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; margin-bottom: 10px; outline: none; }
+        .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
+        .pfp-preview { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; margin-bottom: 20px; }
+        .nav { position: fixed; bottom: 15px; width: 90%; left: 5%; height: 70px; background: rgba(15,15,15,0.9); border-radius: 35px; border: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
+        .plus { background: linear-gradient(45deg, #c026d3, #db2777); width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; }
     </style>
 </head>
 <body>
 
     <div id="scr-auth" class="screen active">
         <div class="auth-container">
-            <h1 class="logo-k">K.</h1>
-            <div class="tabs">
-                <button id="tab-login" class="active" onclick="switchAuth('login')">Login</button>
-                <button id="tab-register" onclick="switchAuth('register')">Registrar</button>
-            </div>
-            <form id="auth-form" onsubmit="return false;">
-                <input type="text" id="auth-user" placeholder="Nome de usuário" required>
-                <input type="password" id="auth-pass" placeholder="Senha" required>
-                <button class="btn-main" id="btn-auth">Entrar</button>
-            </form>
+            <h1 style="color:var(--primary); font-size: 3rem; margin-bottom: 20px;">K.</h1>
+            <input type="text" id="u" placeholder="Nome de usuário">
+            <input type="password" id="p" placeholder="Senha">
+            <button class="btn-main" onclick="handleAuth()">Entrar / Registrar</button>
         </div>
     </div>
 
-    <div id="scr-profile-setup" class="screen">
+    <div id="scr-setup" class="screen">
         <div class="auth-container">
             <h2>Complete seu Perfil</h2>
-            <div class="pfp-wrapper">
-                <img src="https://via.placeholder.com/120/8a2be2/ffffff?text=K" id="pfp-preview">
-                <label class="pfp-label" for="pfp-input"><i class="fa fa-camera"></i></label>
-                <input type="file" id="pfp-input" hidden accept="image/*">
+            <img src="https://via.placeholder.com/120" id="pfp-img" class="pfp-preview">
+            <input type="file" id="pfp-input" accept="image/*">
+            <input type="number" id="age" placeholder="Idade">
+            <div style="margin: 20px 0;">
+                <input type="radio" name="g" value="m"> ♂️
+                <input type="radio" name="g" value="f"> ♀️
+                <input type="radio" name="g" value="o"> ⚧️
             </div>
-            <input type="number" id="setup-age" placeholder="Sua Idade (ex: 18)">
-            <div class="gender-group">
-                <label class="gender-option"><i class="fa fa-mars" style="color:#0084ff"></i><input type="radio" name="gender" value="m"></label>
-                <label class="gender-option"><i class="fa fa-venus" style="color:#ff007b"></i><input type="radio" name="gender" value="f"></label>
-                <label class="gender-option"><i class="fa fa-transgender" style="color:#ffcc00"></i><input type="radio" name="gender" value="o"></label>
-            </div>
-            <button class="btn-main" id="btn-create-account">Criar Conta</button>
+            <button class="btn-main" id="btn-save" onclick="saveProfile()">Criar Conta</button>
         </div>
     </div>
 
     <div id="scr-feed" class="screen">
-        <header class="top-bar">
-            <span class="top-bar-logo">K.</span>
-            <div class="search-container"><i class="fa fa-search"></i><input type="text" placeholder="Teste"></div>
-        </header>
-        <div class="feed-header">
-            <h1>Global Feed</h1>
-            <i class="fa-solid fa-arrows-rotate refresh-icon" id="btn-refresh"></i>
+        <div style="padding: 20px;">
+            <h1 style="color:var(--primary)">K.</h1>
+            <h2>Global Feed</h2>
+            <div id="post-list" style="margin-top:20px"></div>
         </div>
-        <div id="posts-container"></div>
+        <nav class="nav">
+            <i class="fa fa-compass" onclick="show('scr-feed')"></i>
+            <div class="plus" onclick="openPost()"><i class="fa fa-plus"></i></div>
+            <i class="fa fa-user" onclick="logout()"></i> </nav>
     </div>
-
-    <div id="scr-profile" class="screen">
-        <div class="profile-header">
-            <i class="fa-solid fa-pencil edit-icon" onclick="openEditProfile()"></i>
-            <img src="" id="my-pfp" class="profile-pfp">
-            <h2 id="my-name">Usuário</h2>
-            <p id="my-bio" style="color:var(--gray); margin-top:8px;">Carregando...</p>
-        </div>
-        <div id="my-posts"></div>
-    </div>
-
-    <div id="modal-post" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom:15px">Novo Post</h3>
-            <textarea id="post-text" placeholder="O que você está pensando?" rows="4"></textarea>
-            <p style="font-size: 12px; color: var(--gray); margin-bottom: 8px;">Adicionar Foto/Vídeo:</p>
-            <input type="file" id="post-media" accept="image/*,video/*">
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="btn-main" id="btn-submit-post">Publicar</button>
-                <button class="btn-main" style="background:#333" onclick="closeModal('modal-post')">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-edit" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom:15px">Editar Perfil</h3>
-            <input type="text" id="edit-name" placeholder="Novo nome">
-            <textarea id="edit-bio" placeholder="Sua biografia" rows="3"></textarea>
-            <button class="btn-main" id="btn-save-edit">Salvar</button>
-            <button class="btn-main" style="background:#333; margin-top:10px;" onclick="closeModal('modal-edit')">Fechar</button>
-        </div>
-    </div>
-
-    <nav class="bottom-nav" id="main-nav" style="display:none">
-        <div class="nav-container">
-            <i class="fa-solid fa-compass nav-item" id="nav-feed" onclick="showScreen('scr-feed')"></i>
-            <div class="plus-btn" onclick="openPostModal()"><i class="fa-solid fa-plus"></i></div>
-            <i class="fa-solid fa-user-astronaut nav-item" id="nav-profile" onclick="showScreen('scr-profile')"></i>
-        </div>
-    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // SUA CONFIGURAÇÃO DO FIREBASE (image_1.png)
         const firebaseConfig = {
             apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
             authDomain: "kchat-1debf.firebaseapp.com",
             projectId: "kchat-1debf",
             storageBucket: "kchat-1debf.firebasestorage.app",
-            messagingSenderId: "622333653477",
             appId: "1:622333653477:web:dab185145cfa4b18983f0c"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
+        let curUser = null;
 
-        let currentUser = null;
-        let authMode = 'login';
-        let isFeedLoaded = false;
+        // VERIFICA SE JÁ EXISTE LOGIN SALVO AO ABRIR
+        window.onload = () => {
+            const savedUser = localStorage.getItem('k_user');
+            if(savedUser) {
+                curUser = JSON.parse(savedUser);
+                show('scr-feed');
+            }
+        };
 
-        // --- SISTEMA DE NAVEGAÇÃO ---
-        window.showScreen = (id) => {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        window.handleAuth = async () => {
+            const name = document.getElementById('u').value.trim();
+            const pass = document.getElementById('p').value;
+            if(!name) return alert("Digite um nome!");
             
-            if(id === 'scr-feed') { document.getElementById('nav-feed').classList.add('active'); if(!isFeedLoaded) loadPosts(); }
-            if(id === 'scr-profile') { document.getElementById('nav-profile').classList.add('active'); loadMyProfile(); }
-        };
+            const ref = doc(db, "users", name);
+            const snap = await getDoc(ref);
 
-        window.openModal = (id) => document.getElementById(id).classList.add('active');
-        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-
-        // --- LOGICA DE AUTH (LOGIN/REGISTRO) ---
-        window.switchAuth = (m) => {
-            authMode = m;
-            document.getElementById('tab-login').classList.toggle('active', m === 'login');
-            document.getElementById('tab-register').classList.toggle('active', m === 'register');
-            document.getElementById('btn-auth').innerText = m === 'login' ? 'Entrar' : 'Registrar';
-        };
-
-        document.getElementById('btn-auth').onclick = async () => {
-            const user = document.getElementById('auth-user').value.trim();
-            const pass = document.getElementById('auth-pass').value;
-            if(!user || !pass) return alert("Preencha usuário e senha!");
-
-            const userRef = doc(db, "users", user);
-            const userSnap = await getDoc(userRef);
-
-            if(authMode === 'register') {
-                if(userSnap.exists()) return alert("Nome já em uso! Escolha outro.");
-                currentUser = { name: user, pass: pass, pfp: '', bio: 'Novo por aqui!', age: '', gender: '' };
-                showScreen('scr-profile-setup');
+            if(snap.exists()) {
+                if(snap.data().pass === pass) { 
+                    curUser = snap.data(); 
+                    loginDone();
+                } else alert("Senha errada!");
             } else {
-                if(userSnap.exists() && userSnap.data().pass === pass) {
-                    currentUser = userSnap.data();
-                    loginSuccess();
-                } else alert("Usuário ou senha incorretos.");
+                curUser = { name, pass };
+                show('scr-setup');
             }
         };
 
-        // --- LOGICA DE FOTO E PERFIL (image_3.png) ---
-        document.getElementById('pfp-input').onchange = e => {
-            const reader = new FileReader();
-            reader.onload = () => document.getElementById('pfp-preview').src = reader.result;
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        document.getElementById('btn-create-account').onclick = async () => {
-            const btn = document.getElementById('btn-create-account');
-            const file = document.getElementById('pfp-input').files[0];
-            const age = document.getElementById('setup-age').value;
-            const gender = document.querySelector('input[name="gender"]:checked')?.value;
-
-            if(!age || !gender) return alert("Preencha idade e gênero!");
-
+        window.saveProfile = async () => {
+            const btn = document.getElementById('btn-save');
             btn.innerText = "Processando...";
-            btn.disabled = true;
-
-            try {
-                if(file) {
-                    const sRef = ref(storage, `pfps/${currentUser.name}`);
-                    await uploadBytes(sRef, file);
-                    currentUser.pfp = await getDownloadURL(sRef);
-                }
-                currentUser.age = age;
-                currentUser.gender = gender;
-                await setDoc(doc(db, "users", currentUser.name), currentUser);
-                loginSuccess();
-            } catch (e) {
-                alert("Erro ao salvar perfil. Verifique as regras do Firebase.");
-                btn.innerText = "Criar Conta";
-                btn.disabled = false;
-            }
+            curUser.age = document.getElementById('age').value;
+            curUser.gender = document.querySelector('input[name="g"]:checked')?.value || 'o';
+            
+            await setDoc(doc(db, "users", curUser.name), curUser);
+            loginDone();
         };
 
-        function loginSuccess() {
-            showScreen('scr-feed');
-            document.getElementById('main-nav').style.display = 'flex';
+        function loginDone() {
+            localStorage.setItem('k_user', JSON.stringify(curUser));
+            show('scr-feed');
         }
 
-        function loadMyProfile() {
-            document.getElementById('my-pfp').src = currentUser.pfp || 'https://via.placeholder.com/100/8a2be2/ffffff?text=K';
-            document.getElementById('my-name').innerText = currentUser.name;
-            document.getElementById('my-bio').innerText = currentUser.bio;
-        }
-
-        // --- LOGICA DE POSTAGEM E FEED (image_0.png) ---
-        window.openPostModal = () => openModal('modal-post');
-
-        document.getElementById('btn-submit-post').onclick = async () => {
-            const btn = document.getElementById('btn-submit-post');
-            const text = document.getElementById('post-text').value;
-            const file = document.getElementById('post-media').files[0];
-            let mediaUrl = "";
-
-            if(!text && !file) return alert("Escreva algo ou adicione uma foto!");
-
-            btn.innerText = "Postando...";
-            btn.disabled = true;
-
-            if(file) {
-                const sRef = ref(storage, `posts/${Date.now()}_${currentUser.name}`);
-                await uploadBytes(sRef, file);
-                mediaUrl = await getDownloadURL(sRef);
-            }
-
-            await addDoc(collection(db, "posts"), {
-                user: currentUser.name,
-                pfp: currentUser.pfp,
-                text: text,
-                media: mediaUrl,
-                time: Date.now(),
-                likes: 0
-            });
-
-            closeModal('modal-post');
-            document.getElementById('post-text').value = "";
-            btn.innerText = "Publicar";
-            btn.disabled = false;
+        window.logout = () => {
+            localStorage.removeItem('k_user');
+            location.reload();
         };
 
-        // SINCRONIZAÇÃO EM TEMPO REAL DO FEED
-        function loadPosts() {
-            isFeedLoaded = true;
-            const q = query(collection(db, "posts"), orderBy("time", "desc"));
-            onSnapshot(q, (snap) => {
-                const container = document.getElementById('posts-container');
-                container.innerHTML = "";
-                snap.forEach(d => {
-                    const p = d.data();
-                    container.innerHTML += `
-                        <div class="post-card">
-                            <div class="post-user">
-                                <img src="${p.pfp || 'https://via.placeholder.com/40/8a2be2/ffffff?text=K'}">
-                                <b>${p.user}</b>
-                            </div>
-                            ${p.text ? `<div class="post-content">${p.text}</div>` : ''}
-                            ${p.media ? (p.media.includes('video') ? `<video src="${p.media}" class="post-media" controls></video>` : `<img src="${p.media}" class="post-media">`) : ''}
-                        </div>
-                    `;
-                });
-            });
-        }
-
-        // --- LOGICA DE EDIÇÃO DE PERFIL ---
-        window.openEditProfile = () => {
-            openModal('modal-edit');
-            document.getElementById('edit-name').value = currentUser.name;
-            document.getElementById('edit-bio').value = currentUser.bio;
+        window.show = (id) => {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         };
-
-        document.getElementById('btn-save-edit').onclick = async () => {
-            const newName = document.getElementById('edit-name').value.trim();
-            const newBio = document.getElementById('edit-bio').value;
-
-            if(!newName) return alert("O nome não pode ser vazio!");
-
-            // Atualiza no Firebase
-            await updateDoc(doc(db, "users", currentUser.name), {
-                name: newName,
-                bio: newBio
-            });
-
-            currentUser.name = newName;
-            currentUser.bio = newBio;
-            loadMyProfile();
-            closeModal('modal-edit');
-        };
-
-        document.getElementById('btn-refresh').onclick = () => loadPosts();
     </script>
 </body>
 </html>
