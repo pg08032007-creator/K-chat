@@ -3,246 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KCHΛT | Ultra Sync</title>
+    <title>KCHΛT | Definitive Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        body { background-color: #050507; color: white; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
-        .glass { background: rgba(15, 15, 20, 0.85); backdrop-filter: blur(25px); border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .post-card { background: #111118; border: 1px solid rgba(255,255,255,0.05); border-radius: 2rem; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        body { 
+            background-color: #020205; 
+            color: #e2e8f0; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            overflow: hidden; 
+        }
+
+        .glass-nav { background: rgba(5, 5, 10, 0.8); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); }
+        .glass-header { background: rgba(5, 5, 10, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        
+        .post-card { 
+            background: #0a0a0f; 
+            border: 1px solid rgba(255,255,255,0.03); 
+            border-radius: 2.5rem; 
+            transition: transform 0.2s ease;
+        }
+
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .input-dark { background: #1a1a24; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 12px 16px; width: 100%; outline: none; transition: 0.3s; }
-        .input-dark:focus { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+        
+        .active-tab { color: #a855f7; filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4)); }
+
+        input, textarea { background: #111118 !important; border: 1px solid rgba(255,255,255,0.05) !important; color: white !important; }
+        input:focus { border-color: #a855f7 !important; outline: none; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            box-shadow: 0 10px 20px -10px rgba(168, 85, 247, 0.5);
+        }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        const DB = {
-            get: (key, def) => JSON.parse(localStorage.getItem(key)) || def,
-            save: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+        // Gerenciador de Estado Persistente
+        const useLocalStorage = (key, initialValue) => {
+            const [value, setValue] = useState(() => {
+                const saved = localStorage.getItem(key);
+                return saved ? JSON.parse(saved) : initialValue;
+            });
+            useEffect(() => localStorage.setItem(key, JSON.stringify(value)), [key, value]);
+            return [value, setValue];
         };
 
         function App() {
-            const [user, setUser] = useState(() => DB.get('kchat_active_session', null));
-            const [dbUsers, setDbUsers] = useState(() => DB.get('kchat_users', []));
-            const [posts, setPosts] = useState(() => DB.get('kchat_posts', []));
-            const [messages, setMessages] = useState(() => DB.get('kchat_messages', []));
-            const [view, setView] = useState('feed');
+            const [users, setUsers] = useLocalStorage('k_users', []);
+            const [posts, setPosts] = useLocalStorage('k_posts', []);
+            const [messages, setMessages] = useLocalStorage('k_messages', []);
+            const [currentUser, setCurrentUser] = useLocalStorage('k_session', null);
+            
+            const [view, setView] = useState('feed'); // feed, search, chats, profile, create, chat_room, other_profile
             const [targetUser, setTargetUser] = useState(null);
-            const [search, setSearch] = useState('');
+            const [searchTerm, setSearchTerm] = useState('');
 
-            useEffect(() => {
-                DB.save('kchat_users', dbUsers);
-                DB.save('kchat_posts', posts);
-                DB.save('kchat_messages', messages);
-                if (user) {
-                    const fresh = dbUsers.find(u => u.id === user.id);
-                    if (fresh) DB.save('kchat_active_session', fresh);
-                }
-            }, [dbUsers, posts, messages, user]);
+            // Helper para encontrar usuário atualizado
+            const me = useMemo(() => users.find(u => u.id === currentUser?.id), [users, currentUser]);
 
             const handleLogin = (name, pass) => {
-                const found = dbUsers.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
-                if (found) { setUser(found); setView('feed'); } 
-                else alert("Dados incorretos!");
+                const user = users.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
+                if (user) setCurrentUser(user);
+                else alert("Acesso negado: Verifique usuário e senha.");
             };
 
             const handleRegister = (data) => {
-                const newUser = { ...data, id: crypto.randomUUID(), bio: 'Explorando o KCHΛT', joinedAt: new Date().toISOString() };
-                setDbUsers([...dbUsers, newUser]);
-                setUser(newUser);
+                if (users.some(u => u.name.toLowerCase() === data.name.toLowerCase())) return alert("Nome já em uso.");
+                const newUser = { ...data, id: crypto.randomUUID(), bio: 'Explorador do KCHAT', followers: 0 };
+                setUsers([...users, newUser]);
+                setCurrentUser(newUser);
             };
 
-            const handleSync = (jsonString) => {
-                try {
-                    const data = JSON.parse(jsonString);
-                    if(data.users) setDbUsers(data.users);
-                    if(data.posts) setPosts(data.posts);
-                    alert("Dados sincronizados com sucesso!");
-                } catch(e) { alert("Código de sincronização inválido."); }
+            const updateProfile = (newData) => {
+                setUsers(users.map(u => u.id === me.id ? { ...u, ...newData } : u));
+                // Atualiza o nome nos posts do usuário
+                setPosts(posts.map(p => p.userId === me.id ? { ...p, user: newData.name, avatar: newData.avatar } : p));
             };
 
-            if (!user) return <AuthScreen onLogin={handleLogin} onRegister={handleRegister} />;
+            if (!currentUser) return <AuthScreen onLogin={handleLogin} onRegister={handleRegister} />;
 
             return (
-                <div className="flex flex-col h-screen max-w-md mx-auto bg-[#050507] relative shadow-2xl overflow-hidden">
-                    <header className="h-16 flex items-center justify-between px-6 shrink-0 glass z-50">
-                        <h1 className="text-2xl font-black italic text-purple-500 tracking-tighter cursor-pointer" onClick={() => setView('feed')}>KCHΛT</h1>
-                        <div className="flex gap-4">
-                            <i className="bi bi-chat-dots text-xl text-slate-400" onClick={() => setView('chats')}></i>
+                <div className="flex flex-col h-screen max-w-md mx-auto relative bg-[#020205]">
+                    {/* HEADER */}
+                    <header className="h-16 flex items-center justify-between px-6 shrink-0 glass-header z-40">
+                        <span className="text-2xl font-extrabold italic bg-gradient-to-r from-purple-500 to-fuchsia-400 bg-clip-text text-transparent tracking-tighter">KCHΛT</span>
+                        <div className="flex gap-5">
+                            <i className={`bi bi-search text-xl ${view === 'search' ? 'active-tab' : 'text-slate-400'}`} onClick={() => setView('search')}></i>
+                            <i className={`bi bi-chat-square-text text-xl ${view === 'chats' ? 'active-tab' : 'text-slate-400'}`} onClick={() => setView('chats')}></i>
                         </div>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto pb-24 hide-scrollbar bg-[#050507]">
-                        {view === 'feed' && <Feed posts={posts} onUserClick={(u) => { setTargetUser(u); setView('other_profile'); }} />}
+                    {/* MAIN CONTENT */}
+                    <main className="flex-1 overflow-y-auto hide-scrollbar pb-24">
+                        {view === 'feed' && <Feed posts={posts} onUserClick={(uId) => { setTargetUser(users.find(u => u.id === uId)); setView('other_profile'); }} />}
                         
                         {view === 'search' && (
-                            <div className="p-6 fade-in">
-                                <div className="relative mb-6">
-                                    <i className="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                                    <input className="input-dark pl-12" placeholder="Buscar perfis..." value={search} onChange={e => setSearch(e.target.value)} />
-                                </div>
-                                <div className="space-y-3">
-                                    {dbUsers.filter(u => u.name.toLowerCase().includes(search.toLowerCase()) && u.id !== user.id).map(u => (
-                                        <div key={u.id} onClick={() => { setTargetUser(u); setView('other_profile'); }} className="flex items-center gap-4 p-4 bg-[#111118] rounded-2xl active:scale-95 transition border border-white/5">
+                            <div className="p-6 animate-in">
+                                <input className="w-full p-4 rounded-2xl mb-6" placeholder="Quem você está procurando?" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                                <div className="space-y-4">
+                                    {users.filter(u => u.id !== me.id && u.name.toLowerCase().includes(searchTerm.toLowerCase())).map(u => (
+                                        <div key={u.id} onClick={() => { setTargetUser(u); setView('other_profile'); }} className="flex items-center gap-4 p-4 bg-[#0a0a0f] rounded-3xl border border-white/5 active:scale-95 transition">
                                             <img src={u.avatar} className="w-12 h-12 rounded-full object-cover border border-purple-500/30" />
                                             <div className="flex-1 font-bold">@{u.name}</div>
-                                            <i className="bi bi-arrow-right-short text-slate-600"></i>
+                                            <i className="bi bi-arrow-right-short text-slate-500 text-2xl"></i>
                                         </div>
                                     ))}
+                                    {users.filter(u => u.id !== me.id && u.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 && (
+                                        <p className="text-center text-slate-600 mt-10">Nenhum usuário encontrado.</p>
+                                    )}
                                 </div>
                             </div>
                         )}
 
-                        {view === 'profile' && (
-                            <ProfileView 
-                                profile={dbUsers.find(u => u.id === user.id)} 
-                                isMe={true} 
-                                posts={posts}
-                                onUpdate={(data) => {
-                                    const updated = dbUsers.map(u => u.id === user.id ? { ...u, ...data } : u);
-                                    setDbUsers(updated);
-                                    setUser({...user, ...data});
-                                }}
-                                onLogout={() => { localStorage.removeItem('kchat_active_session'); setUser(null); }}
-                                allData={{users: dbUsers, posts: posts}}
-                                onSync={handleSync}
-                            />
-                        )}
+                        {view === 'chats' && <ChatList users={users} me={me} messages={messages} onOpenChat={(u) => { setTargetUser(u); setView('chat_room'); }} />}
+                        
+                        {view === 'chat_room' && <ChatRoom partner={targetUser} me={me} messages={messages} setMessages={setMessages} onBack={() => setView('chats')} />}
 
-                        {view === 'other_profile' && (
+                        {(view === 'profile' || view === 'other_profile') && (
                             <ProfileView 
-                                profile={targetUser} 
-                                isMe={false} 
+                                profile={view === 'profile' ? me : targetUser} 
+                                isMe={view === 'profile'} 
                                 posts={posts}
+                                onUpdate={updateProfile}
+                                onLogout={() => setCurrentUser(null)}
                                 onMessage={(u) => { setTargetUser(u); setView('chat_room'); }}
                             />
                         )}
 
-                        {view === 'chats' && <ChatList users={dbUsers} me={user} messages={messages} onSelect={(u) => { setTargetUser(u); setView('chat_room'); }} />}
-                        {view === 'chat_room' && <ChatRoom partner={targetUser} me={user} messages={messages} setMessages={setMessages} onBack={() => setView('chats')} />}
-                        {view === 'create' && <CreatePost user={user} onDone={(p) => { setPosts([p, ...posts]); setView('feed'); }} />}
+                        {view === 'create' && <CreatePost me={me} onDone={(p) => { setPosts([p, ...posts]); setView('feed'); }} />}
                     </main>
 
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 glass flex items-center justify-around z-50 max-w-md mx-auto rounded-t-[2.5rem] px-4">
-                        <NavBtn icon="house-door" active={view==='feed'} onClick={()=>setView('feed')} />
-                        <NavBtn icon="search" active={view==='search'} onClick={()=>setView('search')} />
-                        <div className="w-14 h-14 bg-gradient-to-tr from-purple-600 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 active:scale-90 transition mb-4" onClick={()=>setView('create')}>
+                    {/* NAVIGATION */}
+                    <nav className="fixed bottom-0 left-0 right-0 h-20 glass-nav flex items-center justify-around z-40 max-w-md mx-auto rounded-t-[2.5rem] px-6">
+                        <i className={`bi bi-house-door-fill text-2xl ${view === 'feed' ? 'active-tab' : 'text-slate-600'}`} onClick={() => setView('feed')}></i>
+                        <div className="w-14 h-14 btn-primary rounded-2xl flex items-center justify-center -translate-y-4 border-4 border-[#020205]" onClick={() => setView('create')}>
                             <i className="bi bi-plus-lg text-white text-2xl"></i>
                         </div>
-                        <NavBtn icon="chat-left-text" active={view==='chats'} onClick={()=>setView('chats')} />
-                        <NavBtn icon="person" active={view==='profile'} onClick={()=>setView('profile')} />
+                        <i className={`bi bi-person-fill text-2xl ${view === 'profile' ? 'active-tab' : 'text-slate-600'}`} onClick={() => setView('profile')}></i>
                     </nav>
                 </div>
             );
         }
 
-        const NavBtn = ({icon, active, onClick}) => (
-            <i className={`bi bi-${icon}${active?'-fill text-purple-500':'-fill text-slate-600'} text-2xl transition-all`} onClick={onClick}></i>
-        );
+        // --- COMPONENTES DE TELA ---
 
-        function ProfileView({ profile, isMe, posts, onUpdate, onLogout, onMessage, allData, onSync }) {
-            const [isEditing, setIsEditing] = useState(false);
-            const [editForm, setEditForm] = useState({ name: profile?.name, bio: profile?.bio, avatar: profile?.avatar });
-            const myPosts = posts.filter(p => p.userId === profile?.id);
-
-            const handleFile = (e) => {
-                const reader = new FileReader();
-                reader.onload = () => setEditForm({...editForm, avatar: reader.result});
-                reader.readAsDataURL(e.target.files[0]);
-            };
-
+        function Feed({ posts, onUserClick }) {
             return (
-                <div className="fade-in pb-10">
-                    <div className="p-8 flex flex-col items-center border-b border-white/5 bg-gradient-to-b from-purple-500/5 to-transparent">
-                        <div className="relative group">
-                            <img src={isEditing ? editForm.avatar : profile?.avatar} className="w-32 h-32 rounded-full border-4 border-[#111118] outline outline-2 outline-purple-500 object-cover shadow-2xl" />
-                            {isEditing && (
-                                <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full cursor-pointer">
-                                    <i className="bi bi-camera text-2xl"></i>
-                                    <input type="file" className="hidden" onChange={handleFile} />
-                                </label>
-                            )}
+                <div className="p-4 space-y-6">
+                    {posts.length === 0 ? (
+                        <div className="text-center py-40 opacity-20">
+                            <i className="bi bi-stars text-6xl block mb-4"></i>
+                            <p className="font-bold uppercase tracking-widest text-xs">O feed está calmo demais...</p>
                         </div>
-
-                        {isEditing ? (
-                            <div className="w-full mt-6 space-y-3">
-                                <input className="input-dark text-center font-bold" value={editForm.name} onChange={e=>setEditForm({...editForm, name: e.target.value})} placeholder="Nome de usuário" />
-                                <textarea className="input-dark text-sm" value={editForm.bio} onChange={e=>setEditForm({...editForm, bio: e.target.value})} placeholder="Sua bio..." rows="3" />
-                                <div className="flex gap-2">
-                                    <button className="flex-1 py-3 bg-purple-600 rounded-xl font-bold" onClick={() => { onUpdate(editForm); setIsEditing(false); }}>Salvar</button>
-                                    <button className="flex-1 py-3 bg-white/5 rounded-xl font-bold" onClick={() => setIsEditing(false)}>Cancelar</button>
-                                </div>
+                    ) : posts.map(p => (
+                        <article key={p.id} className="post-card overflow-hidden">
+                            <div className="p-4 flex items-center gap-3" onClick={() => onUserClick(p.userId)}>
+                                <img src={p.avatar} className="w-10 h-10 rounded-full object-cover border border-purple-500/20" />
+                                <span className="font-bold text-xs uppercase tracking-widest text-slate-200">@{p.user}</span>
                             </div>
-                        ) : (
-                            <>
-                                <h3 className="text-2xl font-black mt-4 uppercase italic">@{profile?.name}</h3>
-                                <p className="text-slate-400 text-sm mt-2 text-center px-10 leading-relaxed italic">"{profile?.bio}"</p>
-                                <div className="flex gap-3 mt-6 w-full">
-                                    {isMe ? (
-                                        <button onClick={() => setIsEditing(true)} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-2xl font-bold text-xs uppercase tracking-widest">Editar Perfil</button>
-                                    ) : (
-                                        <button onClick={() => onMessage(profile)} className="flex-1 py-3 bg-purple-600 rounded-2xl font-bold text-xs uppercase shadow-lg">Enviar Mensagem</button>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    {isMe && !isEditing && (
-                        <div className="p-6 bg-purple-600/5 mx-4 mt-4 rounded-3xl border border-purple-500/10">
-                            <h4 className="text-[10px] font-black uppercase text-purple-400 mb-2">Sincronização Cloud (Manual)</h4>
-                            <div className="flex gap-2">
-                                <button className="flex-1 py-2 bg-white/5 text-[10px] uppercase font-bold rounded-lg border border-white/5" 
-                                    onClick={() => { navigator.clipboard.writeText(JSON.stringify(allData)); alert("Código de sincronização copiado!"); }}>Exportar Dados</button>
-                                <button className="flex-1 py-2 bg-white/5 text-[10px] uppercase font-bold rounded-lg border border-white/5"
-                                    onClick={() => { const code = prompt("Cole o código aqui:"); if(code) onSync(code); }}>Importar</button>
+                            <img src={p.img} className="w-full aspect-square object-cover" />
+                            <div className="p-5">
+                                <p className="text-sm text-slate-300"><span className="font-bold text-white mr-2">@{p.user}</span>{p.text}</p>
                             </div>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-3 gap-1 p-1 mt-4">
-                        {myPosts.length > 0 ? myPosts.map(p => (
-                            <div key={p.id} className="aspect-square bg-white/5 rounded-sm overflow-hidden">
-                                <img src={p.img} className="w-full h-full object-cover" />
-                            </div>
-                        )) : (
-                            <div className="col-span-3 py-20 text-center text-slate-700">
-                                <i className="bi bi-grid-3x3 text-4xl block mb-2"></i>
-                                <p className="text-xs uppercase font-black">Nenhuma publicação</p>
-                            </div>
-                        )}
-                    </div>
-                    {isMe && <button onClick={onLogout} className="w-[calc(100%-3rem)] mx-6 mt-10 py-4 text-red-500/60 font-bold text-xs uppercase border border-red-500/10 rounded-2xl">Encerrar Sessão</button>}
+                        </article>
+                    ))}
                 </div>
             );
         }
 
-        function ChatList({ users, me, messages, onSelect }) {
+        function ChatList({ users, me, messages, onOpenChat }) {
             const others = users.filter(u => u.id !== me.id);
             return (
-                <div className="p-6 fade-in space-y-3">
-                    <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-6">Mensagens Diretas</h2>
+                <div className="p-6 space-y-4">
+                    <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Conversas Recentes</h2>
                     {others.map(u => {
-                        const last = [...messages].reverse().find(m => (m.from === me.id && m.to === u.id) || (m.from === u.id && m.to === me.id));
+                        const lastMsg = [...messages].reverse().find(m => (m.from === me.id && m.to === u.id) || (m.from === u.id && m.to === me.id));
                         return (
-                            <div key={u.id} onClick={() => onSelect(u)} className="flex items-center gap-4 p-4 bg-[#111118] rounded-[1.5rem] border border-white/5 active:scale-95 transition">
-                                <img src={u.avatar} className="w-14 h-14 rounded-full border border-purple-500/20 object-cover" />
+                            <div key={u.id} onClick={() => onOpenChat(u)} className="flex items-center gap-4 p-4 bg-[#0a0a0f] rounded-3xl border border-white/5 active:scale-95 transition">
+                                <img src={u.avatar} className="w-14 h-14 rounded-full object-cover" />
                                 <div className="flex-1 min-w-0">
                                     <p className="font-bold text-sm">@{u.name}</p>
-                                    <p className="text-xs text-slate-500 truncate">{last ? last.text : 'Comece uma conversa...'}</p>
+                                    <p className="text-xs text-slate-500 truncate">{lastMsg ? lastMsg.text : 'Toque para iniciar o papo'}</p>
                                 </div>
-                                {last && <span className="text-[10px] text-slate-600">{last.time}</span>}
                             </div>
                         );
                     })}
@@ -255,78 +208,98 @@
             const endRef = useRef(null);
             const chatLog = messages.filter(m => (m.from === me.id && m.to === partner.id) || (m.from === partner.id && m.to === me.id));
 
-            useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [chatLog]);
+            useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), [chatLog]);
 
             const send = () => {
-                if(!text.trim()) return;
-                const m = { id: Date.now(), from: me.id, to: partner.id, text, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
-                setMessages([...messages, m]);
+                if (!text.trim()) return;
+                const newMsg = { id: Date.now(), from: me.id, to: partner.id, text, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+                setMessages([...messages, newMsg]);
                 setText('');
             };
 
             return (
-                <div className="flex flex-col h-full fixed inset-0 z-[60] bg-[#050507] max-w-md mx-auto">
-                    <div className="h-20 flex items-center gap-4 px-6 glass">
+                <div className="fixed inset-0 z-50 bg-[#020205] flex flex-col max-w-md mx-auto">
+                    <div className="h-20 flex items-center gap-4 px-6 glass-header">
                         <i className="bi bi-chevron-left text-xl" onClick={onBack}></i>
                         <img src={partner.avatar} className="w-10 h-10 rounded-full object-cover" />
-                        <div>
-                            <p className="font-bold text-sm">@{partner.name}</p>
-                            <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">Online</p>
-                        </div>
+                        <span className="font-bold">@{partner.name}</span>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.05),transparent)]">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-4 hide-scrollbar">
                         {chatLog.map(m => (
                             <div key={m.id} className={`flex ${m.from === me.id ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[80%] p-4 rounded-3xl text-sm ${m.from === me.id ? 'bg-purple-600 text-white rounded-tr-none shadow-lg shadow-purple-900/20' : 'bg-[#1a1a24] text-slate-200 rounded-tl-none border border-white/5'}`}>
+                                <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${m.from === me.id ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-[#111118] text-slate-300 rounded-tl-none border border-white/5'}`}>
                                     {m.text}
-                                    <p className="text-[9px] opacity-40 mt-1 text-right">{m.time}</p>
+                                    <p className="text-[10px] opacity-40 mt-1 text-right">{m.time}</p>
                                 </div>
                             </div>
                         ))}
                         <div ref={endRef} />
                     </div>
-                    <div className="p-6 bg-[#050507] border-t border-white/5 flex gap-3 pb-8">
-                        <input className="input-dark" placeholder="Escreva..." value={text} onChange={e => setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} />
-                        <button onClick={send} className="bg-purple-600 w-14 h-12 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition"><i className="bi bi-send-fill text-xl"></i></button>
+                    <div className="p-6 flex gap-3 bg-[#020205] border-t border-white/5">
+                        <input className="flex-1 p-4 rounded-2xl" placeholder="Mensagem..." value={text} onChange={e => setText(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} />
+                        <button onClick={send} className="w-14 h-14 btn-primary rounded-2xl flex items-center justify-center"><i className="bi bi-send-fill"></i></button>
                     </div>
                 </div>
             );
         }
 
-        function Feed({ posts, onUserClick }) {
+        function ProfileView({ profile, isMe, posts, onUpdate, onLogout, onMessage }) {
+            const [isEdit, setIsEdit] = useState(false);
+            const [form, setForm] = useState({ name: profile?.name, bio: profile?.bio, avatar: profile?.avatar });
+            const myPosts = posts.filter(p => p.userId === profile?.id);
+
+            const handleAvatar = (e) => {
+                const reader = new FileReader();
+                reader.onload = () => setForm({ ...form, avatar: reader.result });
+                reader.readAsDataURL(e.target.files[0]);
+            };
+
             return (
-                <div className="p-4 space-y-6 fade-in">
-                    {posts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-40 text-slate-700">
-                            <i className="bi bi-rocket-takeoff text-6xl mb-4 opacity-20"></i>
-                            <p className="font-bold uppercase tracking-widest text-xs">Nada por aqui ainda...</p>
+                <div className="animate-in pb-10">
+                    <div className="p-8 flex flex-col items-center border-b border-white/5">
+                        <div className="relative group">
+                            <img src={isEdit ? form.avatar : profile?.avatar} className="w-32 h-32 rounded-full border-4 border-[#0a0a0f] outline outline-2 outline-purple-500 object-cover shadow-2xl" />
+                            {isEdit && (
+                                <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full cursor-pointer">
+                                    <i className="bi bi-camera text-2xl"></i>
+                                    <input type="file" className="hidden" onChange={handleAvatar} />
+                                </label>
+                            )}
                         </div>
-                    ) : (
-                        posts.map(p => (
-                            <article key={p.id} className="post-card fade-in">
-                                <div className="p-4 flex items-center gap-3 cursor-pointer" onClick={() => onUserClick({id: p.userId, name: p.user, avatar: p.avatar})}>
-                                    <img src={p.avatar} className="w-10 h-10 rounded-full border-2 border-purple-500/20 object-cover" />
-                                    <span className="font-bold text-xs uppercase tracking-tighter">@{p.user}</span>
+
+                        {isEdit ? (
+                            <div className="w-full mt-6 space-y-3">
+                                <input className="w-full p-3 rounded-xl text-center font-bold" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                                <textarea className="w-full p-3 rounded-xl text-sm" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} rows="2" />
+                                <div className="flex gap-2">
+                                    <button className="flex-1 py-3 btn-primary rounded-xl font-bold text-xs" onClick={() => { onUpdate(form); setIsEdit(false); }}>SALVAR</button>
+                                    <button className="flex-1 py-3 bg-white/5 rounded-xl font-bold text-xs" onClick={() => setIsEdit(false)}>CANCELAR</button>
                                 </div>
-                                <img src={p.img} className="w-full aspect-square object-cover" loading="lazy" />
-                                <div className="p-5">
-                                    <div className="flex gap-4 mb-4">
-                                        <i className="bi bi-heart text-2xl hover:text-purple-500 transition"></i>
-                                        <i className="bi bi-chat-right text-2xl hover:text-purple-500 transition"></i>
-                                        <i className="bi bi-send text-2xl hover:text-purple-500 transition"></i>
-                                    </div>
-                                    <p className="text-sm leading-relaxed text-slate-200">
-                                        <span className="font-black mr-2 text-white">@{p.user}</span>{p.text}
-                                    </p>
+                            </div>
+                        ) : (
+                            <>
+                                <h3 className="text-2xl font-black mt-4 italic">@{profile?.name}</h3>
+                                <p className="text-slate-400 text-sm mt-2 text-center px-10">"{profile?.bio}"</p>
+                                <div className="flex gap-3 mt-6 w-full">
+                                    {isMe ? (
+                                        <button onClick={() => setIsEdit(true)} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-2xl font-bold text-xs uppercase tracking-widest">Editar Perfil</button>
+                                    ) : (
+                                        <button onClick={() => onMessage(profile)} className="flex-1 py-3 btn-primary rounded-2xl font-bold text-xs uppercase shadow-lg">Enviar Mensagem</button>
+                                    )}
                                 </div>
-                            </article>
-                        ))
-                    )}
+                            </>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1 p-1 mt-1">
+                        {myPosts.map(p => <img key={p.id} src={p.img} className="aspect-square object-cover" />)}
+                    </div>
+                    {isMe && <button onClick={onLogout} className="w-[calc(100%-4rem)] mx-8 mt-12 py-4 text-red-500/60 font-bold text-xs uppercase border border-red-500/10 rounded-2xl">Sair da Conta</button>}
                 </div>
             );
         }
 
-        function CreatePost({ user, onDone }) {
+        function CreatePost({ me, onDone }) {
             const [img, setImg] = useState(null);
             const [text, setText] = useState('');
             const handleFile = (e) => {
@@ -335,38 +308,33 @@
                 reader.readAsDataURL(e.target.files[0]);
             };
             return (
-                <div className="p-8 space-y-6 fade-in h-full flex flex-col">
-                    <h2 className="text-2xl font-black uppercase italic tracking-tighter text-purple-500">Novo Momento</h2>
-                    <label className="block aspect-square bg-[#111118] border-2 border-dashed border-white/10 rounded-[3rem] overflow-hidden flex items-center justify-center cursor-pointer group transition-all hover:border-purple-500/50">
-                        {img ? <img src={img} className="w-full h-full object-cover" /> : <div className="text-center group-hover:scale-110 transition duration-500"><i className="bi bi-plus-circle text-5xl text-purple-600 block mb-3"></i><span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">Selecionar Mídia</span></div>}
-                        <input type="file" className="hidden" accept="image/*" onChange={handleFile} />
+                <div className="p-8 space-y-6 h-full flex flex-col">
+                    <h2 className="text-xl font-black uppercase italic tracking-widest text-purple-500">Publicar Momento</h2>
+                    <label className="block aspect-square bg-[#0a0a0f] border-2 border-dashed border-white/10 rounded-[2.5rem] overflow-hidden flex items-center justify-center cursor-pointer group transition-all">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <div className="text-center group-hover:scale-110 transition"><i className="bi bi-image text-5xl text-purple-600 block mb-3"></i><span className="text-[10px] text-slate-500 uppercase font-bold">Galeria</span></div>}
+                        <input type="file" className="hidden" onChange={handleFile} />
                     </label>
-                    <textarea className="input-dark flex-1 resize-none" placeholder="O que está acontecendo?" onChange={e => setText(e.target.value)} />
-                    <button onClick={() => img && onDone({id: Date.now(), userId: user.id, user: user.name, avatar: user.avatar, img, text})} 
-                        className="w-full py-5 bg-purple-600 rounded-[2rem] font-black uppercase tracking-widest shadow-xl shadow-purple-500/20 active:scale-95 transition-all mb-10">Publicar</button>
+                    <textarea className="w-full p-4 rounded-2xl flex-1 resize-none" placeholder="O que você quer contar hoje?" onChange={e => setText(e.target.value)} />
+                    <button onClick={() => img && onDone({ id: Date.now(), userId: me.id, user: me.name, avatar: me.avatar, img, text })} className="w-full py-5 btn-primary rounded-[2rem] font-black uppercase tracking-widest mb-10">POSTAR AGORA</button>
                 </div>
             );
         }
 
         function AuthScreen({ onLogin, onRegister }) {
             const [isReg, setIsReg] = useState(false);
-            const [form, setForm] = useState({ name: '', pass: '', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}` });
+            const [form, setForm] = useState({ name: '', pass: '', avatar: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${Math.random()}` });
             return (
-                <div className="min-h-screen flex items-center justify-center p-6 bg-[#050507]">
-                    <div className="w-full max-w-sm text-center fade-in">
-                        <div className="mb-12">
-                            <h2 className="text-6xl font-black italic text-purple-600 tracking-tighter uppercase mb-2">KCHΛT</h2>
-                            <p className="text-slate-500 text-xs uppercase font-bold tracking-[0.3em]">The Social Evolution</p>
-                        </div>
+                <div className="min-h-screen flex items-center justify-center p-6 bg-[#020205]">
+                    <div className="w-full max-w-sm text-center">
+                        <h2 className="text-6xl font-black italic text-purple-600 tracking-tighter mb-12 uppercase">KCHΛT</h2>
                         <div className="space-y-4">
-                            <input className="input-dark py-5" placeholder="Usuário" onChange={e => setForm({...form, name: e.target.value})} />
-                            <input className="input-dark py-5" type="password" placeholder="Senha" onChange={e => setForm({...form, pass: e.target.value})} />
-                            <button className="w-full py-5 bg-purple-600 rounded-3xl font-black uppercase tracking-widest mt-4 shadow-2xl shadow-purple-500/40 active:scale-95 transition" 
-                                onClick={() => isReg ? onRegister(form) : onLogin(form.name, form.pass)}>
+                            <input className="w-full p-5 rounded-3xl" placeholder="Nome de usuário" onChange={e => setForm({ ...form, name: e.target.value })} />
+                            <input className="w-full p-5 rounded-3xl" type="password" placeholder="Senha" onChange={e => setForm({ ...form, pass: e.target.value })} />
+                            <button className="w-full py-5 btn-primary rounded-3xl font-black uppercase tracking-widest mt-4" onClick={() => isReg ? onRegister(form) : onLogin(form.name, form.pass)}>
                                 {isReg ? 'Criar Conta' : 'Entrar'}
                             </button>
-                            <p className="text-slate-500 text-xs mt-8 cursor-pointer font-bold uppercase tracking-widest hover:text-purple-400" onClick={() => setIsReg(!isReg)}>
-                                {isReg ? 'Já possui conta? Login' : 'Novo por aqui? Cadastre-se'}
+                            <p className="text-slate-500 text-xs mt-8 cursor-pointer font-bold uppercase tracking-widest" onClick={() => setIsReg(!isReg)}>
+                                {isReg ? 'Já tem conta? Login' : 'Não tem conta? Cadastre-se'}
                             </p>
                         </div>
                     </div>
