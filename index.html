@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KChat | Connect</title>
+    <title>KChat | Network</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.2s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         body::-webkit-scrollbar { display: none; }
-        .online-dot { position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: #22c55e; border: 3px solid #0a0a0c; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+        .grid-posts::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-[#0a0a0c] text-white font-sans overflow-x-hidden">
@@ -23,69 +23,162 @@
         const { useState, useEffect, useMemo } = React;
 
         function App() {
+            // --- ESTADOS PRINCIPAIS E SESSÃO ---
             const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('kchat_user')) || null);
-            const [view, setView] = useState('feed'); 
+            const [view, setView] = useState('feed'); // feed, meet, post, search, profile, other_profile, chat_inbox
             const [authState, setAuthState] = useState('welcome');
+            
+            // Banco de Dados Simulado no LocalStorage
             const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('kchat_posts')) || []);
+            const allUsers = useMemo(() => JSON.parse(localStorage.getItem('kchat_users_db')) || [], [view, authState]);
+
+            // Estados de Navegação de Dados
             const [searchTerm, setSearchTerm] = useState('');
-            const [activeCommentPost, setActiveCommentPost] = useState(null);
+            const [selectedUser, setSelectedUser] = useState(null); // Para ver perfil alheio
+            const [selectedPost, setSelectedPost] = useState(null); // Para ver post em detalhes
 
-            // Carrega usuários do banco local
-            const allUsers = useMemo(() => JSON.parse(localStorage.getItem('kchat_users_db')) || [], [user, authState]);
+            // Cadastro temporário
+            const [regName, setRegName] = useState('');
+            const [regPass, setRegPass] = useState('');
 
-            // --- FUNÇÕES DE INTERAÇÃO ---
+            // --- LÓGICA DE USUÁRIO ---
+            const handleLogin = () => {
+                const found = allUsers.find(u => u.name.toLowerCase() === regName.toLowerCase() && u.pass === regPass);
+                if (found) {
+                    setUser(found);
+                    sessionStorage.setItem('kchat_user', JSON.stringify(found));
+                } else alert("Acesso negado! Nome ou senha incorretos.");
+            };
+
+            const finalizeRegister = (profileData) => {
+                const newUser = { ...profileData, name: regName, pass: regPass, id: Date.now(), followers: 15, following: 12, bio: 'Explorando o multiverso do KChat' };
+                const newDb = [...allUsers, newUser];
+                localStorage.setItem('kchat_users_db', JSON.stringify(newDb));
+                setUser(newUser);
+                sessionStorage.setItem('kchat_user', JSON.stringify(newUser));
+            };
+
             const handleLike = (postId) => {
-                const updated = posts.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1, liked: true } : p);
+                const updated = posts.map(p => p.id === postId ? { ...p, likes: (p.likes || 0) + 1 } : p);
                 setPosts(updated);
                 localStorage.setItem('kchat_posts', JSON.stringify(updated));
             };
 
-            const addComment = (postId, text) => {
-                if (!text.trim()) return;
-                const updated = posts.map(p => {
-                    if (p.id === postId) {
-                        const newComments = [...(p.comments || []), { user: user.name, text, id: Date.now() }];
-                        return { ...p, comments: newComments };
-                    }
-                    return p;
-                });
-                setPosts(updated);
-                localStorage.setItem('kchat_posts', JSON.stringify(updated));
-            };
-
-            // --- TELAS DE AUTH (CORRIGIDAS) ---
+            // --- TELAS DE AUTH (Welcome, Login, Cadastro) ---
             if (!user) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050507]">
-                        <div className="w-full max-w-sm bg-[#111118] p-8 rounded-[2.5rem] border border-white/5 text-center shadow-2xl fade-in">
-                            <h1 className="text-4xl font-black mb-10 text-purple-500 italic">KChat</h1>
+                    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050507] fade-in overflow-hidden">
+                        <div className="w-full max-w-sm bg-[#111118] p-8 rounded-[2.5rem] border border-white/5 text-center shadow-2xl">
+                            <h1 className="text-5xl font-black mb-10 text-purple-500 italic">KChat</h1>
                             {authState === 'welcome' && (
-                                <div className="space-y-4">
+                                <div className="space-y-4 fade-in">
                                     <button onClick={() => setAuthState('login')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">Sou usuário</button>
                                     <button onClick={() => setAuthState('reg')} className="w-full py-4 bg-slate-800 rounded-2xl font-bold active:scale-95 transition">Sou novo</button>
                                 </div>
                             )}
                             {(authState === 'login' || authState === 'reg') && (
-                                <AuthForm type={authState} onDone={(u) => { setUser(u); sessionStorage.setItem('kchat_user', JSON.stringify(u)); }} onBack={() => setAuthState('welcome')} />
+                                <div className="space-y-4 fade-in">
+                                    <input value={regName} onChange={e => setRegName(e.target.value)} placeholder="Usuário" className="w-full bg-slate-900 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" />
+                                    <input type="password" value={regPass} onChange={e => setRegPass(e.target.value)} placeholder="Senha" className="w-full bg-slate-900 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" />
+                                    <button onClick={authState === 'login' ? handleLogin : () => setAuthState('prof')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold">Continuar</button>
+                                </div>
                             )}
+                            {authState === 'prof' && <ProfileSetup onFinish={finalizeRegister} />}
                         </div>
                     </div>
                 );
             }
 
+            // --- COMPONENTE DE POST CARD (Usado no Feed) ---
+            const PostCard = ({ p, onLike, onOpen }) => (
+                <div className="bg-[#111118] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-xl">
+                    <div className="p-4 flex items-center gap-3">
+                        <img src={p.avatar} className="w-9 h-9 rounded-full" />
+                        <span className="font-bold text-xs uppercase tracking-tight">{p.user}</span>
+                    </div>
+                    <img src={p.img} onClick={onOpen} className="w-full aspect-square object-cover cursor-pointer" />
+                    <div className="p-5 space-y-3">
+                        <div className="flex gap-5 text-2xl">
+                            <button onClick={onLike} className="active:scale-110 transition"><i className="bi bi-heart text-purple-400"></i></button>
+                            <button onClick={onOpen}><i className="bi bi-chat-dots"></i></button>
+                            <span className="ml-auto text-xs font-black text-slate-600 self-center uppercase">{p.likes || 0} Curtidas</span>
+                        </div>
+                        <p className="text-sm leading-relaxed"><span className="font-bold mr-2 text-purple-300">{p.user}</span>{p.text}</p>
+                    </div>
+                </div>
+            );
+
+            // --- COMPONENTE DE EXIBIÇÃO DE PERFIL (Para reuso Me/Others) ---
+            const ProfileDisplay = ({ targetUser, isMe }) => {
+                const userPosts = posts.filter(p => p.userId === targetUser.id || p.user === targetUser.name);
+                return (
+                    <div className="fade-in pb-24">
+                        <div className="flex flex-col items-center p-6 bg-[#111118]/50 rounded-b-[2rem] border-b border-white/5 mb-6">
+                            <img src={targetUser.avatar} className="w-28 h-28 rounded-full border-4 border-purple-600 p-1 mb-4 object-cover shadow-2xl shadow-purple-900/20" />
+                            <h2 className="text-2xl font-black">{targetUser.name}</h2>
+                            <p className="text-slate-400 text-sm mt-1 mb-4 italic px-8 text-center">"{targetUser.bio}"</p>
+                            <div className="flex gap-6 justify-center mb-6">
+                                <div className="text-center"><p className="font-bold text-lg">{targetUser.followers || 0}</p><p className="text-[10px] text-slate-500 uppercase">Seguidores</p></div>
+                                <div className="text-center"><p className="font-bold text-lg">{targetUser.following || 0}</p><p className="text-[10px] text-slate-500 uppercase">Seguindo</p></div>
+                            </div>
+                            {!isMe && <button onClick={() => alert('Simulação: Seguindo!')} className="w-full max-w-xs py-3 bg-purple-600 rounded-xl font-bold text-xs uppercase italic tracking-widest active:scale-95 transition">Seguir Explorador</button>}
+                            {isMe && <button onClick={() => {sessionStorage.clear(); window.location.reload();}} className="text-red-500 text-xs mt-6">Sair da Órbita</button>}
+                        </div>
+                        {/* Grade de Posts do Usuário */}
+                        <div className="px-3">
+                            <h3 className="text-sm font-black text-slate-600 uppercase mb-3 ml-3 tracking-widest">Publicações</h3>
+                            {userPosts.length === 0 ? (
+                                <p className="text-center mt-10 text-slate-700 p-10 bg-[#111118] rounded-3xl border border-white/5">Nenhum post ainda.</p>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-1 grid-posts">
+                                    {userPosts.map(p => (
+                                        <div key={p.id} onClick={() => {setSelectedPost(p); setView('post_detail')}} className="aspect-square bg-[#111118] rounded-lg overflow-hidden cursor-pointer active:scale-95 transition relative">
+                                            <img src={p.img} className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition"><i className="bi bi-heart-fill text-purple-300"></i> {p.likes || 0}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto bg-[#0a0a0c] relative shadow-2xl">
+                    {/* Header */}
                     <header className="h-16 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/90 backdrop-blur-lg z-40 border-b border-white/5">
-                        <h2 className="text-2xl font-black italic text-purple-400 tracking-tighter uppercase">KChat</h2>
-                        <div className="flex gap-5 text-xl"><i className="bi bi-chat-left-text"></i></div>
+                        <h2 className="text-2xl font-black italic text-purple-500 tracking-tighter uppercase">KChat</h2>
+                        <div className="flex gap-5 text-xl"><i className="bi bi-bell"></i></div>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto pb-24">
+                    <main className="flex-1 overflow-y-auto">
                         {view === 'feed' && (
                             <div className="p-4 space-y-8 fade-in">
-                                {posts.length === 0 ? <EmptyState /> : posts.map(p => (
-                                    <PostCard key={p.id} post={p} onLike={() => handleLike(p.id)} onComment={() => setActiveCommentPost(p)} />
+                                {posts.length === 0 ? <p className="text-center mt-20 text-slate-700">Nada postado ainda.</p> : 
+                                posts.map(p => (
+                                    <PostCard key={p.id} p={p} onLike={() => handleLike(p.id)} onOpen={() => {setSelectedPost(p); setView('post_detail')}} />
                                 ))}
+                            </div>
+                        )}
+
+                        {view === 'post_detail' && selectedPost && (
+                            <div className="fade-in pb-24 relative z-50">
+                                <header className="h-12 border-b border-white/5 bg-[#0a0a0c] flex items-center px-4">
+                                    <button onClick={() => setView('feed')}><i className="bi bi-chevron-left text-purple-400"></i> Voltar</button>
+                                </header>
+                                <img src={selectedPost.img} className="w-full h-auto object-cover border-b border-purple-500" />
+                                <div className="p-6 bg-[#111118] border-b border-white/5">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <img src={selectedPost.avatar} className="w-10 h-10 rounded-full" />
+                                        <div>
+                                            <p className="font-bold text-sm uppercase tracking-tight">{selectedPost.user}</p>
+                                            <p className="text-[10px] text-slate-600">{selectedPost.likes || 0} curtidas</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm leading-relaxed text-slate-300">{selectedPost.text}</p>
+                                </div>
+                                <div className="p-6 italic text-slate-700 text-center text-xs">Simulação: Área de comentários...</div>
                             </div>
                         )}
 
@@ -96,149 +189,99 @@
                                     <input placeholder="Buscar exploradores..." className="w-full bg-[#111118] p-4 pl-12 rounded-2xl outline-none border border-white/5 focus:border-purple-500 transition-all" 
                                     onChange={e => setSearchTerm(e.target.value)} />
                                 </div>
-                                <div className="grid grid-cols-1 gap-4">
-                                    {allUsers.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase())).map(u => (
-                                        <div key={u.id} className="flex items-center gap-4 bg-[#111118] p-4 rounded-3xl border border-white/5">
-                                            <div className="relative">
-                                                <img src={u.avatar} className="w-14 h-14 rounded-full object-cover" />
-                                                <div className="online-dot"></div>
-                                            </div>
-                                            <div className="flex-1">
+                                <div className="space-y-4">
+                                    {allUsers.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()) && u.id !== user.id).map(u => (
+                                        <div key={u.id} onClick={() => {setSelectedUser(u); setView('other_profile')}} className="flex items-center gap-4 bg-[#111118] p-4 rounded-3xl border border-white/5 active:scale-95 transition cursor-pointer">
+                                            <img src={u.avatar} className="w-14 h-14 rounded-full border border-purple-500/30" />
+                                            <div>
                                                 <p className="font-bold text-sm">@{u.name}</p>
-                                                <p className="text-[10px] text-slate-500 uppercase font-black">{u.gender || 'Explorador'}</p>
+                                                <p className="text-[10px] text-slate-500 italic">{u.bio.substring(0,35)}...</p>
                                             </div>
-                                            <button className="bg-purple-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest">Seguir</button>
+                                            <i className="bi bi-chevron-right ml-auto text-slate-700"></i>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
+                        {view === 'other_profile' && selectedUser && (
+                            <div>
+                                <header className="h-12 border-b border-white/5 bg-[#0a0a0c] flex items-center px-4">
+                                    <button onClick={() => setView('search')}><i className="bi bi-chevron-left text-purple-400"></i> Voltar</button>
+                                </header>
+                                <ProfileDisplay targetUser={selectedUser} isMe={false} />
+                            </div>
+                        )}
+
                         {view === 'post' && (
                             <div className="p-6 fade-in">
-                                <h3 className="text-xl font-bold mb-6 italic uppercase tracking-widest">Novo Post</h3>
+                                <h3 className="text-xl font-bold mb-6 italic uppercase tracking-widest">Novo Momento</h3>
                                 <PostCreator onPost={(img, text) => {
-                                    const newP = { id: Date.now(), user: user.name, avatar: user.avatar, img, text, likes: 0, comments: [] };
-                                    const updatedPosts = [newP, ...posts];
-                                    setPosts(updatedPosts);
-                                    localStorage.setItem('kchat_posts', JSON.stringify(updatedPosts));
+                                    const p = { id: Date.now(), userId: user.id, user: user.name, avatar: user.avatar, img, text, likes: 0 };
+                                    const newP = [p, ...posts]; setPosts(newP);
+                                    localStorage.setItem('kchat_posts', JSON.stringify(newP));
                                     setView('feed');
                                 }} />
                             </div>
                         )}
 
-                        {view === 'profile' && (
-                            <div className="p-10 flex flex-col items-center fade-in">
-                                <div className="relative mb-6">
-                                    <img src={user.avatar} className="w-32 h-32 rounded-full border-4 border-purple-600 p-1" />
-                                    <div className="online-dot !w-6 !h-6 !border-4"></div>
+                        {view === 'meet' && (
+                            <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center fade-in">
+                                <div className="w-28 h-28 bg-purple-600/10 rounded-full flex items-center justify-center mb-8 border border-purple-500/30 shadow-lg shadow-purple-500/10 animate-pulse">
+                                    <i className="bi bi-stars text-5xl text-purple-500"></i>
                                 </div>
-                                <h2 className="text-3xl font-black">{user.name}</h2>
-                                <p className="text-purple-400 font-bold text-[10px] tracking-widest uppercase mt-2">Status: Online</p>
-                                <div className="grid grid-cols-2 gap-4 w-full mt-10">
-                                    <div className="bg-[#111118] p-6 rounded-3xl text-center border border-white/5"><p className="text-2xl font-black italic">0</p><p className="text-[10px] text-slate-500 uppercase">Seguidores</p></div>
-                                    <div className="bg-[#111118] p-6 rounded-3xl text-center border border-white/5"><p className="text-2xl font-black italic">0</p><p className="text-[10px] text-slate-500 uppercase">Seguindo</p></div>
-                                </div>
-                                <button onClick={() => {sessionStorage.clear(); window.location.reload();}} className="mt-16 text-red-500 font-black text-[10px] uppercase tracking-widest border border-red-500/20 px-10 py-4 rounded-full active:bg-red-500/10">Sair da Conta</button>
+                                <h2 className="text-3xl font-black mb-3 uppercase tracking-tighter italic">Planet Meet</h2>
+                                <p className="text-slate-500 mb-10 text-sm max-w-xs">Encontre novas conexões orbitando no KChat agora.</p>
+                                <button onClick={() => alert("Simulação: Buscando usuário...")} className="bg-white text-black px-12 py-4 rounded-2xl font-black text-xs uppercase shadow-lg transition">Entrar na Onda</button>
                             </div>
                         )}
+
+                        {view === 'chat_inbox' && (
+                            <div className="p-6 fade-in">
+                                <h2 className="text-xl font-bold mb-8 uppercase text-slate-500">Caixa de Entrada</h2>
+                                <div className="space-y-4">
+                                    <div className="flex gap-4 p-4 bg-[#111118] rounded-3xl border border-white/5 active:bg-slate-900 transition relative">
+                                        <img src="https://api.dicebear.com/8.x/notionists/svg?seed=Admin" className="w-12 h-12 rounded-full border border-purple-500/50" />
+                                        <div className="flex-1">
+                                            <p className="font-bold text-sm">Z-Gram Admin</p>
+                                            <p className="text-xs text-purple-400">Bem-vindo à nova órbita do KChat!</p>
+                                        </div>
+                                        <div className="w-3 h-3 bg-green-500 rounded-full absolute top-4 right-4 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'profile' && <ProfileDisplay targetUser={user} isMe={true} />}
                     </main>
 
-                    {/* MODAL DE COMENTÁRIOS */}
-                    {activeCommentPost && (
-                        <div className="fixed inset-0 bg-[#0a0a0c] z-[100] flex flex-col fade-in">
-                            <div className="p-4 border-b border-white/5 flex items-center gap-4">
-                                <button onClick={() => setActiveCommentPost(null)}><i className="bi bi-x-lg text-2xl"></i></button>
-                                <span className="font-bold uppercase text-xs tracking-widest">Comentários</span>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                                {activeCommentPost.comments?.map(c => (
-                                    <div key={c.id} className="bg-[#111118] p-4 rounded-2xl border border-white/5">
-                                        <p className="text-[10px] font-black text-purple-500 uppercase mb-1">{c.user}</p>
-                                        <p className="text-sm">{c.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <CommentInput onSend={(txt) => { addComment(activeCommentPost.id, txt); setActiveCommentPost({...activeCommentPost, comments: [...(activeCommentPost.comments||[]), {user: user.name, text: txt, id: Date.now()}]}); }} />
-                        </div>
-                    )}
-
                     {/* NAVBAR */}
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around z-50 max-w-lg mx-auto rounded-t-[2.5rem]">
-                        <button onClick={() => setView('feed')} className={`p-4 transition-all ${view==='feed'?'text-purple-500 scale-110':'text-slate-600'}`}><i className="bi bi-grid-1x2-fill text-xl"></i></button>
-                        <button onClick={() => setView('post')} className={`p-4 transition-all ${view==='post'?'text-white scale-110':'text-slate-600'}`}><i className="bi bi-plus-square text-xl"></i></button>
-                        <button onClick={() => setView('meet')} className="relative -top-7 w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl shadow-purple-900/20">
+                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 z-50 max-w-lg mx-auto rounded-t-[2.5rem] shadow-inner">
+                        <button onClick={() => setView('feed')} className={`p-4 transition-all ${view==='feed'?'text-purple-500 scale-110' : 'text-slate-600'}`}><i className="bi bi-grid-1x2-fill text-xl"></i></button>
+                        <button onClick={() => setView('post')} className={`p-4 transition-all ${view==='post'?'text-white scale-110' : 'text-slate-600'}`}><i className="bi bi-plus-square text-xl"></i></button>
+                        <button onClick={() => setView('meet')} className="relative -top-7 w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl transition-all active:scale-90 shadow-purple-500/20">
                             <i className="bi bi-pin-map-fill text-3xl text-white"></i>
                         </button>
-                        <button onClick={() => setView('search')} className={`p-4 transition-all ${view==='search'?'text-white scale-110':'text-slate-600'}`}><i className="bi bi-search text-xl"></i></button>
-                        <button onClick={() => setView('profile')} className={`p-4 transition-all ${view==='profile'?'text-purple-500 scale-110':'text-slate-600'}`}><i className="bi bi-person-fill text-xl"></i></button>
+                        <button onClick={() => setView('search')} className={`p-4 transition-all ${view==='search'?'text-white scale-110' : 'text-slate-600'}`}><i className="bi bi-search text-xl"></i></button>
+                        <button onClick={() => setView('chat_inbox')} className={`p-4 transition-all relative ${view==='chat_inbox'?'text-purple-500 scale-110' : 'text-slate-600'}`}>
+                            <i className="bi bi-chat-left-text-fill text-xl"></i>
+                            <div className="w-2 h-2 bg-purple-500 rounded-full absolute top-4 right-4 animate-ping"></div>
+                        </button>
+                        <button onClick={() => setView('profile')} className={`p-4 transition-all ${view==='profile'?'text-purple-500 scale-110' : 'text-slate-600'}`}><i className="bi bi-person-fill text-xl"></i></button>
                     </nav>
                 </div>
             );
         }
 
-        // --- SUBCOMPONENTES ---
-        function PostCard({ post, onLike, onComment }) {
-            return (
-                <div className="bg-[#111118] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
-                    <div className="p-4 flex items-center gap-3">
-                        <div className="relative">
-                            <img src={post.avatar} className="w-8 h-8 rounded-full border border-purple-500/50" />
-                            <div className="online-dot !w-2 !h-2 !border-none"></div>
-                        </div>
-                        <span className="font-bold text-xs uppercase tracking-widest">{post.user}</span>
-                    </div>
-                    <img src={post.img} className="w-full aspect-square object-cover" onDoubleClick={onLike} />
-                    <div className="p-6">
-                        <div className="flex gap-6 text-2xl mb-4">
-                            <button onClick={onLike} className={post.liked ? 'text-red-500 scale-110 transition' : 'text-slate-400'}>
-                                <i className={`bi ${post.liked ? 'bi-heart-fill' : 'bi-heart'}`}></i>
-                            </button>
-                            <button onClick={onComment} className="text-slate-400"><i className="bi bi-chat-dots"></i></button>
-                            <span className="ml-auto text-xs font-black text-slate-600 self-center uppercase">{post.likes || 0} Curtidas</span>
-                        </div>
-                        <p className="text-sm leading-relaxed"><span className="font-black mr-2 text-purple-400 uppercase text-[10px] tracking-tighter">{post.user}</span>{post.text}</p>
-                    </div>
-                </div>
-            );
-        }
-
-        function AuthForm({ type, onDone, onBack }) {
-            const [n, setN] = useState('');
-            const [p, setP] = useState('');
-            const [step, setStep] = useState(1);
+        // --- SUBCOMPONENTES AUXILIARES ---
+        function ProfileSetup({ onFinish }) {
             const [age, setAge] = useState('');
-
-            const submit = () => {
-                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
-                if (type === 'login') {
-                    const found = db.find(u => u.name.toLowerCase() === n.toLowerCase() && u.pass === p);
-                    if (found) onDone(found); else alert("Erro!");
-                } else {
-                    if (step === 1) { 
-                        if(db.find(u => u.name.toLowerCase() === n.toLowerCase())) return alert("Já existe!");
-                        setStep(2); 
-                    } else {
-                        const newUser = { id: Date.now(), name: n, pass: p, age, avatar: `https://api.dicebear.com/8.x/notionists/svg?seed=${n}` };
-                        db.push(newUser);
-                        localStorage.setItem('kchat_users_db', JSON.stringify(db));
-                        onDone(newUser);
-                    }
-                }
-            };
-
+            const [avatar, setAvatar] = useState('https://api.dicebear.com/8.x/notionists/svg?seed=Izis');
             return (
-                <div className="space-y-4 fade-in">
-                    {step === 1 ? (
-                        <>
-                            <input placeholder="Usuário" className="w-full bg-slate-900 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setN(e.target.value)} />
-                            <input type="password" placeholder="Senha" className="w-full bg-slate-900 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setP(e.target.value)} />
-                        </>
-                    ) : (
-                        <input type="number" placeholder="Sua Idade" className="w-full bg-slate-900 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setAge(e.target.value)} />
-                    )}
-                    <button onClick={submit} className="w-full py-4 bg-purple-600 rounded-2xl font-bold uppercase text-xs tracking-[0.2em]">{type === 'login' ? 'Entrar' : step === 1 ? 'Próximo' : 'Finalizar'}</button>
-                    <button onClick={onBack} className="text-slate-600 text-[10px] uppercase font-bold tracking-widest">Voltar</button>
+                <div className="space-y-6 fade-in text-center">
+                    <img src={avatar} className="w-24 h-24 rounded-full mx-auto border-4 border-purple-600 object-cover" />
+                    <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Sua idade" className="w-full bg-slate-900 p-4 rounded-xl outline-none" />
+                    <button onClick={() => onFinish({ age, avatar })} className="w-full py-4 bg-purple-600 rounded-xl font-bold uppercase text-xs tracking-widest active:scale-95 transition">Criar Conta</button>
                 </div>
             );
         }
@@ -248,34 +291,16 @@
             const [txt, setTxt] = useState('');
             return (
                 <div className="space-y-6">
-                    <label className="block aspect-square bg-[#111118] rounded-[2.5rem] border-2 border-dashed border-slate-800 flex items-center justify-center overflow-hidden cursor-pointer">
-                        {img ? <img src={img} className="w-full h-full object-cover shadow-inner" /> : <i className="bi bi-plus-lg text-4xl text-slate-800"></i>}
-                        <input type="file" className="hidden" onChange={e => { const r = new FileReader(); r.onload = () => setImg(r.result); r.readAsDataURL(e.target.files[0]); }} />
+                    <label className="block aspect-square bg-[#111118] rounded-[2rem] border-2 border-dashed border-slate-800 flex items-center justify-center overflow-hidden cursor-pointer shadow-inner">
+                        {img ? <img src={img} className="w-full h-full object-cover" /> : <i className="bi bi-plus-lg text-4xl text-slate-800"></i>}
+                        <input type="file" className="hidden" onChange={e => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setImg(reader.result);
+                            reader.readAsDataURL(e.target.files[0]);
+                        }} />
                     </label>
-                    <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="No que você está pensando?" className="w-full bg-transparent border-b border-white/10 p-4 outline-none h-24 text-sm" />
-                    <button onClick={() => onPost(img, txt)} className="w-full py-5 bg-purple-600 rounded-[1.5rem] font-black uppercase text-xs tracking-widest">Lançar na Órbita</button>
-                </div>
-            );
-        }
-
-        function CommentInput({ onSend }) {
-            const [v, setV] = useState('');
-            return (
-                <div className="p-4 bg-[#111118] flex gap-3 border-t border-white/5">
-                    <input value={v} onChange={e => setV(e.target.value)} placeholder="Escreva um comentário..." className="flex-1 bg-slate-900 p-4 rounded-2xl outline-none text-sm" />
-                    <button onClick={() => { onSend(v); setV(''); }} className="p-4 bg-purple-600 rounded-2xl"><i className="bi bi-send-fill"></i></button>
-                </div>
-            );
-        }
-
-        function EmptyState() {
-            return (
-                <div className="mt-20 text-center p-10 bg-[#111118] rounded-[3rem] border border-white/5">
-                    <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i className="bi bi-rocket-takeoff text-3xl text-slate-700"></i>
-                    </div>
-                    <p className="font-black italic uppercase text-slate-500 tracking-tighter">O Universo está em silêncio</p>
-                    <p className="text-[10px] text-slate-700 mt-2 uppercase font-black">Seja o primeiro a postar algo real.</p>
+                    <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Legenda do seu momento..." className="w-full bg-transparent border-b border-white/5 p-2 outline-none h-20 text-smresize-none" />
+                    <button onClick={() => {if(img) onPost(img, txt); else alert('Escolha uma foto!')}} className="w-full py-5 bg-purple-600 rounded-2xl font-black uppercase text-xs active:scale-95 transition">Compartilhar na Rede</button>
                 </div>
             );
         }
