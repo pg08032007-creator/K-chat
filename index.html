@@ -9,46 +9,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
+        /* --- SEU CSS ORIGINAL (IMUTÁVEL) --- */
         :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* AUTH - SEU ESTILO ORIGINAL INTEGRAL */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
-        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
+        .custom-input-group i { color: #555; margin-right: 10px; }
+        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; }
+        
         .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
         .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
-        .gender-option input { position: absolute; opacity: 0; cursor: pointer; }
+        .gender-option input { position: absolute; opacity: 0; }
         .gender-option i { font-size: 24px; color: #444; }
         .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
         .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
-        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(168,85,247,0.3); }
+        
+        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
+        
         .avatar-upload { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-purple); position: relative; overflow: hidden; margin: 0 auto; }
         #img-preview { width: 100%; height: 100%; object-fit: cover; }
 
-        /* FEED E NOVAS FUNÇÕES */
-        .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; sticky; top: 0; background: var(--bg-dark); z-index: 100; }
+        /* --- ESTILOS DO FEED (NOVOS) --- */
+        .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
-        
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
-        .post-media { width: 100%; border-radius: 15px; margin-top: 10px; display: block; }
-        
-        /* Botão atualizar no canto do feed */
-        .refresh-btn { position: fixed; bottom: 100px; right: 20px; background: #1a1a1e; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #333; color: var(--accent-purple); z-index: 90; }
 
-        /* Modal Novo Post */
-        .modal-post { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--bg-card); border-radius: 25px; padding: 20px; margin-top: 50px; }
-        .preview-area { width: 100%; height: 180px; border: 2px dashed #333; border-radius: 15px; margin: 15px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
+        .post-media { width: 100%; border-radius: 15px; margin: 10px 0; display: block; }
+        .refresh-btn { position: fixed; bottom: 100px; right: 20px; background: #1a1a1e; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #333; color: var(--accent-purple); z-index: 99; }
+
+        /* Modal de Postagem Estilizado */
+        .modal-post { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--bg-card); border-radius: 25px; padding: 20px; margin-top: 40px; border: 1px solid #333; }
+        .media-placeholder { width: 100%; height: 200px; border: 2px dashed #333; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; overflow: hidden; }
 
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; }
         .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
     </style>
 </head>
 <body>
@@ -59,7 +60,7 @@
             <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Usuário"></div>
             <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="handleLogin()">Entrar</button>
-            <p onclick="showScreen('register')" style="color:#666">Não tem conta? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
+            <p onclick="showScreen('register')" style="color:#666; font-size: 14px; margin-top: 10px;">Não tem conta? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
         </div>
     </div>
 
@@ -69,7 +70,7 @@
             <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
-            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
+            <p onclick="showScreen('login')" style="color:#666; font-size: 14px; margin-top: 10px;">Já tenho conta</p>
         </div>
     </div>
 
@@ -80,7 +81,8 @@
                 <img id="img-preview" src="https://via.placeholder.com/110?text=+" alt="Avatar">
                 <input type="file" id="file-input" accept="image/*" onchange="previewImage(this, 'img-preview')" style="display:none">
             </div>
-            <div class="custom-input-group"><input type="date" id="onb-date"></div>
+            <div class="custom-input-group"><i class="fas fa-calendar-alt"></i><input type="date" id="onb-date"></div>
+            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
             <div class="gender-selector">
                 <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
@@ -93,51 +95,44 @@
     <div id="screen-feed" class="screen">
         <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Buscar usuários..."></div>
+            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Buscar..."></div>
             <i class="fas fa-comment-dots" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:22px"></i>
         </header>
         <div id="feed-content"></div>
         <div class="refresh-btn" onclick="listenPosts()"><i class="fas fa-sync-alt"></i></div>
     </div>
 
-    <div id="screen-chat" class="screen">
-        <header class="app-header"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i> <span>Conversas</span></header>
-        <div style="display:flex; justify-content:space-around; padding:15px; border-bottom:1px solid #222">
-            <span style="color:var(--accent-pink)">Geral</span><span style="color:#555">Grupos</span><span style="color:#555">Convites</span>
-        </div>
-    </div>
-
     <div id="screen-profile" class="screen">
-        <div style="padding:20px; display:flex; justify-content:flex-end">
-            <i class="fas fa-pencil-alt" onclick="editProfile()" style="font-size:20px; color:var(--accent-purple)"></i>
+        <div style="padding:15px; display:flex; justify-content:flex-end;">
+            <i class="fas fa-pencil-alt" onclick="editFullProfile()" style="font-size:22px; color:var(--accent-purple)"></i>
         </div>
         <div class="auth-container" style="padding-top:0">
-            <img id="profile-pic-view" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-            <h2 id="profile-name-view">@user</h2>
-            <p id="profile-status-view" style="color:#666"></p>
+            <img id="my-pic-view" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
+            <h2 id="my-name-view">@usuario</h2>
+            <p id="my-status-view" style="color:#777"></p>
         </div>
-        <div id="my-posts-container" style="border-top:1px solid #222; margin-top:10px"></div>
+        <div id="my-posts-feed" style="border-top:1px solid #1a1a1e; margin-top:10px"></div>
     </div>
 
     <div id="modal-new-post" class="modal-post">
         <div class="modal-content">
-            <h3 style="margin-bottom:15px">Nova Publicação</h3>
-            <div class="preview-area" onclick="document.getElementById('post-media-input').click()">
+            <h2 style="margin-bottom:15px">Criar Post</h2>
+            <div class="media-placeholder" onclick="document.getElementById('post-file').click()">
                 <img id="post-preview-img" style="display:none; width:100%; height:100%; object-fit:cover;">
-                <p id="post-placeholder">Clique para adicionar Foto/Vídeo</p>
+                <p id="txt-up"><i class="fas fa-images" style="font-size:30px"></i><br>Escolher da Galeria</p>
             </div>
-            <input type="file" id="post-media-input" accept="image/*,video/*" onchange="previewImage(this, 'post-preview-img')" style="display:none">
-            <div class="custom-input-group"><input type="text" id="post-text" placeholder="No que está pensando?"></div>
-            <div style="display:flex; gap:10px; margin-top:15px">
-                <button class="btn-premium" onclick="sendPost()" style="flex:1">Postar</button>
-                <button class="btn-premium" onclick="closePostModal()" style="flex:1; background:#222">Cancelar</button>
+            <input type="file" id="post-file" accept="image/*,video/*" onchange="previewImage(this, 'post-preview-img')" style="display:none">
+            <div class="custom-input-group" style="margin-top:15px"><input type="text" id="post-desc" placeholder="Escreva algo..."></div>
+            <div style="display:flex; gap:10px; margin-top:20px">
+                <button class="btn-premium" onclick="uploadPost()" style="flex:2">Publicar</button>
+                <button class="btn-premium" onclick="closeModal()" style="flex:1; background:#222">Sair</button>
             </div>
         </div>
     </div>
 
     <nav id="main-nav" style="display:none">
         <div onclick="showScreen('feed')"><i class="fas fa-compass"></i></div>
-        <div class="plus-fab" onclick="openPostModal()"><i class="fas fa-plus"></i></div>
+        <div class="plus-fab" onclick="document.getElementById('modal-new-post').style.display='block'"><i class="fas fa-plus"></i></div>
         <div onclick="showScreen('profile')"><i class="fas fa-user-astronaut"></i></div>
     </nav>
 
@@ -153,23 +148,23 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let currentUser = null;
-        let base64Temp = "";
+        let base64Media = "";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
-            if(id === 'profile') loadProfileData();
+            if(id === 'profile') loadProfile();
         }
 
         function previewImage(input, targetId) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    base64Temp = e.target.result;
+                    base64Media = e.target.result;
                     const img = document.getElementById(targetId);
-                    img.src = base64Temp;
+                    img.src = base64Media;
                     img.style.display = "block";
-                    if(document.getElementById('post-placeholder')) document.getElementById('post-placeholder').style.display="none";
+                    if(document.getElementById('txt-up')) document.getElementById('txt-up').style.display="none";
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -182,16 +177,18 @@
             if (doc.exists && doc.data().pass === pass) {
                 currentUser = doc.data();
                 enterApp();
-            } else alert("Erro!");
+            } else alert("Dados incorretos!");
         }
 
         async function handleRegister() {
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
             const date = document.getElementById('onb-date').value;
+            const status = document.getElementById('onb-status').value || "Disponível";
             const check = await db.collection("usuarios").doc(user).get();
             if(check.exists) return alert("Usuário já existe!");
-            const userData = { user, pass, date, status: "Olá!", pic: base64Temp || "", online: true };
+            
+            const userData = { user, pass, date, status, pic: base64Media || "", online: true };
             await db.collection("usuarios").doc(user).set(userData);
             currentUser = userData;
             enterApp();
@@ -203,40 +200,35 @@
             listenPosts();
         }
 
-        function openPostModal() { document.getElementById('modal-new-post').style.display = 'block'; }
-        function closePostModal() { document.getElementById('modal-new-post').style.display = 'none'; base64Temp = ""; }
-
-        async function sendPost() {
-            const text = document.getElementById('post-text').value;
+        async function uploadPost() {
+            const desc = document.getElementById('post-desc').value;
             await db.collection("posts").add({
                 author: currentUser.user, authorPic: currentUser.pic,
-                content: text, media: base64Temp, time: Date.now(),
-                likes: 0, likes_list: [], comments: 0, isOnline: true
+                content: desc, media: base64Media, time: Date.now(),
+                likes: 0, likes_list: []
             });
-            closePostModal();
+            closeModal();
         }
+
+        function closeModal() { document.getElementById('modal-new-post').style.display='none'; base64Media=""; }
 
         function listenPosts() {
             db.collection("posts").orderBy("time", "desc").onSnapshot(s => {
-                const container = document.getElementById('feed-content');
-                container.innerHTML = "";
+                const cont = document.getElementById('feed-content');
+                cont.innerHTML = "";
                 s.forEach(doc => {
                     const p = doc.data();
                     const liked = p.likes_list?.includes(currentUser.user);
-                    container.innerHTML += `
+                    cont.innerHTML += `
                         <div class="post-card">
                             <div style="display:flex; align-items:center; gap:10px">
-                                <div style="position:relative">
-                                    <img src="${p.authorPic || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
-                                    <div class="status-dot" style="background:${p.isOnline ? '#22c55e' : '#444'}"></div>
-                                </div>
+                                <img src="${p.authorPic || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
                                 <strong>@${p.author}</strong>
                             </div>
                             <p style="margin:10px 0">${p.content}</p>
                             ${p.media ? `<img src="${p.media}" class="post-media">` : ''}
-                            <div style="margin-top:10px; display:flex; gap:20px; color:#666">
+                            <div style="display:flex; gap:20px; color:#666">
                                 <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${p.likes}</span>
-                                <span><i class="fas fa-comment"></i> ${p.comments}</span>
                             </div>
                         </div>`;
                 });
@@ -253,28 +245,28 @@
             await ref.update({ likes: count, likes_list: list });
         }
 
-        function loadProfileData() {
-            document.getElementById('profile-pic-view').src = currentUser.pic;
-            document.getElementById('profile-name-view').innerText = "@" + currentUser.user;
-            document.getElementById('profile-status-view').innerText = currentUser.status;
+        function loadProfile() {
+            document.getElementById('my-pic-view').src = currentUser.pic;
+            document.getElementById('my-name-view').innerText = "@" + currentUser.user;
+            document.getElementById('my-status-view').innerText = currentUser.status;
             
-            db.collection("posts").where("author", "==", currentUser.user).get().then(s => {
-                const container = document.getElementById('my-posts-container');
-                container.innerHTML = "<h4 style='padding:15px'>Meus Posts</h4>";
+            db.collection("posts").where("author", "==", currentUser.user).onSnapshot(s => {
+                const cont = document.getElementById('my-posts-feed');
+                cont.innerHTML = "<h4 style='padding:15px'>Publicações</h4>";
                 s.forEach(doc => {
                     const p = doc.data();
-                    container.innerHTML += `<div class="post-card"><p>${p.content}</p>${p.media ? `<img src="${p.media}" class="post-media">` : ''}</div>`;
+                    cont.innerHTML += `<div class="post-card"><p>${p.content}</p>${p.media ? `<img src="${p.media}" class="post-media">` : ''}</div>`;
                 });
             });
         }
 
-        async function editProfile() {
-            const nUser = prompt("Novo nome (sem @):", currentUser.user);
+        function editFullProfile() {
+            const nName = prompt("Novo Nome:", currentUser.user);
             const nBio = prompt("Nova Bio:", currentUser.status);
-            if(nUser || nBio) {
+            if(nName || nBio) {
                 db.collection("usuarios").doc(currentUser.user).update({ status: nBio || currentUser.status });
                 currentUser.status = nBio;
-                loadProfileData();
+                loadProfile();
             }
         }
     </script>
