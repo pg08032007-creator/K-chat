@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KChat</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; background: #fafafa; }
+        
+        /* Header estilo Instagram */
+        .header { 
+            position: fixed; top: 0; width: 100%; height: 50px; 
+            background: #fff; border-bottom: 1px solid #dbdbdb;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; box-sizing: border-box; z-index: 100;
+        }
+        .logo { font-weight: bold; font-size: 20px; color: #262626; }
+
+        /* Stories / Círculos do Project Z */
+        .circles-bar {
+            margin-top: 60px; padding: 10px;
+            display: flex; overflow-x: auto; background: #fff;
+            border-bottom: 1px solid #dbdbdb;
+        }
+        .circle {
+            min-width: 65px; height: 65px; border-radius: 50%;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            margin-right: 12px; padding: 2px;
+        }
+        .circle img { 
+            width: 100%; height: 100%; border-radius: 50%; 
+            border: 2px solid white; object-fit: cover;
+        }
+
+        /* Feed de Postagens */
+        .feed { padding-bottom: 60px; }
+        .post { background: #fff; margin-bottom: 20px; border-bottom: 1px solid #dbdbdb; }
+        .post-header { padding: 10px; display: flex; align-items: center; font-weight: bold; }
+        .post-img { width: 100%; aspect-ratio: 1/1; background: #eee; object-fit: cover; }
+        
+        /* Menu Inferior */
+        .nav-bottom {
+            position: fixed; bottom: 0; width: 100%; height: 50px;
+            background: #fff; border-top: 1px solid #dbdbdb;
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .nav-item { font-size: 24px; color: #262626; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">KChat</div>
+        <div class="icons">🔔 ✉️</div>
+    </div>
+
+    <div class="circles-bar">
+        <div class="circle"><img src="https://via.placeholder.com/100" alt="Círculo RP"></div>
+        <div class="circle"><img src="https://via.placeholder.com/100" alt="Minecraft"></div>
+        <div class="circle"><img src="https://via.placeholder.com/100" alt="Anime"></div>
+        <div class="circle"><img src="https://via.placeholder.com/100" alt="Desenho"></div>
+    </div>
+
+    <div class="feed">
+        <div class="post">
+            <div class="post-header">👤 usuario_kchat</div>
+            <img src="https://via.placeholder.com/500" class="post-img">
+            <div style="padding: 10px;">
+                <strong>usuario_kchat</strong> Olá mundo! Este é o começo do KChat. 🚀
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bottom">
+        <a href="#" class="nav-item">🏠</a>
+        <a href="#" class="nav-item">🔍</a>
+        <a href="#" class="nav-item">➕</a>
+        <a href="#" class="nav-item">💬</a>
+        <a href="#" class="nav-item">👤</a>
+    </nav>
+
+</body>
+</html>
