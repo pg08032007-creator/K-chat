@@ -3,12 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z-Gram | For You</title>
+    <title>KChat | Beta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        /* Animação suave para troca de telas */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Esconder scrollbar */
+        body::-webkit-scrollbar { display: none; }
+        body { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-[#0a0a0c] text-white font-sans overflow-x-hidden">
     <div id="root"></div>
@@ -16,53 +24,75 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // Gerador de Avatares Simples
+        const getAvatar = (seed) => `https://api.dicebear.com/8.x/notionists/svg?seed=${seed || 'default'}`;
+
         function App() {
             // Sessão e Navegação
-            const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('z_user')) || null);
-            const [view, setView] = useState('feed');
+            const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('kchat_user')) || null);
+            const [view, setView] = useState('feed'); // feed, meet, post, search, profile
             
-            // Banco de Dados de Posts (Simulado no LocalStorage)
-            const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('z_posts')) || [
-                { id: 1, user: 'Lana_Vibe', img: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=500', text: 'Vibe neon de hoje! #Cyberpunk', likes: 12, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lana' },
-                { id: 2, user: 'Kael_Dev', img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500', text: 'Meu setup novo está pronto. 🚀', likes: 45, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kael' }
-            ]);
+            // Banco de Dados de Posts (Apenas os reais criados pelo usuário)
+            const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('kchat_posts')) || []);
 
-            // Cadastro
-            const [regData, setRegData] = useState({ name: '', pass: '', age: '', gender: 'Feminino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Izis' });
-
-            // Criação de Post
-            const [postModal, setPostModal] = useState(false);
-            const [newPostImg, setNewPostImg] = useState(null);
-            const [newPostText, setNewPostText] = useState('');
+            // Estados do Fluxo de Login/Cadastro
+            const [authState, setAuthState] = useState('welcome'); // welcome, login, register_credentials, register_profile
+            const [loginName, setLoginName] = useState('');
+            const [loginPass, setLoginPass] = useState('');
+            const [regData, setRegData] = useState({ name: '', pass: '', age: '', gender: 'Outro', avatar: getAvatar('new') });
 
             // Meet/Chat
             const [meetStatus, setMeetStatus] = useState('idle');
+            const [match, setMatch] = useState(null);
             const [chatOpen, setChatOpen] = useState(false);
 
-            // --- FUNÇÕES ---
+            // --- FUNÇÕES DE AUTH ---
             const handleLogin = () => {
-                if (!regData.name || !regData.pass) return alert("Preencha nome e senha!");
-                const u = { ...regData, username: regData.name };
-                setUser(u);
-                sessionStorage.setItem('z_user', JSON.stringify(u));
+                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
+                const foundUser = db.find(u => u.name.toLowerCase() === loginName.toLowerCase() && u.pass === loginPass);
+                
+                if (foundUser) {
+                    setUser(foundUser);
+                    sessionStorage.setItem('kchat_user', JSON.stringify(foundUser));
+                } else {
+                    alert("Usuário ou senha incorretos!");
+                }
             };
 
-            const handleCreatePost = () => {
-                if (!newPostImg) return alert("Selecione uma imagem!");
+            const handleGoToProfileReg = () => {
+                if (!regData.name || !regData.pass) return alert("Preencha nome e senha!");
+                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
+                if (db.find(u => u.name.toLowerCase() === regData.name.toLowerCase())) {
+                    return alert("Este nome de usuário já existe!");
+                }
+                setRegData({...regData, avatar: getAvatar(regData.name)}); // Gera avatar baseado no nome
+                setAuthState('register_profile');
+            };
+
+            const handleFinalizeRegister = () => {
+                if (!regData.age) return alert("Por favor, informe sua idade.");
+                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
+                const newUser = { ...regData, id: Date.now() };
+                db.push(newUser);
+                localStorage.setItem('kchat_users_db', JSON.stringify(db));
+                setUser(newUser);
+                sessionStorage.setItem('kchat_user', JSON.stringify(newUser));
+            };
+
+            // --- FUNÇÕES DE POST ---
+            const handleCreatePost = (img, text) => {
                 const post = {
                     id: Date.now(),
-                    user: user.username,
+                    userId: user.id,
+                    user: user.name,
                     avatar: user.avatar,
-                    img: newPostImg,
-                    text: newPostText,
+                    img: img,
+                    text: text,
                     likes: 0
                 };
                 const updatedPosts = [post, ...posts];
                 setPosts(updatedPosts);
-                localStorage.setItem('z_posts', JSON.stringify(updatedPosts));
-                setPostModal(false);
-                setNewPostImg(null);
-                setNewPostText('');
+                localStorage.setItem('kchat_posts', JSON.stringify(updatedPosts));
                 setView('feed');
             };
 
@@ -75,41 +105,120 @@
                 }
             };
 
-            if (!user) return (
-                <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950">
-                    <div className="w-full max-w-sm bg-[#16161e] p-8 rounded-[2.5rem] border border-purple-500/20 shadow-2xl">
-                        <h1 className="text-3xl font-black text-center mb-6 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent italic tracking-tighter">Z-GRAM</h1>
-                        <div className="space-y-4">
-                            <input placeholder="Usuário" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" onChange={e => setRegData({...regData, name: e.target.value})} />
-                            <input type="password" placeholder="Senha" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" onChange={e => setRegData({...regData, pass: e.target.value})} />
-                            <button onClick={handleLogin} className="w-full py-4 bg-purple-600 rounded-2xl font-bold shadow-lg active:scale-95 transition">Entrar</button>
-                        </div>
+            // --- COMPONENTES DE TELA (AUTH) ---
+            const AuthLayout = ({ children }) => (
+                <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 fade-in">
+                    <div className="w-full max-w-sm bg-[#16161e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl text-center">
+                        <h1 className="text-4xl font-black mb-10 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent italic tracking-tighter">KChat</h1>
+                        {children}
                     </div>
                 </div>
             );
 
+            if (!user) {
+                if (authState === 'welcome') return (
+                    <AuthLayout>
+                        <i className="bi bi-chat-heart-fill text-6xl text-purple-600 mb-10 block"></i>
+                        <h2 className="text-xl font-bold mb-3">Bem-vindo à órbita!</h2>
+                        <p className="text-sm text-slate-400 mb-10">Você já faz parte do nosso universo?</p>
+                        <div className="space-y-4">
+                            <button onClick={() => setAuthState('login')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">Sim, quero entrar</button>
+                            <button onClick={() => setAuthState('register_credentials')} className="w-full py-4 bg-slate-800 rounded-2xl font-bold active:scale-95 transition">Não, sou novo aqui</button>
+                        </div>
+                    </AuthLayout>
+                );
+
+                if (authState === 'login') return (
+                    <AuthLayout>
+                        <div className="space-y-4">
+                            <input placeholder="Nome de usuário" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setLoginName(e.target.value)} />
+                            <input type="password" placeholder="Senha" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setLoginPass(e.target.value)} />
+                            <button onClick={handleLogin} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">Entrar</button>
+                            <button onClick={() => setAuthState('welcome')} className="w-full py-2 text-slate-500 text-xs">Voltar</button>
+                        </div>
+                    </AuthLayout>
+                );
+
+                if (authState === 'register_credentials') return (
+                    <AuthLayout>
+                        <div className="space-y-4">
+                            <p className="text-sm text-slate-400 mb-6 text-left">Defina seu acesso:</p>
+                            <input placeholder="Escolha um nome de usuário" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setRegData({...regData, name: e.target.value})} />
+                            <input type="password" placeholder="Crie uma senha" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setRegData({...regData, pass: e.target.value})} />
+                            <button onClick={handleGoToProfileReg} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">Próximo passo</button>
+                            <button onClick={() => setAuthState('welcome')} className="w-full py-2 text-slate-500 text-xs">Cancelar</button>
+                        </div>
+                    </AuthLayout>
+                );
+
+                if (authState === 'register_profile') return (
+                    <AuthLayout>
+                        <div className="space-y-5">
+                            <p className="text-sm text-slate-400 text-left">Complete seu perfil:</p>
+                            <div className="relative group mx-auto w-24 h-24 mb-6">
+                                <img src={regData.avatar} className="w-full h-full rounded-full border-4 border-purple-600 object-cover" />
+                                <label className="absolute bottom-0 right-0 bg-purple-600 p-2 rounded-full cursor-pointer"><i className="bi bi-camera-fill"></i>
+                                    <input type="file" className="hidden" onChange={e => uploadImage(e, (img) => setRegData({...regData, avatar: img}))} />
+                                </label>
+                            </div>
+                            <input type="number" placeholder="Sua idade" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" onChange={e => setRegData({...regData, age: e.target.value})} />
+                            <select className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5 text-slate-400" onChange={e => setRegData({...regData, gender: e.target.value})}>
+                                <option>Gênero: Outro</option><option>Gênero: Feminino</option><option>Gênero: Masculino</option><option>Gênero: Não-binário</option>
+                            </select>
+                            <button onClick={handleFinalizeRegister} className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold active:scale-95 transition">Finalizar e Entrar</button>
+                        </div>
+                    </AuthLayout>
+                );
+            }
+
+            // --- TELA DE CRIAÇÃO DE POST ---
+            const CreatePostScreen = () => {
+                const [img, setImg] = useState(null);
+                const [text, setText] = useState('');
+                return (
+                    <div className="p-6 space-y-6 fade-in pb-32">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold">Criar Post</h2>
+                            <button onClick={() => handleCreatePost(img, text)} className="text-purple-400 font-black text-sm uppercase">Postar</button>
+                        </div>
+                        <label className="block aspect-square bg-[#111118] rounded-[2rem] border-2 border-dashed border-slate-800 flex flex-col items-center justify-center overflow-hidden cursor-pointer shadow-inner">
+                            {img ? <img src={img} className="w-full h-full object-cover" /> : <><i className="bi bi-image text-4xl text-slate-700 mb-2"></i><span className="text-xs text-slate-600">Toque para adicionar foto</span></>}
+                            <input type="file" className="hidden" onChange={e => uploadImage(e, setImg)} />
+                        </label>
+                        <textarea placeholder="Escreva algo sobre esse momento..." className="w-full bg-transparent p-2 outline-none resize-none h-24 text-sm border-b border-white/5" onChange={e => setText(e.target.value)}></textarea>
+                    </div>
+                );
+            };
+
+            // --- APP LAYOUT ---
             return (
-                <div className="min-h-screen flex flex-col max-w-lg mx-auto bg-[#0a0a0c] shadow-2xl">
+                <div className="min-h-screen flex flex-col max-w-lg mx-auto bg-[#0a0a0c] shadow-2xl relative">
                     <header className="h-16 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/90 backdrop-blur-lg z-40 border-b border-white/5">
-                        <h2 className="text-xl font-black italic text-purple-400 tracking-tighter">FOR YOU</h2>
-                        <div className="flex gap-5 text-xl"><i className="bi bi-heart"></i><i className="bi bi-chat-left-text"></i></div>
+                        <h2 className="text-2xl font-black italic text-purple-400 tracking-tighter">KChat</h2>
+                        <div className="flex gap-5 text-xl"><i className="bi bi-bell"></i><i className="bi bi-chat-left-text"></i></div>
                     </header>
 
                     <main className="flex-1 pb-24 overflow-y-auto">
                         {view === 'feed' && (
-                            <div className="p-4 space-y-8 animate-in fade-in duration-500">
-                                {posts.map(post => (
+                            <div className="p-4 space-y-8 fade-in">
+                                {posts.length === 0 ? (
+                                    <div className="h-60 flex flex-col items-center justify-center text-center text-slate-700 border border-white/5 rounded-3xl mt-10 p-6 bg-[#111118]">
+                                        <i className="bi bi-camera text-5xl mb-4"></i>
+                                        <p className="font-bold">Nada por aqui... ainda!</p>
+                                        <p className="text-xs mt-2">Clique no [ + ] abaixo e faça a primeira postagem real do KChat.</p>
+                                    </div>
+                                ) : posts.map(post => (
                                     <div key={post.id} className="bg-[#111118] rounded-[2rem] border border-white/5 overflow-hidden shadow-xl">
                                         <div className="p-4 flex items-center gap-3">
                                             <img src={post.avatar} className="w-9 h-9 rounded-full border border-purple-500/50" />
                                             <span className="font-bold text-sm tracking-tight">{post.user}</span>
                                         </div>
                                         <img src={post.img} className="w-full aspect-square object-cover" />
-                                        <div className="p-4">
-                                            <div className="flex gap-4 text-2xl mb-3">
+                                        <div className="p-4 space-y-3">
+                                            <div className="flex gap-4 text-2xl">
                                                 <i className="bi bi-heart hover:text-red-500 transition cursor-pointer"></i>
                                                 <i className="bi bi-chat"></i>
-                                                <i className="bi bi-send ml-auto"></i>
+                                                <i className="bi bi-share ml-auto"></i>
                                             </div>
                                             <p className="text-sm leading-relaxed"><span className="font-bold mr-2">{post.user}</span>{post.text}</p>
                                         </div>
@@ -118,68 +227,44 @@
                             </div>
                         )}
 
+                        {view === 'post' && <CreatePostScreen />}
+
                         {view === 'meet' && (
-                            <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center">
-                                <div className="w-24 h-24 bg-purple-600/20 rounded-full flex items-center justify-center mb-6 border border-purple-500/40 animate-pulse">
-                                    <i className="bi bi-stars text-4xl text-purple-400"></i>
+                            <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center fade-in">
+                                <div className="w-28 h-28 bg-purple-600/10 rounded-full flex items-center justify-center mb-8 border border-purple-500/30 shadow-lg shadow-purple-500/10">
+                                    <i className="bi bi-stars text-5xl text-purple-500"></i>
                                 </div>
-                                <h2 className="text-2xl font-bold mb-2 uppercase tracking-tighter italic">Planeta Meet</h2>
-                                <p className="text-slate-500 mb-8 text-sm">Aguardando novos exploradores na órbita...</p>
-                                <button onClick={() => setMeetStatus('searching')} className="bg-white text-black px-10 py-3 rounded-full font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition">Buscar</button>
+                                <h2 className="text-3xl font-black mb-3 uppercase tracking-tighter italic">Planet Meet</h2>
+                                <p className="text-slate-500 mb-10 text-sm max-w-xs">Encontre novas conexões orbitando no KChat agora.</p>
+                                <button onClick={() => alert("Simulação: Buscando usuário...")} className="bg-white text-black px-12 py-4 rounded-2xl font-black text-xs uppercase hover:bg-purple-500 hover:text-white transition shadow-lg">Entrar na Onda</button>
                             </div>
                         )}
 
                         {view === 'profile' && (
-                            <div className="p-10 flex flex-col items-center animate-in slide-in-from-bottom duration-500">
-                                <img src={user.avatar} className="w-28 h-28 rounded-full border-4 border-purple-600 p-1 mb-4 shadow-2xl shadow-purple-500/20" />
-                                <h2 className="text-2xl font-black">{user.username}</h2>
-                                <div className="mt-8 grid grid-cols-2 gap-4 w-full">
-                                    <div className="bg-[#111118] p-4 rounded-3xl text-center border border-white/5"><p className="text-lg font-bold">{posts.filter(p=>p.user === user.username).length}</p><p className="text-[10px] text-slate-500 uppercase">Posts</p></div>
-                                    <div className="bg-[#111118] p-4 rounded-3xl text-center border border-white/5"><p className="text-lg font-bold">542</p><p className="text-[10px] text-slate-500 uppercase">Z-Points</p></div>
-                                </div>
-                                <button onClick={() => {sessionStorage.clear(); window.location.reload();}} className="mt-20 text-red-500 text-[10px] font-black tracking-widest uppercase border border-red-500/20 px-10 py-3 rounded-full">Desconectar</button>
+                            <div className="p-10 flex flex-col items-center fade-in">
+                                <img src={user.avatar} className="w-28 h-28 rounded-full border-4 border-purple-600 p-1 mb-4 shadow-2xl shadow-purple-500/20 object-cover" />
+                                <h2 className="text-2xl font-black">{user.name}</h2>
+                                <p className="text-purple-400 font-bold text-xs tracking-widest uppercase mt-1">{user.gender} • {user.age} anos</p>
+                                <button onClick={() => {sessionStorage.clear(); window.location.reload();}} className="mt-20 text-red-500 text-[10px] font-black tracking-widest uppercase border border-red-500/10 px-10 py-3 rounded-full hover:bg-red-500/5 transition">Sair</button>
                             </div>
                         )}
                     </main>
 
-                    {/* MODAL DE CRIAÇÃO DE POST */}
-                    {postModal && (
-                        <div className="fixed inset-0 bg-black/95 z-[100] p-6 flex flex-col animate-in fade-in zoom-in duration-200">
-                            <div className="flex justify-between items-center mb-8">
-                                <button onClick={() => setPostModal(false)} className="text-slate-400 text-2xl"><i className="bi bi-x-lg"></i></button>
-                                <h3 className="font-bold">NOVO POST</h3>
-                                <button onClick={handleCreatePost} className="text-purple-400 font-black">COMPARTILHAR</button>
-                            </div>
-                            
-                            <div className="flex-1 space-y-6">
-                                <label className="block aspect-square bg-slate-900 rounded-[2rem] border-2 border-dashed border-slate-800 flex flex-col items-center justify-center overflow-hidden cursor-pointer">
-                                    {newPostImg ? (
-                                        <img src={newPostImg} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <><i className="bi bi-image text-4xl text-slate-700 mb-2"></i><span className="text-xs text-slate-500">Escolha uma foto</span></>
-                                    )}
-                                    <input type="file" className="hidden" onChange={e => uploadImage(e, setNewPostImg)} />
-                                </label>
-                                <textarea 
-                                    placeholder="Escreva uma legenda estilosa..." 
-                                    className="w-full bg-transparent border-b border-white/10 p-2 outline-none resize-none h-24 text-sm"
-                                    onChange={e => setNewPostText(e.target.value)}
-                                ></textarea>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* NAVBAR INFERIOR */}
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-4 z-50 max-w-lg mx-auto">
-                        <button onClick={() => setView('feed')} className={`text-2xl transition-all ${view === 'feed' ? 'text-purple-500 scale-110' : 'text-slate-500'}`}><i className="bi bi-grid-1x2-fill"></i></button>
-                        <button onClick={() => setView('meet')} className={`text-2xl transition-all ${view === 'meet' ? 'text-purple-500 scale-110' : 'text-slate-500'}`}><i className="bi bi-hexagon-half rotate-45"></i></button>
+                    {/* NAVBAR INFERIOR (Planet Meet no Centro) */}
+                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 z-50 max-w-lg mx-auto rounded-t-[2rem] shadow-inner">
+                        <button onClick={() => setView('feed')} className={`p-4 transition-all ${view === 'feed' ? 'text-purple-500 scale-110' : 'text-slate-600'}`}><i className="bi bi-grid-1x2-fill text-xl"></i></button>
+                        <button onClick={() => setView('post')} className={`p-4 transition-all ${view === 'post' ? 'text-white scale-110' : 'text-slate-600'}`}><i className="bi bi-plus-square text-xl"></i></button>
                         
-                        <button onClick={() => setPostModal(true)} className="w-14 h-14 bg-white text-black rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition shadow-white/5">
-                            <i className="bi bi-plus-lg text-2xl"></i>
+                        {/* PLANET MEET CENTRAL */}
+                        <button 
+                            onClick={() => setView('meet')}
+                            className={`relative -top-7 w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl transition-all active:scale-90 ${view === 'meet' ? 'scale-110 shadow-purple-500/50' : 'grayscale-[30%]'}`}
+                        >
+                            <i className="bi bi-pin-map-fill text-3xl text-white"></i>
                         </button>
 
-                        <button className="text-2xl text-slate-500"><i className="bi bi-search"></i></button>
-                        <button onClick={() => setView('profile')} className={`text-2xl transition-all ${view === 'profile' ? 'text-purple-500 scale-110' : 'text-slate-500'}`}><i className="bi bi-person-fill"></i></button>
+                        <button onClick={() => setView('search')} className={`p-4 transition-all ${view === 'search' ? 'text-white scale-110' : 'text-slate-600'}`}><i className="bi bi-search text-xl"></i></button>
+                        <button onClick={() => setView('profile')} className={`p-4 transition-all ${view === 'profile' ? 'text-purple-500 scale-110' : 'text-slate-600'}`}><i className="bi bi-person-fill text-xl"></i></button>
                     </nav>
                 </div>
             );
