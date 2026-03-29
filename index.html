@@ -2,61 +2,83 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>K. Network</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <style>
-        /* Mantendo o seu estilo original das fotos */
-        :root { --primary: #8a2be2; --bg: #000; --card: #111; --text: #fff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-        .screen { display: none; height: 100vh; flex-direction: column; overflow-y: auto; padding-bottom: 80px; }
+        :root { --primary: #8a2be2; --accent: linear-gradient(45deg, #c026d3, #db2777); --bg: #000; --card: #111; --text: #fff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        
+        /* Telas */
+        .screen { display: none; height: 100vh; width: 100vw; flex-direction: column; overflow-y: auto; padding-bottom: 100px; }
         .screen.active { display: flex; }
-        .auth-container { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        input { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; margin-bottom: 10px; outline: none; }
+
+        /* Estilo Login e Registro (Igual image_3 e image_4) */
+        .auth-container { padding: 40px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .pfp-wrapper { position: relative; width: 120px; height: 120px; margin-bottom: 20px; }
+        #pfp-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
+        .pfp-label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        input { background: #111; border: 1px solid #222; padding: 15px; border-radius: 12px; color: #fff; width: 100%; margin-bottom: 15px; outline: none; }
         .btn-main { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 25px; width: 100%; font-weight: bold; cursor: pointer; }
-        .pfp-preview { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--primary); object-fit: cover; margin-bottom: 20px; }
-        .nav { position: fixed; bottom: 15px; width: 90%; left: 5%; height: 70px; background: rgba(15,15,15,0.9); border-radius: 35px; border: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
-        .plus { background: linear-gradient(45deg, #c026d3, #db2777); width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-top: -15px; color: white; }
+
+        /* Feed (Igual image_0) */
+        .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; z-index: 10; }
+        .search-box { background: #121212; flex: 1; display: flex; align-items: center; padding: 10px 15px; border-radius: 12px; border: 1px solid #1a1a1a; }
+        .search-box input { background: transparent; border: none; color: #fff; width: 100%; margin-left: 10px; outline: none; }
+        
+        /* Navegação Inferior (Igual image_0) */
+        .bottom-nav { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 50; }
+        .nav-container { background: rgba(10,10,10,0.9); width: 90%; height: 75px; border-radius: 35px; border: 1px solid #222; display: flex; justify-content: space-around; align-items: center; backdrop-filter: blur(10px); }
+        .plus-btn { background: var(--accent); width: 60px; height: 60px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-top: -15px; box-shadow: 0 8px 20px rgba(192, 38, 211, 0.4); cursor: pointer; color: white; }
     </style>
 </head>
 <body>
 
     <div id="scr-auth" class="screen active">
         <div class="auth-container">
-            <h1 style="color:var(--primary); font-size: 3rem; margin-bottom: 20px;">K.</h1>
+            <h1 style="color:var(--primary); font-size: 3.5rem; font-weight: 800; margin-bottom: 20px;">K.</h1>
             <input type="text" id="u" placeholder="Nome de usuário">
             <input type="password" id="p" placeholder="Senha">
-            <button class="btn-main" onclick="handleAuth()">Entrar / Registrar</button>
+            <button class="btn-main" onclick="handleAuth()">Entrar / Próximo</button>
         </div>
     </div>
 
     <div id="scr-setup" class="screen">
         <div class="auth-container">
-            <h2>Complete seu Perfil</h2>
-            <img src="https://via.placeholder.com/120" id="pfp-img" class="pfp-preview">
-            <input type="file" id="pfp-input" accept="image/*">
-            <input type="number" id="age" placeholder="Idade">
-            <div style="margin: 20px 0;">
-                <input type="radio" name="g" value="m"> ♂️
-                <input type="radio" name="g" value="f"> ♀️
-                <input type="radio" name="g" value="o"> ⚧️
+            <h2 style="margin-bottom:20px">Complete seu Perfil</h2>
+            <div class="pfp-wrapper">
+                <img src="https://via.placeholder.com/120" id="pfp-img">
+                <label class="pfp-label" for="pfp-input"><i class="fa fa-camera"></i></label>
+                <input type="file" id="pfp-input" hidden accept="image/*">
+            </div>
+            <input type="number" id="age" placeholder="Sua idade">
+            <div style="display:flex; gap:30px; margin-bottom:20px;">
+                <label><input type="radio" name="g" value="m"> ♂️</label>
+                <label><input type="radio" name="g" value="f"> ♀️</label>
+                <label><input type="radio" name="g" value="o"> ⚧️</label>
             </div>
             <button class="btn-main" id="btn-save" onclick="saveProfile()">Criar Conta</button>
         </div>
     </div>
 
     <div id="scr-feed" class="screen">
-        <div style="padding: 20px;">
-            <h1 style="color:var(--primary)">K.</h1>
-            <h2>Global Feed</h2>
-            <div id="post-list" style="margin-top:20px"></div>
+        <header class="top-bar">
+            <span style="color:var(--primary); font-weight:bold; font-size:26px">K.</span>
+            <div class="search-box"><i class="fa fa-search"></i><input type="text" placeholder="Teste"></div>
+        </header>
+        <div style="padding:20px">
+            <h1 style="font-size: 28px; font-weight: 800;">Global Feed</h1>
+            <div id="posts-container"></div>
         </div>
-        <nav class="nav">
-            <i class="fa fa-compass" onclick="show('scr-feed')"></i>
-            <div class="plus" onclick="openPost()"><i class="fa fa-plus"></i></div>
-            <i class="fa fa-user" onclick="logout()"></i> </nav>
+        <nav class="bottom-nav">
+            <div class="nav-container">
+                <i class="fa-solid fa-compass" style="font-size:24px"></i>
+                <div class="plus-btn" onclick="alert('Postar em breve!')"><i class="fa-solid fa-plus"></i></div>
+                <i class="fa-solid fa-user-astronaut" style="font-size:24px" onclick="logout()"></i>
+            </div>
+        </nav>
     </div>
 
     <script type="module">
@@ -75,28 +97,21 @@
         const db = getFirestore(app);
         let curUser = null;
 
-        // VERIFICA SE JÁ EXISTE LOGIN SALVO AO ABRIR
+        // Persistência de Login (Lembrar usuário)
         window.onload = () => {
-            const savedUser = localStorage.getItem('k_user');
-            if(savedUser) {
-                curUser = JSON.parse(savedUser);
-                show('scr-feed');
-            }
+            const saved = localStorage.getItem('k_user');
+            if(saved) { curUser = JSON.parse(saved); show('scr-feed'); }
         };
 
         window.handleAuth = async () => {
             const name = document.getElementById('u').value.trim();
             const pass = document.getElementById('p').value;
-            if(!name) return alert("Digite um nome!");
+            if(!name || !pass) return alert("Preencha tudo!");
             
-            const ref = doc(db, "users", name);
-            const snap = await getDoc(ref);
-
+            const snap = await getDoc(doc(db, "users", name));
             if(snap.exists()) {
-                if(snap.data().pass === pass) { 
-                    curUser = snap.data(); 
-                    loginDone();
-                } else alert("Senha errada!");
+                if(snap.data().pass === pass) { curUser = snap.data(); loginDone(); }
+                else alert("Senha incorreta!");
             } else {
                 curUser = { name, pass };
                 show('scr-setup');
@@ -108,7 +123,6 @@
             btn.innerText = "Processando...";
             curUser.age = document.getElementById('age').value;
             curUser.gender = document.querySelector('input[name="g"]:checked')?.value || 'o';
-            
             await setDoc(doc(db, "users", curUser.name), curUser);
             loginDone();
         };
@@ -118,14 +132,17 @@
             show('scr-feed');
         }
 
-        window.logout = () => {
-            localStorage.removeItem('k_user');
-            location.reload();
-        };
-
+        window.logout = () => { localStorage.removeItem('k_user'); location.reload(); };
         window.show = (id) => {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+        };
+
+        // Preview da foto
+        document.getElementById('pfp-input').onchange = e => {
+            const reader = new FileReader();
+            reader.onload = () => document.getElementById('pfp-img').src = reader.result;
+            reader.readAsDataURL(e.target.files[0]);
         };
     </script>
 </body>
