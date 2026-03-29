@@ -36,37 +36,47 @@
 
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
         
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
         nav div { cursor: pointer; color: #555; font-size: 18px; }
         .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
 
-        /* Estilos Novos Solicitados */
-        .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-body { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 100%; border: 1px solid #333; }
+        .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-body { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #333; }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
         .grid-item { aspect-ratio: 1/1; background: #222; border-radius: 5px; overflow: hidden; }
-        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+
+        .avatar-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; }
+        .avatar-opt { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; }
+        .avatar-opt.selected { border-color: var(--accent-pink); }
     </style>
 </head>
 <body>
 
-    <!-- Embed de Edição de Perfil -->
+    <!-- Embed Editar Perfil Completo -->
     <div id="modal-edit" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
             <h3>Editar Perfil</h3><br>
-            <div class="custom-input-group"><input type="text" id="edit-status" placeholder="Bio/Status"></div><br>
-            <button class="btn-premium" onclick="saveEdit()">Salvar</button>
+            <div style="text-align:center">
+                <img id="edit-img-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-pink)"><br>
+                <button onclick="document.getElementById('edit-file-input').click()" style="background:none; border:none; color:var(--accent-pink); font-size:12px; margin:10px 0;">Trocar Foto</button>
+                <input type="file" id="edit-file-input" hidden onchange="processImage(this, 'edit')">
+            </div>
+            <div class="custom-input-group"><input type="text" id="edit-name-input" placeholder="Novo Nome"></div><br>
+            <div class="custom-input-group"><input type="text" id="edit-status-input" placeholder="Nova Bio"></div><br>
+            <button class="btn-premium" onclick="saveFullEdit()">Salvar Alterações</button>
         </div>
     </div>
 
-    <!-- Embed de Criação de Post (+) -->
+    <!-- Embed Novo Post com Mídia -->
     <div id="modal-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
-            <h3>Novo Post</h3><br>
-            <div class="custom-input-group"><input type="text" id="post-text-input" placeholder="O que está pensando?"></div><br>
-            <p style="font-size:12px; color:#555">Mídias serão suportadas em breve</p><br>
+            <h3>Criar Post</h3><br>
+            <div class="custom-input-group"><input type="text" id="post-text-input" placeholder="No que está pensando?"></div><br>
+            <div id="post-media-preview" style="width:100%; max-height:150px; overflow:hidden; border-radius:10px; margin-bottom:10px;"></div>
+            <button onclick="document.getElementById('post-file-input').click()" style="width:100%; padding:10px; border-radius:10px; background:#222; border:1px solid #444; color:white;"><i class="fas fa-image"></i> Adicionar Foto/Vídeo</button>
+            <input type="file" id="post-file-input" hidden accept="image/*,video/*" onchange="previewMedia(this)"><br><br>
             <button class="btn-premium" onclick="submitPost()">Publicar</button>
         </div>
     </div>
@@ -84,7 +94,6 @@
     <div id="screen-register" class="screen">
         <div class="auth-container">
             <div class="logo-k">Cadastro</div>
-            <!-- Modificação: Onblur para avisar se nome já existe -->
             <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário" onblur="checkUserExists(this.value)"></div>
             <div id="reg-warn" style="color:var(--accent-pink); font-size:12px; display:none">Este nome já existe!</div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
@@ -95,17 +104,24 @@
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h2 style="margin-bottom:10px">Seu Perfil</h2>
-            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); position:relative; overflow:hidden; margin:0 auto;" onclick="document.getElementById('file-input').click()">
+            <h2>Seu Perfil</h2>
+            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); overflow:hidden; margin:0 auto;" onclick="document.getElementById('file-input').click()">
                 <img id="img-preview" src="https://via.placeholder.com/110?text=+" style="width:100%; height:100%; object-fit:cover;">
-                <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
+                <input type="file" id="file-input" accept="image/*" onchange="processImage(this, 'reg')" hidden>
+            </div>
+            <p style="font-size:12px; color:#555">Ou escolha um avatar:</p>
+            <div class="avatar-carousel" id="avatar-list">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-opt" onclick="selectAvatar(this.src)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-opt" onclick="selectAvatar(this.src)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="avatar-opt" onclick="selectAvatar(this.src)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi" class="avatar-opt" onclick="selectAvatar(this.src)">
             </div>
             <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
             <div class="gender-selector">
-                <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
-                <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
-                <label class="gender-option"><input type="radio" name="gen" value="nb"><i class="fas fa-genderless"></i><span>Neutro</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Ele" checked><i class="fas fa-mars"></i><span>Ele</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Ela"><i class="fas fa-venus"></i><span>Ela</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Neutro"><i class="fas fa-genderless"></i><span>Neutro</span></label>
             </div>
             <button class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
@@ -114,56 +130,31 @@
     <div id="screen-feed" class="screen">
         <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <!-- Modificação: Busca funcional por texto -->
-            <div class="search-bar">
-                <i class="fas fa-search" style="color:#444"></i>
-                <input type="text" placeholder="Buscar usuários ou posts..." oninput="searchContent(this.value)">
-            </div>
-            <!-- Modificação: Botão de chat movido para cima -->
+            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Buscar..." oninput="searchContent(this.value)"></div>
             <i class="fas fa-comment-dots" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:20px"></i>
         </header>
         <div id="feed-content"></div>
-        <!-- Modificação: Botão de atualizar movido para baixo -->
-        <div style="text-align:center; padding: 20px;">
-            <i class="fas fa-sync-alt" onclick="listenPosts()" style="color:#444; font-size: 20px;"></i>
-        </div>
-    </div>
-
-    <!-- Tela de Detalhes do Post -->
-    <div id="screen-post-detail" class="screen">
-        <div style="padding:20px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
-        <div id="post-detail-content"></div>
-    </div>
-
-    <div id="screen-chat" class="screen">
-        <div style="display:flex; justify-content:space-around; padding:15px; border-bottom:1px solid #222;">
-            <div style="color:var(--accent-pink); border-bottom:2px solid var(--accent-pink)">Geral</div>
-            <div style="color:#555">Grupos</div>
-            <div style="color:#555">Convites</div>
-        </div>
-        <div style="padding:50px; text-align:center; color:#555">Mensagens aparecem aqui.</div>
+        <div style="text-align:center; padding: 20px;"><i class="fas fa-sync-alt" onclick="listenPosts()" style="color:#444"></i></div>
     </div>
 
     <div id="screen-profile" class="screen">
         <div class="auth-container">
-            <div style="position:relative">
-                <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-                <!-- Modificação: Botão de editar no canto superior -->
-                <div onclick="openEditModal()" style="position:absolute; top:-10px; right:-10px; background:#222; padding:10px; border-radius:50%; border:1px solid #444"><i class="fas fa-pencil-alt" style="font-size:14px"></i></div>
+            <div style="width:100%; display:flex; justify-content:flex-end; padding-right:20px">
+                <i class="fas fa-pencil-alt" onclick="openEditModal()" style="color:#555; font-size:20px"></i>
             </div>
+            <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
             <h2 id="my-name">@user</h2>
+            <p id="my-gender" style="font-size:12px; color:var(--accent-pink); margin-top:-10px"></p>
             <p id="my-status" style="color:#777"></p>
-            
-            <!-- Modificação: Seguidores e Meus Posts -->
-            <div style="display:flex; gap:20px; margin-top:10px;">
-                <div style="text-align:center"><strong id="post-count">0</strong><br><span style="font-size:10px">Posts</span></div>
-                <div style="text-align:center"><strong id="follower-count">0</strong><br><span style="font-size:10px">Seguidores</span></div>
-            </div>
-
-            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px">Sair</button>
+            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:10px; height:40px; padding:0 20px; width:auto">Sair</button>
         </div>
-        <!-- Modificação: Grid de posts do próprio usuário -->
         <div id="my-posts-grid" class="profile-grid"></div>
+    </div>
+
+    <div id="screen-view-profile" class="screen">
+        <div style="padding:20px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
+        <div class="auth-container" id="view-profile-header"></div>
+        <div id="view-posts-grid" class="profile-grid"></div>
     </div>
 
     <nav id="main-nav" style="display:none">
@@ -181,27 +172,40 @@
             messagingSenderId: "878265144053",
             appId: "1:878265144053:web:407389cd133d955f76abbc"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let currentUser = null;
         let base64Avatar = "";
+        let base64PostMedia = "";
 
-        function processImage(input) {
+        function selectAvatar(url) {
+            base64Avatar = url;
+            document.getElementById('img-preview').src = url;
+            document.querySelectorAll('.avatar-opt').forEach(img => img.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function processImage(input, mode) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300;
-                        const scale = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scale;
-                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                        base64Avatar = canvas.toDataURL('image/jpeg', 0.7);
-                        document.getElementById('img-preview').src = base64Avatar;
+                    if(mode === 'reg') { base64Avatar = e.target.result; document.getElementById('img-preview').src = base64Avatar; }
+                    else { base64Avatar = e.target.result; document.getElementById('edit-img-preview').src = base64Avatar; }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewMedia(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64PostMedia = e.target.result;
+                    const container = document.getElementById('post-media-preview');
+                    if(input.files[0].type.includes('video')) {
+                        container.innerHTML = `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop></video>`;
+                    } else {
+                        container.innerHTML = `<img src="${base64PostMedia}" style="width:100%">`;
                     }
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -222,41 +226,21 @@
         async function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
-            try {
-                const doc = await db.collection("usuarios").doc(user).get();
-                if (doc.exists && doc.data().pass === pass) {
-                    currentUser = doc.data();
-                    updateStatus(true);
-                    enterApp();
-                } else { alert("Dados incorretos!"); }
-            } catch(e) { alert("Erro de conexão."); }
+            const doc = await db.collection("usuarios").doc(user).get();
+            if (doc.exists && doc.data().pass === pass) { currentUser = doc.data(); enterApp(); } else { alert("Erro!"); }
         }
 
         async function handleRegister() {
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
-            const date = document.getElementById('onb-date').value;
-            const status = document.getElementById('onb-status').value || "Disponível";
             const gen = document.querySelector('input[name="gen"]:checked').value;
-            if(!user || !pass || !date) return alert("Preencha todos os campos!");
-            const check = await db.collection("usuarios").doc(user).get();
-            if(check.exists) return alert("Usuário já existe!");
-
-            const userData = { user, pass, date, status, gen, pic: base64Avatar || "", online: true, following: [] };
+            const status = document.getElementById('onb-status').value || "Oi!";
+            const userData = { user, pass, status, gen, pic: base64Avatar || "", following: [] };
             await db.collection("usuarios").doc(user).set(userData);
-            currentUser = userData;
-            enterApp();
+            currentUser = userData; enterApp();
         }
 
-        function updateStatus(isOnline) {
-            if(currentUser) db.collection("usuarios").doc(currentUser.user).update({ online: isOnline });
-        }
-
-        function enterApp() {
-            document.getElementById('main-nav').style.display = 'flex';
-            showScreen('feed');
-            listenPosts();
-        }
+        function enterApp() { document.getElementById('main-nav').style.display = 'flex'; showScreen('feed'); listenPosts(); }
 
         function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
@@ -265,108 +249,87 @@
                 snapshot.forEach(doc => {
                     const post = doc.data();
                     if(filter && !post.content.toLowerCase().includes(filter) && !post.author.toLowerCase().includes(filter)) return;
-
-                    const liked = post.likes_list && post.likes_list.includes(currentUser.user);
                     container.innerHTML += `
                         <div class="post-card">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
-                                <div style="display:flex; align-items:center; gap:10px">
-                                    <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
-                                    <strong>@${post.author}</strong>
-                                </div>
-                                <button onclick="followUser('${post.author}')" style="background:transparent; border:1px solid #444; color:#aaa; font-size:10px; border-radius:10px; padding:4px 8px">Seguir</button>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="openUserProfile('${post.author}')">
+                                <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
+                                <strong>@${post.author}</strong>
                             </div>
-                            <p onclick="openPostDetail('${doc.id}')">${post.content}</p>
-                            <div style="display:flex; gap:20px; color:#666; margin-top:10px; font-size:14px;">
-                                <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                <span onclick="openPostDetail('${doc.id}')"><i class="fas fa-comment"></i> ${post.comments || 0}</span>
-                            </div>
-                        </div>
-                    `;
+                            <p>${post.content}</p>
+                            ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
+                            <div style="margin-top:10px; font-size:14px; color:#666"><i class="fas fa-heart"></i> ${post.likes || 0}</div>
+                        </div>`;
                 });
             });
-        }
-
-        function searchContent(val) { listenPosts(val.toLowerCase().trim()); }
-
-        async function followUser(target) {
-            if(target === currentUser.user) return;
-            await db.collection("usuarios").doc(currentUser.user).update({
-                following: firebase.firestore.FieldValue.arrayUnion(target)
-            });
-            alert("Seguindo " + target);
-        }
-
-        async function toggleLike(id) {
-            const ref = db.collection("posts").doc(id);
-            const doc = await ref.get();
-            let list = doc.data().likes_list || [];
-            let count = doc.data().likes || 0;
-            if(list.includes(currentUser.user)) {
-                list = list.filter(u => u !== currentUser.user); count--;
-            } else {
-                list.push(currentUser.user); count++;
-            }
-            await ref.update({ likes: count, likes_list: list });
         }
 
         function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
         
         async function submitPost() {
             const text = document.getElementById('post-text-input').value;
-            if(!text) return;
             await db.collection("posts").add({
                 author: currentUser.user, authorPic: currentUser.pic || "",
-                content: text, time: Date.now(), likes: 0, likes_list: [], comments: 0, isOnline: true
+                content: text, media: base64PostMedia, time: Date.now(), likes: 0, likes_list: []
             });
-            document.getElementById('post-text-input').value = "";
             document.getElementById('modal-post').style.display = 'none';
+            base64PostMedia = ""; document.getElementById('post-media-preview').innerHTML = "";
         }
 
-        async function openPostDetail(id) {
-            const doc = await db.collection("posts").doc(id).get();
-            const post = doc.data();
-            showScreen('post-detail');
-            document.getElementById('post-detail-content').innerHTML = `
-                <div class="post-card">
-                    <strong>@${post.author}</strong>
-                    <p style="margin:20px 0">${post.content}</p>
-                    <div style="color:#555">Curtidas: ${post.likes}</div>
-                </div>
+        function openEditModal() {
+            document.getElementById('edit-name-input').value = currentUser.user;
+            document.getElementById('edit-status-input').value = currentUser.status;
+            document.getElementById('edit-img-preview').src = currentUser.pic;
+            document.getElementById('modal-edit').style.display = 'flex';
+        }
+
+        async function saveFullEdit() {
+            const newName = document.getElementById('edit-name-input').value;
+            const newStatus = document.getElementById('edit-status-input').value;
+            const update = { user: newName, status: newStatus, pic: base64Avatar || currentUser.pic };
+            await db.collection("usuarios").doc(currentUser.user).update(update);
+            currentUser = {...currentUser, ...update};
+            loadProfile(); document.getElementById('modal-edit').style.display = 'none';
+        }
+
+        async function openUserProfile(username) {
+            const userDoc = await db.collection("usuarios").doc(username).get();
+            const userData = userDoc.data();
+            showScreen('view-profile');
+            document.getElementById('view-profile-header').innerHTML = `
+                <img src="${userData.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink)">
+                <h2>@${userData.user}</h2>
+                <p style="color:var(--accent-pink); font-size:12px; margin-top:-10px">${userData.gen}</p>
+                <p style="color:#777">${userData.status}</p>
             `;
+            const postSnap = await db.collection("posts").where("author", "==", username).get();
+            const grid = document.getElementById('view-posts-grid');
+            grid.innerHTML = "";
+            postSnap.forEach(p => {
+                const data = p.data();
+                grid.innerHTML += `<div class="grid-item">${data.media ? (data.media.includes('video') ? `<video src="${data.media}"></video>` : `<img src="${data.media}">`) : '<div style="font-size:8px; padding:5px">'+data.content+'</div>'}</div>`;
+            });
         }
 
         function loadProfile() {
-            document.getElementById('my-pic').src = currentUser.pic || 'https://via.placeholder.com/110';
+            document.getElementById('my-pic').src = currentUser.pic;
             document.getElementById('my-name').innerText = "@" + currentUser.user;
             document.getElementById('my-status').innerText = currentUser.status;
+            document.getElementById('my-gender').innerText = currentUser.gen;
             loadMyPosts();
         }
 
         async function loadMyPosts() {
             const snap = await db.collection("posts").where("author", "==", currentUser.user).get();
             const grid = document.getElementById('my-posts-grid');
-            document.getElementById('post-count').innerText = snap.size;
             grid.innerHTML = "";
             snap.forEach(doc => {
-                grid.innerHTML += `<div class="grid-item" onclick="openPostDetail('${doc.id}')"><div style="padding:5px; font-size:9px">${doc.data().content.substring(0,20)}...</div></div>`;
+                const data = doc.data();
+                grid.innerHTML += `<div class="grid-item">${data.media ? (data.media.includes('video') ? `<video src="${data.media}"></video>` : `<img src="${data.media}">`) : '<div style="font-size:8px; padding:5px">'+data.content+'</div>'}</div>`;
             });
         }
 
-        function openEditModal() { document.getElementById('modal-edit').style.display = 'flex'; }
-        
-        async function saveEdit() {
-            const newStatus = document.getElementById('edit-status').value;
-            if(newStatus) {
-                await db.collection("usuarios").doc(currentUser.user).update({ status: newStatus });
-                currentUser.status = newStatus;
-                loadProfile();
-                document.getElementById('modal-edit').style.display = 'none';
-            }
-        }
-        
-        function logout() { updateStatus(false); location.reload(); }
-        window.onbeforeunload = () => updateStatus(false);
+        function searchContent(val) { listenPosts(val.toLowerCase()); }
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
