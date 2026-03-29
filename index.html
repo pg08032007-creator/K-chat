@@ -3,176 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>k.chat - Cloud Premium</title>
+    <title>k.chat - Redesign Social</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #141417;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --text-main: #ffffff;
+            --text-dim: #a1a1aa;
+            --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
-        .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
+
+        .screen { display: none; min-height: 100vh; padding-bottom: 100px; animation: fadeIn 0.3s ease; }
         .screen.active { display: block; }
-        
-        /* Auth e Inputs Originais */
-        .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
-        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
-        .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
-        .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
-        .gender-option input { position: absolute; opacity: 0; }
-        .gender-option i { font-size: 24px; color: #444; }
-        .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
-        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
-        
-        /* Nav e Header */
-        .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
-        .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
-        .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
-        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.95); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        nav div { cursor: pointer; color: #555; font-size: 18px; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Categorias Chat */
-        .chat-tabs { display: flex; width: 100%; background: #111; border-bottom: 1px solid #222; }
-        .chat-tab { flex: 1; text-align: center; padding: 15px; color: #555; font-weight: bold; cursor: pointer; }
-        .chat-tab.active { color: var(--accent-pink); border-bottom: 2px solid var(--accent-pink); }
+        /* Estilo dos Inputs Originais */
+        .custom-input-group {
+            width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px;
+            border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); margin-bottom: 15px;
+        }
+        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 12px; font-size: 16px; }
+        .btn-premium {
+            width: 100%; padding: 20px; border-radius: 20px; border: none;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            color: white; font-weight: 800; cursor: pointer; transition: 0.3s;
+        }
 
-        /* Posts e Modais */
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
-        .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 15px; }
-        .modal-body { background: var(--bg-card); padding: 20px; border-radius: 25px; width: 100%; max-width: 450px; border: 1px solid #333; max-height: 90vh; overflow-y: auto; }
-        .comment-item { font-size: 13px; margin: 8px 0; border-bottom: 1px solid #1a1a1e; padding-bottom: 5px; }
+        /* Nav Estilo Instagram */
+        nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; background: rgba(15, 15, 18, 0.95); border-radius: 30px;
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000;
+        }
+        nav div { cursor: pointer; color: #555; font-size: 20px; transition: 0.3s; }
+        nav div.active { color: var(--accent-pink); }
+        .plus-fab {
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
+            width: 55px; height: 55px; border-radius: 20px; display: flex;
+            align-items: center; justify-content: center; color: white !important; margin-top: -45px;
+            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
+        }
 
-        /* Perfil */
-        .profile-stats { display: flex; gap: 20px; margin: 15px 0; text-align: center; }
-        .stat-val { display: block; font-weight: 800; font-size: 18px; }
-        .stat-lbl { font-size: 11px; color: #555; text-transform: uppercase; }
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-        .grid-item { aspect-ratio: 1/1; background: #222; overflow: hidden; }
-        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; }
-        .avatar-opt { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; flex-shrink: 0; }
-        .avatar-opt.selected { border-color: var(--accent-pink); }
+        /* Feed e Cards */
+        .post-card { background: var(--bg-card); border-radius: 24px; margin: 15px; border: 1px solid #1f1f23; overflow: hidden; }
+        .post-header { padding: 15px; display: flex; align-items: center; gap: 12px; }
+        .post-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-purple); }
+        .post-media { width: 100%; min-height: 200px; background: #000; display: block; object-fit: cover; }
+        .post-actions { padding: 15px; display: flex; gap: 20px; font-size: 22px; }
+        .post-info { padding: 0 15px 15px 15px; }
+
+        /* Modal de Detalhes (O que você pediu) */
+        .modal-full {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 3000; overflow-y: auto;
+        }
+        .modal-header { padding: 20px; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 15px; position: sticky; top:0; background: var(--bg-dark); }
+
+        /* Categorias de Chat */
+        .chat-category-tabs { display: flex; padding: 10px 20px; gap: 10px; }
+        .tab-pill {
+            padding: 8px 20px; border-radius: 20px; background: #1a1a1e; color: #666;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+        }
+        .tab-pill.active { background: var(--accent-pink); color: white; }
+
+        /* Perfil Social */
+        .profile-hero { text-align: center; padding: 40px 20px 20px; }
+        .profile-img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-pink); margin-bottom: 15px; }
+        .stats-container { display: flex; justify-content: center; gap: 30px; margin: 20px 0; }
+        .stat-box { text-align: center; }
+        .stat-num { font-weight: 800; font-size: 20px; display: block; }
+        .stat-label { font-size: 12px; color: var(--text-dim); }
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .grid-item { aspect-ratio: 1/1; background: #1a1a1e; overflow: hidden; cursor: pointer; }
+        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Comentários */
+        .comment-row { display: flex; gap: 10px; margin-bottom: 15px; padding: 0 20px; }
+        .comment-row b { color: var(--accent-purple); font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- MODAL: DETALHES DO POST / COMENTÁRIOS -->
-    <div id="modal-details" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
-        <div class="modal-body" id="post-detail-content"></div>
-    </div>
-
-    <!-- MODAL: NOVO POST -->
-    <div id="modal-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
-        <div class="modal-body">
-            <h3>Criar Publicação</h3><br>
-            <div class="custom-input-group"><input type="text" id="post-text-input" placeholder="No que está pensando?"></div><br>
-            <div id="post-media-preview"></div>
-            <button onclick="document.getElementById('post-file-input').click()" style="width:100%; padding:10px; border-radius:10px; background:#222; border:1px solid #444; color:white;"><i class="fas fa-image"></i> Adicionar Mídia</button>
-            <input type="file" id="post-file-input" hidden accept="image/*,video/*" onchange="previewMedia(this)"><br><br>
-            <button class="btn-premium" onclick="submitPost()">Publicar</button>
+    <!-- MODAL DE POST DETALHADO -->
+    <div id="modal-post-detail" class="modal-full">
+        <div class="modal-header">
+            <i class="fas fa-arrow-left" onclick="closePostDetail()"></i>
+            <span id="detail-username-header">Publicação</span>
+        </div>
+        <div id="detail-content"></div>
+        <div style="padding: 20px;">
+            <h4 style="margin-bottom: 15px; color: var(--text-dim)">Comentários</h4>
+            <div id="detail-comments-list"></div>
+        </div>
+        <!-- Input de Comentário Fixo embaixo -->
+        <div style="position: sticky; bottom: 0; background: #0a0a0c; padding: 15px; border-top: 1px solid #222;">
+            <div class="custom-input-group" style="margin-bottom: 0;">
+                <input type="text" id="new-comment-input" placeholder="Adicione um comentário...">
+                <i class="fas fa-paper-plane" style="color: var(--accent-pink)" id="btn-send-comment"></i>
+            </div>
         </div>
     </div>
 
-    <!-- TELA: LOGIN -->
+    <!-- TELA LOGIN (Mantida) -->
     <div id="screen-login" class="screen active">
-        <div class="auth-container">
-            <div class="logo-k">K.</div>
+        <div style="padding: 60px 30px; text-align: center;">
+            <h1 style="font-size: 50px; margin-bottom: 40px;" class="logo-k">K.</h1>
             <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Usuário"></div>
             <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Senha"></div>
-            <button class="btn-premium" onclick="handleLogin()">Entrar</button>
-            <p onclick="showScreen('register')" style="color:#666">Novo aqui? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
+            <button class="btn-premium" onclick="handleLogin()">ENTRAR</button>
+            <p style="margin-top: 25px; color: #555;" onclick="showScreen('register')">Não tem conta? <span style="color: var(--accent-pink)">Criar</span></p>
         </div>
     </div>
 
-    <!-- TELA: CADASTRO / ONBOARDING (Unificados para fluidez) -->
+    <!-- TELA CADASTRO (Mantida) -->
     <div id="screen-register" class="screen">
-        <div class="auth-container">
-            <div class="logo-k">Cadastro</div>
-            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
-            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
-            <button class="btn-premium" onclick="showScreen('onboarding')">Próximo</button>
+        <div style="padding: 40px 30px;">
+            <h2>Criar Conta</h2><br>
+            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Escolha um @usuário"></div>
+            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Crie uma senha"></div>
+            <div class="custom-input-group"><input type="text" id="reg-bio" placeholder="Sua Bio"></div>
+            <button class="btn-premium" onclick="handleRegister()">CRIAR PERFIL</button>
         </div>
     </div>
 
-    <div id="screen-onboarding" class="screen">
-        <div class="auth-container">
-            <h2>Monte seu Perfil</h2>
-            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); overflow:hidden; margin:0 auto;">
-                <img id="img-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" style="width:100%; height:100%; object-fit:cover;">
-            </div>
-            <div class="avatar-carousel" id="avatar-list">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-opt selected" onclick="selectAvatar(this.src, this)">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-opt" onclick="selectAvatar(this.src, this)">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="avatar-opt" onclick="selectAvatar(this.src, this)">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi" class="avatar-opt" onclick="selectAvatar(this.src, this)">
-            </div>
-            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Bio do seu perfil"></div>
-            <div class="gender-selector">
-                <label class="gender-option"><input type="radio" name="gen" value="Ele" checked><i class="fas fa-mars"></i></label>
-                <label class="gender-option"><input type="radio" name="gen" value="Ela"><i class="fas fa-venus"></i></label>
-                <label class="gender-option"><input type="radio" name="gen" value="Neutro"><i class="fas fa-genderless"></i></label>
-            </div>
-            <button class="btn-premium" onclick="handleRegister()">Finalizar</button>
-        </div>
-    </div>
-
-    <!-- TELA: FEED -->
+    <!-- TELA FEED -->
     <div id="screen-feed" class="screen">
-        <header class="app-header">
-            <div class="logo-k" style="font-size:24px">K.</div>
-            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Explorar..."></div>
-            <i class="fas fa-paper-plane" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:20px"></i>
+        <header style="padding: 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; background: var(--bg-dark); z-index: 100;">
+            <h2 class="logo-k">k.chat</h2>
+            <i class="far fa-paper-plane" style="font-size: 22px;" onclick="showScreen('chat')"></i>
         </header>
-        <div id="feed-content"></div>
+        <div id="feed-container"></div>
     </div>
 
-    <!-- TELA: CHAT (COM CATEGORIAS) -->
+    <!-- TELA CHAT (COM CATEGORIAS) -->
     <div id="screen-chat" class="screen">
-        <div class="chat-tabs">
-            <div class="chat-tab active" onclick="setChatType('geral', this)">Geral</div>
-            <div class="chat-tab" onclick="setChatType('grupos', this)">Grupos</div>
+        <div class="modal-header">
+            <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
+            <span>Mensagens</span>
         </div>
-        <div id="chat-messages" style="height:65vh; overflow-y:auto; padding:15px; display:flex; flex-direction:column; gap:10px;"></div>
-        <div style="position:fixed; bottom:90px; width:100%; padding:15px; display:flex; gap:10px; background:var(--bg-dark)">
-            <input type="text" id="chat-input" placeholder="Diga algo..." style="flex:1; background:#1a1a1e; border:1px solid #333; border-radius:20px; padding:12px; color:white;">
-            <button onclick="sendMessage()" style="background:var(--accent-purple); border:none; width:45px; height:45px; border-radius:50%; color:white;"><i class="fas fa-paper-plane"></i></button>
+        <div class="chat-category-tabs">
+            <div class="tab-pill active" id="tab-geral" onclick="switchChat('geral')">Geral</div>
+            <div class="tab-pill" id="tab-grupos" onclick="switchChat('grupos')">Grupos</div>
         </div>
-    </div>
-
-    <!-- TELA: PERFIL -->
-    <div id="screen-profile" class="screen">
-        <div class="auth-container">
-            <img id="my-pic" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-            <h2 id="my-name">@user</h2>
-            <div class="profile-stats">
-                <div><span class="stat-val" id="my-post-count">0</span><span class="stat-lbl">Posts</span></div>
-                <div><span class="stat-val" id="my-followers">0</span><span class="stat-lbl">Seguidores</span></div>
-                <div><span class="stat-val" id="my-following">0</span><span class="stat-lbl">Seguindo</span></div>
+        <div id="chat-messages" style="padding: 20px; height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
+        <div style="padding: 20px;">
+            <div class="custom-input-group">
+                <input type="text" id="chat-input" placeholder="Sua mensagem...">
+                <i class="fas fa-paper-plane" onclick="sendMessage()"></i>
             </div>
-            <button class="btn-premium" onclick="logout()" style="background:#222; width:auto; padding:10px 30px;">Sair</button>
         </div>
-        <div id="my-posts-grid" class="profile-grid"></div>
     </div>
 
-    <!-- TELA: VER PERFIL ALHEIO -->
-    <div id="screen-view-profile" class="screen">
-        <div style="padding:15px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
-        <div class="auth-container" id="view-profile-header"></div>
-        <div id="view-posts-grid" class="profile-grid"></div>
+    <!-- TELA PERFIL (MELHORADA ESTILO INSTAGRAM) -->
+    <div id="screen-profile" class="screen">
+        <div id="profile-content">
+            <!-- Renderizado via JS -->
+        </div>
+        <div class="profile-grid" id="my-posts-grid"></div>
     </div>
 
-    <nav id="main-nav" style="display:none">
-        <div onclick="showScreen('feed')"><i class="fas fa-home"></i></div>
-        <div class="plus-fab" onclick="openPostModal()"><i class="fas fa-plus"></i></div>
-        <div onclick="showScreen('profile')"><i class="fas fa-user"></i></div>
+    <!-- TELA VER PERFIL ALHEIO -->
+    <div id="screen-view-user" class="screen">
+        <div class="modal-header">
+            <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
+            <span id="view-user-at">@usuario</span>
+        </div>
+        <div id="view-user-content"></div>
+        <div class="profile-grid" id="view-user-grid"></div>
+    </div>
+
+    <!-- NAV BAR -->
+    <nav id="main-nav" style="display: none;">
+        <div onclick="showScreen('feed')" id="nav-feed"><i class="fas fa-home"></i></div>
+        <div onclick="openCreatePost()"><div class="plus-fab"><i class="fas fa-plus"></i></div></div>
+        <div onclick="showScreen('profile')" id="nav-profile"><i class="fas fa-user"></i></div>
     </nav>
 
+    <!-- MODAL NOVO POST (MANTIDO) -->
+    <div id="modal-post" class="modal-full" style="background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-card); width: 90%; border-radius: 30px; padding: 30px;">
+            <h3>Nova Publicação</h3><br>
+            <div class="custom-input-group"><input type="text" id="post-caption" placeholder="Legenda..."></div>
+            <div id="preview-area" style="width: 100%; border-radius: 15px; margin-bottom: 15px;"></div>
+            <button class="btn-premium" style="background: #222; margin-bottom: 10px;" onclick="document.getElementById('file-post').click()">Escolher Foto/Vídeo</button>
+            <input type="file" id="file-post" hidden accept="image/*,video/*" onchange="previewMedia(this)">
+            <button class="btn-premium" onclick="submitPost()">PUBLICAR</button>
+            <p onclick="closePostModal()" style="text-align: center; margin-top: 15px; color: #555;">Cancelar</p>
+        </div>
+    </div>
+
     <script>
-        // Configuração Firebase (Mesma do original)
+        // Configuração Firebase (Use a sua original aqui)
         const firebaseConfig = {
             apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
             authDomain: "kchat-web-8415c.firebaseapp.com",
@@ -185,246 +217,287 @@
         const db = firebase.firestore();
 
         let currentUser = null;
-        let base64Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix";
-        let currentChatType = 'geral';
+        let activeChat = 'geral';
+        let postMediaBase64 = "";
 
-        // Lógica de Persistência
-        window.onload = () => {
-            const saved = localStorage.getItem('kchat_session');
-            if(saved) { currentUser = JSON.parse(saved); enterApp(); }
-        }
-
-        function enterApp() {
-            localStorage.setItem('kchat_session', JSON.stringify(currentUser));
-            document.getElementById('main-nav').style.display = 'flex';
-            showScreen('feed');
-            listenPosts();
-        }
-
+        // LOGIN E NAVEGAÇÃO
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
-            if(id === 'profile') loadProfile();
-            if(id === 'chat') listenMessages();
-        }
-
-        // --- SISTEMA DE FEED E DETALHES ---
-        function listenPosts() {
-            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
-                const cont = document.getElementById('feed-content');
-                cont.innerHTML = "";
-                snap.forEach(doc => {
-                    const p = doc.data();
-                    const pid = doc.id;
-                    const isLiked = p.likes_list?.includes(currentUser.user);
-                    cont.innerHTML += `
-                        <div class="post-card">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="openUserProfile('${p.author}')">
-                                <img src="${p.authorPic}" class="user-avatar">
-                                <b>@${p.author}</b>
-                            </div>
-                            <div onclick="openPostDetails('${pid}')">
-                                <p>${p.content}</p>
-                                ${p.media ? `<img src="${p.media}" style="width:100%; border-radius:12px; margin-top:10px">` : ''}
-                            </div>
-                            <div style="margin-top:15px; display:flex; gap:20px">
-                                <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#666'}" onclick="toggleLike('${pid}', ${JSON.stringify(p.likes_list || [])})"></i>
-                                <i class="far fa-comment" onclick="openPostDetails('${pid}')"></i>
-                                <small style="color:#333; flex:1; text-align:right">${new Date(p.time).toLocaleDateString()}</small>
-                            </div>
-                        </div>`;
-                });
-            });
-        }
-
-        async function toggleLike(pid, list) {
-            const ref = db.collection("posts").doc(pid);
-            if(list.includes(currentUser.user)) {
-                await ref.update({ likes: firebase.firestore.FieldValue.increment(-1), likes_list: firebase.firestore.FieldValue.arrayRemove(currentUser.user) });
-            } else {
-                await ref.update({ likes: firebase.firestore.FieldValue.increment(1), likes_list: firebase.firestore.FieldValue.arrayUnion(currentUser.user) });
-            }
-        }
-
-        async function openPostDetails(pid) {
-            const doc = await db.collection("posts").doc(pid).get();
-            const p = doc.data();
-            document.getElementById('modal-details').style.display = 'flex';
-            document.getElementById('post-detail-content').innerHTML = `
-                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px">
-                    <img src="${p.authorPic}" class="user-avatar">
-                    <b>@${p.author}</b>
-                </div>
-                <p>${p.content}</p>
-                <small style="color:#555">${new Date(p.time).toLocaleString()}</small>
-                <hr style="border:0; border-top:1px solid #222; margin:15px 0">
-                <div id="comments-list"></div>
-                <div class="custom-input-group" style="margin-top:10px">
-                    <input type="text" id="comm-input" placeholder="Escreva um comentário...">
-                    <i class="fas fa-paper-plane" onclick="addComment('${pid}')"></i>
-                </div>
-            `;
-            listenComments(pid);
-        }
-
-        async function addComment(pid) {
-            const val = document.getElementById('comm-input').value;
-            if(!val) return;
-            await db.collection("posts").doc(pid).collection("comments").add({
-                user: currentUser.user, text: val, time: Date.now()
-            });
-            document.getElementById('comm-input').value = "";
-        }
-
-        function listenComments(pid) {
-            db.collection("posts").doc(pid).collection("comments").orderBy("time", "asc").onSnapshot(snap => {
-                const box = document.getElementById('comments-list');
-                box.innerHTML = "";
-                snap.forEach(c => {
-                    const data = c.data();
-                    box.innerHTML += `<div class="comment-item"><b>@${data.user}:</b> ${data.text}</div>`;
-                });
-            });
-        }
-
-        // --- SISTEMA DE CHAT ---
-        function setChatType(t, el) {
-            currentChatType = t;
-            document.querySelectorAll('.chat-tab').forEach(x => x.classList.remove('active'));
-            el.classList.add('active');
-            listenMessages();
-        }
-
-        async function sendMessage() {
-            const text = document.getElementById('chat-input').value;
-            if(!text) return;
-            await db.collection("mensagens_" + currentChatType).add({
-                sender: currentUser.user, text, time: Date.now()
-            });
-            document.getElementById('chat-input').value = "";
-        }
-
-        function listenMessages() {
-            db.collection("mensagens_" + currentChatType).orderBy("time", "asc").onSnapshot(snap => {
-                const box = document.getElementById('chat-messages');
-                box.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isMe = m.sender === currentUser.user;
-                    box.innerHTML += `<div style="align-self:${isMe ? 'flex-end' : 'flex-start'}; background:${isMe ? 'var(--accent-purple)' : '#222'}; padding:10px; border-radius:15px; max-width:80%">
-                        <small style="font-size:9px; opacity:0.5">${m.sender}</small><br>${m.text}
-                    </div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        }
-
-        // --- PERFIL E SEGUIDORES ---
-        async function openUserProfile(username) {
-            if(username === currentUser.user) { showScreen('profile'); return; }
-            const doc = await db.collection("usuarios").doc(username).get();
-            const u = doc.data();
-            const isFollowing = (currentUser.following || []).includes(username);
-
-            showScreen('view-profile');
-            document.getElementById('view-profile-header').innerHTML = `
-                <img src="${u.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink)">
-                <h2>@${u.user}</h2>
-                <div class="profile-stats">
-                    <div><span class="stat-val">${u.followers_count || 0}</span><span class="stat-lbl">Seguidores</span></div>
-                </div>
-                <div style="display:flex; gap:10px; width:100%">
-                    <button class="btn-premium" onclick="toggleFollow('${username}')" style="flex:1; background:${isFollowing ? '#222' : 'linear-gradient(45deg, #a855f7, #ec4899)'}">${isFollowing ? 'Seguindo' : 'Seguir'}</button>
-                    <button class="btn-premium" onclick="openDirectMessage('${username}')" style="background:#111; border:1px solid #333; width:60px"><i class="fas fa-envelope"></i></button>
-                </div>
-            `;
-            // Carregar posts dele...
-            const psnap = await db.collection("posts").where("author", "==", username).get();
-            const grid = document.getElementById('view-posts-grid'); grid.innerHTML = "";
-            psnap.forEach(p => { grid.innerHTML += `<div class="grid-item"><img src="${p.data().media || ''}"></div>`; });
-        }
-
-        async function toggleFollow(username) {
-            const myRef = db.collection("usuarios").doc(currentUser.user);
-            const hisRef = db.collection("usuarios").doc(username);
-            const isFollowing = (currentUser.following || []).includes(username);
-
-            if(isFollowing) {
-                await myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(username) });
-                await hisRef.update({ followers_count: firebase.firestore.FieldValue.increment(-1) });
-                currentUser.following = currentUser.following.filter(x => x !== username);
-            } else {
-                await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(username) });
-                await hisRef.update({ followers_count: firebase.firestore.FieldValue.increment(1) });
-                currentUser.following = [...(currentUser.following || []), username];
-            }
-            openUserProfile(username);
-        }
-
-        async function loadProfile() {
-            document.getElementById('my-pic').src = currentUser.pic;
-            document.getElementById('my-name').innerText = "@" + currentUser.user;
-            document.getElementById('my-followers').innerText = currentUser.followers_count || 0;
-            document.getElementById('my-following').innerText = (currentUser.following || []).length;
             
-            const snap = await db.collection("posts").where("author", "==", currentUser.user).get();
-            document.getElementById('my-post-count').innerText = snap.size;
-            const grid = document.getElementById('my-posts-grid'); grid.innerHTML = "";
-            snap.forEach(doc => {
-                grid.innerHTML += `<div class="grid-item"><img src="${doc.data().media || ''}"></div>`;
-            });
-        }
+            document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+            if(id === 'feed' || id === 'profile') document.getElementById('nav-' + id).classList.add('active');
 
-        // --- FUNÇÕES DE AUXÍLIO ---
-        function selectAvatar(url, el) {
-            base64Avatar = url;
-            document.getElementById('img-preview').src = url;
-            document.querySelectorAll('.avatar-opt').forEach(x => x.classList.remove('selected'));
-            el.classList.add('selected');
+            if(id === 'feed') listenFeed();
+            if(id === 'profile') renderMyProfile();
+            if(id === 'chat') listenChat();
         }
 
         async function handleLogin() {
             const u = document.getElementById('login-user').value.toLowerCase().trim();
             const p = document.getElementById('login-pass').value;
-            const d = await db.collection("usuarios").doc(u).get();
-            if(d.exists && d.data().pass === p) { currentUser = d.data(); enterApp(); }
-            else alert("Erro no login!");
+            const doc = await db.collection("usuarios").doc(u).get();
+            if(doc.exists && doc.data().pass === p) {
+                currentUser = doc.data();
+                startApp();
+            } else { alert("Usuário ou senha incorretos."); }
         }
 
         async function handleRegister() {
             const u = document.getElementById('reg-user').value.toLowerCase().trim();
             const p = document.getElementById('reg-pass').value;
-            const userData = { 
-                user: u, pass: p, pic: base64Avatar, 
-                status: document.getElementById('onb-status').value, 
-                following: [], followers_count: 0, time: Date.now() 
+            const b = document.getElementById('reg-bio').value;
+            if(!u || !p) return;
+            
+            const newUser = {
+                user: u, pass: p, bio: b, 
+                pic: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + u,
+                followers: [], following: [], posts_count: 0
             };
-            await db.collection("usuarios").doc(u).set(userData);
-            currentUser = userData; enterApp();
+            await db.collection("usuarios").doc(u).set(newUser);
+            currentUser = newUser;
+            startApp();
         }
 
-        function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
-        
-        async function submitPost() {
-            const txt = document.getElementById('post-text-input').value;
-            await db.collection("posts").add({
-                author: currentUser.user, authorPic: currentUser.pic,
-                content: txt, media: base64PostMedia, time: Date.now(), likes: 0, likes_list: []
+        function startApp() {
+            document.getElementById('main-nav').style.display = 'flex';
+            showScreen('feed');
+        }
+
+        // --- SISTEMA DE FEED E LIKES (REVERSÍVEIS) ---
+        function listenFeed() {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+                const container = document.getElementById('feed-container');
+                container.innerHTML = "";
+                snap.forEach(doc => {
+                    const post = doc.data();
+                    const id = doc.id;
+                    const hasLiked = post.liked_by && post.liked_by.includes(currentUser.user);
+
+                    container.innerHTML += `
+                        <div class="post-card">
+                            <div class="post-header" onclick="viewOtherUser('${post.author}')">
+                                <img src="${post.authorPic}">
+                                <b>@${post.author}</b>
+                            </div>
+                            <div onclick="openPostDetail('${id}')">
+                                <img src="${post.media}" class="post-media">
+                            </div>
+                            <div class="post-actions">
+                                <i class="${hasLiked ? 'fas' : 'far'} fa-heart" 
+                                   style="color: ${hasLiked ? 'var(--accent-pink)' : 'white'}" 
+                                   onclick="toggleLike('${id}', ${hasLiked})"></i>
+                                <i class="far fa-comment" onclick="openPostDetail('${id}')"></i>
+                            </div>
+                            <div class="post-info" onclick="openPostDetail('${id}')">
+                                <b>${post.likes || 0} curtidas</b><br>
+                                <span><b>@${post.author}</b> ${post.caption}</span><br>
+                                <small style="color: #444; font-size: 10px;">${new Date(post.time).toLocaleString()}</small>
+                            </div>
+                        </div>
+                    `;
+                });
             });
-            document.getElementById('modal-post').style.display = 'none';
         }
 
-        let base64PostMedia = "";
+        async function toggleLike(postId, alreadyLiked) {
+            const ref = db.collection("posts").doc(postId);
+            if(alreadyLiked) {
+                await ref.update({
+                    likes: firebase.firestore.FieldValue.increment(-1),
+                    liked_by: firebase.firestore.FieldValue.arrayRemove(currentUser.user)
+                });
+            } else {
+                await ref.update({
+                    likes: firebase.firestore.FieldValue.increment(1),
+                    liked_by: firebase.firestore.FieldValue.arrayUnion(currentUser.user)
+                });
+            }
+        }
+
+        // --- DETALHES DO POST ---
+        async function openPostDetail(id) {
+            const doc = await db.collection("posts").doc(id).get();
+            const post = doc.data();
+            const modal = document.getElementById('modal-post-detail');
+            document.getElementById('detail-username-header').innerText = "@" + post.author;
+            
+            document.getElementById('detail-content').innerHTML = `
+                <img src="${post.media}" style="width:100%">
+                <div style="padding:15px">
+                    <b>@${post.author}</b> ${post.caption}<br>
+                    <small style="color:#555">${new Date(post.time).toLocaleString()}</small>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // Carregar Comentários
+            listenComments(id);
+            document.getElementById('btn-send-comment').onclick = () => addComment(id);
+        }
+
+        function closePostDetail() { document.getElementById('modal-post-detail').style.display = 'none'; }
+
+        async function addComment(postId) {
+            const input = document.getElementById('new-comment-input');
+            if(!input.value) return;
+            await db.collection("posts").doc(postId).collection("comments").add({
+                user: currentUser.user,
+                text: input.value,
+                time: Date.now()
+            });
+            input.value = "";
+        }
+
+        function listenComments(postId) {
+            db.collection("posts").doc(postId).collection("comments").orderBy("time", "asc").onSnapshot(snap => {
+                const list = document.getElementById('detail-comments-list');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const data = c.data();
+                    list.innerHTML += `<div class="comment-row"><b>@${data.user}</b> <span>${data.text}</span></div>`;
+                });
+            });
+        }
+
+        // --- CHAT COM CATEGORIAS ---
+        function switchChat(type) {
+            activeChat = type;
+            document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + type).classList.add('active');
+            listenChat();
+        }
+
+        function listenChat() {
+            db.collection("chat_" + activeChat).orderBy("time", "asc").limitToLast(50).onSnapshot(snap => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const isMe = m.sender === currentUser.user;
+                    box.innerHTML += `
+                        <div style="align-self: ${isMe ? 'flex-end' : 'flex-start'}; background: ${isMe ? 'var(--accent-purple)' : '#222'}; padding: 12px 18px; border-radius: 20px; max-width: 80%;">
+                            <small style="font-size: 10px; opacity: 0.6;">@${m.sender}</small><br>${m.text}
+                        </div>
+                    `;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        async function sendMessage() {
+            const inp = document.getElementById('chat-input');
+            if(!inp.value) return;
+            await db.collection("chat_" + activeChat).add({
+                sender: currentUser.user, text: inp.value, time: Date.now()
+            });
+            inp.value = "";
+        }
+
+        // --- PERFIL E SEGUIDORES ---
+        async function renderMyProfile() {
+            const p = document.getElementById('profile-content');
+            p.innerHTML = `
+                <div class="profile-hero">
+                    <img src="${currentUser.pic}" class="profile-img">
+                    <h2>@${currentUser.user}</h2>
+                    <p style="color: #666; margin-top: 5px;">${currentUser.bio}</p>
+                    <div class="stats-container">
+                        <div class="stat-box"><span class="stat-num" id="my-p-count">0</span><span class="stat-label">Posts</span></div>
+                        <div class="stat-box"><span class="stat-num">${currentUser.followers.length}</span><span class="stat-label">Seguidores</span></div>
+                        <div class="stat-box"><span class="stat-num">${currentUser.following.length}</span><span class="stat-label">Seguindo</span></div>
+                    </div>
+                    <button class="btn-premium" style="width: auto; padding: 10px 40px; background: #1a1a1e;" onclick="location.reload()">Sair</button>
+                </div>
+            `;
+            const snap = await db.collection("posts").where("author", "==", currentUser.user).get();
+            document.getElementById('my-p-count').innerText = snap.size;
+            const grid = document.getElementById('my-posts-grid');
+            grid.innerHTML = "";
+            snap.forEach(doc => {
+                grid.innerHTML += `<div class="grid-item" onclick="openPostDetail('${doc.id}')"><img src="${doc.data().media}"></div>`;
+            });
+        }
+
+        async function viewOtherUser(username) {
+            if(username === currentUser.user) { showScreen('profile'); return; }
+            showScreen('view-user');
+            const doc = await db.collection("usuarios").doc(username).get();
+            const user = doc.data();
+            const isFollowing = currentUser.following.includes(username);
+
+            document.getElementById('view-user-at').innerText = "@" + username;
+            document.getElementById('view-user-content').innerHTML = `
+                <div class="profile-hero">
+                    <img src="${user.pic}" class="profile-img">
+                    <h2>@${user.user}</h2>
+                    <div class="stats-container">
+                        <div class="stat-box"><span class="stat-num">${user.followers.length}</span><span class="stat-label">Seguidores</span></div>
+                        <div class="stat-box"><span class="stat-num">${user.following.length}</span><span class="stat-label">Seguindo</span></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; padding: 0 20px;">
+                        <button class="btn-premium" onclick="toggleFollow('${username}')" style="background: ${isFollowing ? '#222' : 'linear-gradient(45deg, #a855f7, #ec4899)'}">
+                            ${isFollowing ? 'Seguindo' : 'Seguir'}
+                        </button>
+                        <button class="btn-premium" style="width: 60px; background: #1a1a1e;" onclick="showScreen('chat')"><i class="fas fa-envelope"></i></button>
+                    </div>
+                </div>
+            `;
+            const snap = await db.collection("posts").where("author", "==", username).get();
+            const grid = document.getElementById('view-user-grid');
+            grid.innerHTML = "";
+            snap.forEach(d => {
+                grid.innerHTML += `<div class="grid-item" onclick="openPostDetail('${d.id}')"><img src="${d.data().media}"></div>`;
+            });
+        }
+
+        async function toggleFollow(targetUser) {
+            const isFollowing = currentUser.following.includes(targetUser);
+            const myRef = db.collection("usuarios").doc(currentUser.user);
+            const targetRef = db.collection("usuarios").doc(targetUser);
+
+            if(isFollowing) {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(targetUser) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.user) });
+                currentUser.following = currentUser.following.filter(u => u !== targetUser);
+            } else {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(targetUser) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.user) });
+                currentUser.following.push(targetUser);
+            }
+            viewOtherUser(targetUser);
+        }
+
+        // --- POSTAGEM (MANTIDO) ---
+        function openCreatePost() { document.getElementById('modal-post').style.display = 'flex'; }
+        function closePostModal() { document.getElementById('modal-post').style.display = 'none'; }
+        
         function previewMedia(input) {
             const reader = new FileReader();
-            reader.onload = e => { 
-                base64PostMedia = e.target.result;
-                document.getElementById('post-media-preview').innerHTML = `<img src="${base64PostMedia}" style="width:100%; border-radius:10px">`;
+            reader.onload = e => {
+                postMediaBase64 = e.target.result;
+                document.getElementById('preview-area').innerHTML = `<img src="${postMediaBase64}" style="width:100%; border-radius:15px;">`;
             };
             reader.readAsDataURL(input.files[0]);
         }
 
-        function logout() { localStorage.clear(); location.reload(); }
+        async function submitPost() {
+            if(!postMediaBase64) return;
+            await db.collection("posts").add({
+                author: currentUser.user,
+                authorPic: currentUser.pic,
+                caption: document.getElementById('post-caption').value,
+                media: postMediaBase64,
+                likes: 0,
+                liked_by: [],
+                time: Date.now()
+            });
+            closePostModal();
+            postMediaBase64 = "";
+            document.getElementById('preview-area').innerHTML = "";
+            document.getElementById('post-caption').value = "";
+        }
     </script>
 </body>
 </html>
