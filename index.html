@@ -3,81 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KChat Pro</title>
+    <title>KChat - Social</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: sans-serif; margin: 0; background: #0f172a; color: white; padding-bottom: 70px; }
+        * { box-sizing: border-box; outline: none; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: #000; color: white; overflow-x: hidden; }
         .hidden { display: none !important; }
-        .page { margin-top: 60px; padding: 15px; }
-        
-        /* HEADER */
-        .header { position: fixed; top: 0; width: 100%; height: 55px; background: #1e293b; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 100; border-bottom: 1px solid #334155; }
-        
-        /* LOGIN */
-        #auth-screen { padding: 40px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; background: #334155; color: white; }
-        .btn-blue { background: #38bdf8; color: #0f172a; border: none; padding: 14px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; }
 
-        /* ROOM CARD */
-        .room-card { background: #1e293b; border-radius: 15px; padding: 15px; margin-bottom: 12px; border: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; }
-        .btn-join { background: #4ade80; color: #064e3b; border: none; padding: 8px 18px; border-radius: 8px; font-weight: bold; }
+        /* HEADER ESTILO INSTAGRAM */
+        .header { position: fixed; top: 0; width: 100%; height: 50px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 1000; border-bottom: 0.1px solid #262626; }
+        .logo { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: bold; background: linear-gradient(45deg, #f09433, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* CHAT AREA */
-        #chat-box { height: 60vh; overflow-y: auto; background: #1e293b; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
-        .msg { margin-bottom: 10px; padding: 8px; border-radius: 8px; background: #334155; font-size: 14px; }
+        /* STORIES */
+        .stories-bar { display: flex; gap: 12px; overflow-x: auto; padding: 10px 15px; margin-top: 55px; scrollbar-width: none; border-bottom: 0.1px solid #262626; }
+        .story { display: flex; flex-direction: column; align-items: center; min-width: 75px; }
+        .ring { width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(45deg, #f9ce34, #ee2a7b, #6228d7); display: flex; align-items: center; justify-content: center; padding: 3px; }
+        .ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #000; object-fit: cover; }
+        .story span { font-size: 11px; margin-top: 5px; color: #fff; }
 
-        /* NAV */
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 60px; background: #1e293b; border-top: 1px solid #334155; display: flex; justify-content: space-around; align-items: center; }
+        /* FEED POSTS */
+        .post { width: 100%; margin-bottom: 20px; }
+        .post-header { display: flex; align-items: center; padding: 10px; gap: 10px; }
+        .post-user-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #121212; }
+        .post-actions { padding: 10px; display: flex; gap: 15px; }
+        .post-info { padding: 0 10px; font-size: 14px; }
+
+        /* BARRA INFERIOR */
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 50px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.1px solid #262626; z-index: 1000; }
+        .nav-icon { color: #fff; cursor: pointer; }
+
+        /* TELA LOGIN */
+        #auth-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; }
+        input { width: 100%; padding: 12px; margin: 5px 0; border-radius: 5px; border: 1px solid #262626; background: #121212; color: #fff; }
+        .btn-login { width: 100%; background: #0095f6; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <h1 style="color:#38bdf8">KChat</h1>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="pass" placeholder="Senha (mín. 6 dígitos)">
-        <button class="btn-blue" onclick="entrar()">ENTRAR / CADASTRAR</button>
-        <p id="auth-msg" style="font-size: 12px; color: #94a3b8; margin-top: 10px;"></p>
+        <div class="logo" style="font-size: 45px; margin-bottom: 30px;">KChat</div>
+        <input type="email" id="email" placeholder="Telefone, nome de usuário ou e-mail">
+        <input type="password" id="pass" placeholder="Senha">
+        <button class="btn-login" onclick="entrar()">Entrar / Cadastrar</button>
+        <p id="error" style="color: #ed4956; font-size: 12px; margin-top: 10px;"></p>
     </div>
 
     <div id="app-screen" class="hidden">
         <div class="header">
-            <span style="color:#38bdf8; font-weight:bold;">KChat</span>
-            <i data-lucide="log-out" onclick="firebase.auth().signOut(); location.reload();"></i>
-        </div>
-
-        <div id="rooms-page" class="page">
-            <h3>Salas de Jogo</h3>
-            <div class="room-card">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Gabri" style="width:45px; border-radius:50%">
-                    <div>
-                        <div style="font-weight:bold; font-size:14px;">GabrihhDEV_</div>
-                        <div style="font-size:11px; color:#4ade80">📶 8ms | Survival</div>
-                    </div>
-                </div>
-                <button class="btn-join">JOIN</button>
+            <span class="logo">KChat</span>
+            <div style="display: flex; gap: 20px;">
+                <i data-lucide="heart" class="nav-icon"></i>
+                <i data-lucide="message-circle" class="nav-icon" onclick="showPage('chat-page')"></i>
             </div>
         </div>
 
-        <div id="chat-page" class="page hidden">
-            <h3>Chat Global</h3>
-            <div id="chat-box"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-input" placeholder="Mensagem...">
-                <button onclick="enviarMsg()" style="background:#38bdf8; border:none; border-radius:8px; padding:0 15px;">OK</button>
+        <div id="home-page" class="page">
+            <div class="stories-bar">
+                <div class="story">
+                    <div class="ring" style="background: #262626;"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Izis"></div>
+                    <span>Seu story</span>
+                </div>
+                <div class="story">
+                    <div class="ring"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+                    <span>felix_art</span>
+                </div>
+                <div class="story">
+                    <div class="ring"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sasha"></div>
+                    <span>sasha_dev</span>
+                </div>
+            </div>
+
+            <div id="feed-container" style="padding-bottom: 60px;">
+                <div class="post">
+                    <div class="post-header">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="post-user-img">
+                        <span style="font-weight: bold; font-size: 14px;">felix_art</span>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=800&q=80" class="post-img">
+                    <div class="post-actions">
+                        <i data-lucide="heart"></i>
+                        <i data-lucide="message-circle"></i>
+                        <i data-lucide="send"></i>
+                    </div>
+                    <div class="post-info">
+                        <strong>felix_art</strong> Novo projeto de UI pronto! 🎨
+                    </div>
+                </div>
             </div>
         </div>
 
         <nav class="nav-bottom">
-            <i data-lucide="layout-grid" onclick="showPage('rooms-page')"></i>
-            <i data-lucide="message-circle" onclick="showPage('chat-page')"></i>
-            <i data-lucide="user"></i>
+            <i data-lucide="home" class="nav-icon" onclick="showPage('home-page')"></i>
+            <i data-lucide="search" class="nav-icon"></i>
+            <i data-lucide="plus-square" class="nav-icon"></i>
+            <i data-lucide="play" class="nav-icon"></i>
+            <i data-lucide="user" class="nav-icon"></i>
         </nav>
     </div>
 
@@ -94,16 +119,14 @@
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database();
         lucide.createIcons();
 
-        // LOGIN / CADASTRO
         function entrar() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
-            auth.signInWithEmailAndPassword(email, pass).catch(() => {
-                auth.createUserWithEmailAndPassword(email, pass).catch(e => {
-                    document.getElementById('auth-msg').innerText = "Erro: " + e.message;
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            auth.signInWithEmailAndPassword(e, p).catch(() => {
+                auth.createUserWithEmailAndPassword(e, p).catch(err => {
+                    document.getElementById('error').innerText = "Erro ao entrar: " + err.message;
                 });
             });
         }
@@ -112,33 +135,8 @@
             if(user) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
-                ouvirMensagens();
             }
         });
-
-        // SISTEMA DE CHAT
-        function enviarMsg() {
-            const input = document.getElementById('chat-input');
-            if(!input.value) return;
-            db.ref('mensagens').push({
-                user: auth.currentUser.email.split('@')[0],
-                texto: input.value,
-                data: Date.now()
-            });
-            input.value = "";
-        }
-
-        function ouvirMensagens() {
-            db.ref('mensagens').limitToLast(20).on('value', snap => {
-                const box = document.getElementById('chat-box');
-                box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.data();
-                    box.innerHTML += `<div class="msg"><strong>${m.user}:</strong> ${m.texto}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        }
 
         function showPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
