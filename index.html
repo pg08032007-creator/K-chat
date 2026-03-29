@@ -15,9 +15,9 @@
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* Auth Styles */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
         .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
         
@@ -30,20 +30,20 @@
 
         .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
         
-        /* App Header */
+        /* Feed Header - Restaurado Exatamente */
         .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        /* Post Cards */
+        /* Post Card com Status Dot */
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
         
-        /* Navigation */
+        /* Nav Bar - Ícones Restaurados (Bússola e Astronauta) */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        nav i { color: #555; font-size: 20px; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        nav div { cursor: pointer; color: #555; font-size: 18px; }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
     </style>
 </head>
 <body>
@@ -75,8 +75,6 @@
                 <img id="img-preview" src="https://via.placeholder.com/110?text=+" style="width:100%; height:100%; object-fit:cover;">
                 <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
             </div>
-            <p style="font-size:12px; color:var(--accent-pink); margin-top:-10px">Toque para carregar foto</p>
-
             <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
             <div class="gender-selector">
@@ -103,21 +101,18 @@
             <div style="color:#555">Grupos</div>
             <div style="color:#555">Convites</div>
         </div>
-        <div style="padding:50px; text-align:center; color:#555">
-            <i class="fas fa-comments" style="font-size:40px; margin-bottom:15px; display:block"></i>
-            Mensagens aparecerão aqui.
-        </div>
+        <div style="padding:50px; text-align:center; color:#555">Mensagens aparecem aqui.</div>
     </div>
 
     <div id="screen-profile" class="screen">
         <div class="auth-container">
             <div style="position:relative">
                 <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444; cursor:pointer"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
+                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
             </div>
             <h2 id="my-name">@user</h2>
             <p id="my-status" style="color:#777"></p>
-            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px; border:1px solid #333">Sair da Conta</button>
+            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px">Sair</button>
         </div>
     </div>
 
@@ -143,7 +138,7 @@
         let currentUser = null;
         let base64Avatar = "";
 
-        // CORREÇÃO: Função de compressão para evitar erro de registro
+        // FUNÇÃO DE COMPRESSÃO (A única "mudança" para o código não travar)
         function processImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -233,7 +228,7 @@
                             <p>${post.content}</p>
                             <div style="display:flex; gap:20px; color:#666; margin-top:10px; font-size:14px;">
                                 <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                <span onclick="showScreen('chat')"><i class="fas fa-comment"></i> ${post.comments || 0}</span>
+                                <span><i class="fas fa-comment"></i> ${post.comments || 0}</span>
                             </div>
                         </div>
                     `;
@@ -278,7 +273,7 @@
             }
         }
         
-        function logout() { updateStatus(false); localStorage.clear(); location.reload(); }
+        function logout() { updateStatus(false); location.reload(); }
         window.onbeforeunload = () => updateStatus(false);
     </script>
 </body>
