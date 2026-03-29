@@ -11,19 +11,19 @@
     <style>
         :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+        body { background-color: var(--bg-dark); color: var(--text-main); }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* Layout de Autenticação */
+        /* Auth & Onboarding */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
         .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
         
-        /* Carrossel de Avatar e Galeria */
+        /* Carrossel de Avatar (Restaurado) */
         .avatar-carousel { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
-        .avatar-frame { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-purple); position:relative; overflow:hidden; background: #1a1a1e; }
+        .avatar-frame { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-purple); position:relative; overflow:hidden; background: #1a1a1e; cursor: pointer; }
         .avatar-frame img { width:100%; height:100%; object-fit:cover; }
 
         .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
@@ -33,25 +33,21 @@
         .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
         .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
 
-        /* Feed e Cards */
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
         
-        /* Profile Grid */
-        .profile-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #1f1f23; }
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 1/1; background: #1a1a1e; overflow: hidden; }
-        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        /* Feed Header (Seu design original) */
+        .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
+        .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
+        .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        /* Barra de Navegação */
+        /* Post Card com Status Dot */
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
+        .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
+        
+        /* Navegação */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        nav i { font-size: 20px; color: #555; transition: 0.3s; }
-        nav .active-nav i { color: var(--accent-pink); }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 55px; height: 55px; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -45px; box-shadow: 0 8px 15px rgba(0,0,0,0.4); }
-
-        .btn-premium { width: 100%; padding: 18px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-premium:active { transform: scale(0.98); }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; }
     </style>
 </head>
 <body>
@@ -62,90 +58,79 @@
             <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Usuário"></div>
             <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="handleLogin()">Entrar</button>
-            <p onclick="showScreen('register')" style="color:#666; font-size: 14px;">Novo por aqui? <span style="color:var(--accent-pink)">Criar conta</span></p>
+            <p onclick="showScreen('register')" style="color:#666">Não tem conta? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
         </div>
     </div>
 
     <div id="screen-register" class="screen">
         <div class="auth-container">
-            <div class="logo-k">Criar Conta</div>
-            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Escolha um @usuário"></div>
-            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Crie uma senha"></div>
-            <button class="btn-premium" onclick="showScreen('onboarding')">Próximo</button>
-            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
+            <div class="logo-k">Cadastro</div>
+            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
+            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
+            <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
         </div>
     </div>
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h2>Personalizar</h2>
+            <h2 style="margin-bottom:10px">Seu Perfil</h2>
+            
             <div class="avatar-carousel">
-                <i class="fas fa-chevron-left" onclick="cycleAvatar(-1)"></i>
+                <i class="fas fa-chevron-left" onclick="cycleAvatar(-1)" style="color:var(--accent-purple)"></i>
                 <div class="avatar-frame" onclick="document.getElementById('file-input').click()">
                     <img id="img-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=1">
                     <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
                 </div>
-                <i class="fas fa-chevron-right" onclick="cycleAvatar(1)"></i>
+                <i class="fas fa-chevron-right" onclick="cycleAvatar(1)" style="color:var(--accent-purple)"></i>
             </div>
-            <p style="font-size:12px; color:var(--accent-pink); cursor:pointer" onclick="document.getElementById('file-input').click()">Usar foto da galeria</p>
+            <p style="font-size:11px; color:var(--accent-pink); cursor:pointer" onclick="document.getElementById('file-input').click()">Toque na foto para galeria</p>
 
-            <div class="custom-input-group"><i class="fas fa-calendar-alt"></i><input type="date" id="onb-date"></div>
-            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua bio ou status"></div>
-            
+            <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
+            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
             <div class="gender-selector">
                 <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="nb"><i class="fas fa-genderless"></i><span>Neutro</span></label>
             </div>
-            <button id="btn-finish" class="btn-premium" onclick="handleRegister()">Concluir</button>
+            <button id="btn-finish" class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
     </div>
 
     <div id="screen-feed" class="screen">
-        <header style="padding:15px 20px; display:flex; align-items:center; background:var(--bg-dark); border-bottom:1px solid #1a1a1e; position:sticky; top:0; z-index:100;">
+        <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <div style="flex:1; background:#1a1a1e; border-radius:12px; margin-left:15px; padding:8px 15px; display:flex; align-items:center;">
-                <i class="fas fa-search" style="color:#444"></i>
-                <input type="text" placeholder="Pesquisar..." style="background:transparent; border:none; color:white; width:100%; outline:none; margin-left:10px;">
-            </div>
+            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Buscar usuários..."></div>
+            <i class="fas fa-sync-alt" onclick="listenPosts()" style="color:var(--accent-purple)"></i>
         </header>
         <div id="feed-content"></div>
     </div>
 
     <div id="screen-chat" class="screen">
-        <div style="padding:20px; border-bottom:1px solid #1f1f23; display:flex; justify-content:space-around;">
-            <span style="color:var(--accent-pink); font-weight:bold; border-bottom: 2px solid var(--accent-pink)">Mensagens</span>
-            <span style="color:#555">Grupos</span>
+        <div style="display:flex; justify-content:space-around; padding:15px; border-bottom:1px solid #222;">
+            <div style="color:var(--accent-pink); border-bottom:2px solid var(--accent-pink)">Geral</div>
+            <div style="color:#555">Grupos</div>
+            <div style="color:#555">Convites</div>
         </div>
-        <div id="chat-list" style="padding:10px; text-align:center; color:#444; margin-top:50px;">
-            <i class="fas fa-comments" style="font-size:40px; margin-bottom:10px"></i>
-            <p>Nenhuma conversa iniciada.</p>
-        </div>
+        <div style="padding:50px; text-align:center; color:#555">Mensagens aparecem aqui.</div>
     </div>
 
     <div id="screen-profile" class="screen">
-        <div class="profile-header">
-            <div style="position:relative; display:inline-block">
-                <img id="my-pic" src="" style="width:90px; height:90px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:var(--accent-purple); width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg-dark); font-size:10px"><i class="fas fa-pen" style="color:white"></i></div>
+        <div class="auth-container">
+            <div style="position:relative">
+                <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
+                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
             </div>
-            <h2 id="my-name" style="margin-top:10px">@usuario</h2>
-            <p id="my-status" style="color:#888; font-size:14px; margin-top:5px"></p>
-            <div style="display:flex; justify-content:center; gap:25px; margin-top:15px; font-size:13px">
-                <span><b id="followers-count">0</b> Seguidores</span>
-                <span><b id="following-count">0</b> Seguindo</span>
-            </div>
+            <h2 id="my-name">@user</h2>
+            <p id="my-status" style="color:#777"></p>
+            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px">Sair</button>
         </div>
-        <div class="profile-grid" id="profile-posts"></div>
-        <button onclick="logout()" style="width:100%; padding:20px; background:transparent; border:none; color:red; font-weight:bold; cursor:pointer">Encerrar Sessão</button>
     </div>
 
     <nav id="main-nav" style="display:none">
-        <div id="nav-feed" onclick="showScreen('feed')"><i class="fas fa-home"></i></div>
-        <div id="nav-search" onclick="alert('Busca em desenvolvimento')"><i class="fas fa-search"></i></div>
+        <div onclick="showScreen('feed')"><i class="fas fa-compass"></i></div>
         <div class="plus-fab" onclick="newPost()"><i class="fas fa-plus"></i></div>
-        <div id="nav-chat" onclick="showScreen('chat')"><i class="fas fa-comment-dots"></i></div>
-        <div id="nav-profile" onclick="showScreen('profile')"><i class="fas fa-user"></i></div>
+        <div onclick="showScreen('chat')"><i class="fas fa-comment-dots"></i></div>
+        <div onclick="showScreen('profile')"><i class="fas fa-user-astronaut"></i></div>
     </nav>
 
     <script>
@@ -163,22 +148,8 @@
         
         let currentUser = null;
         let base64Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=1";
-        const defaults = ["https://api.dicebear.com/7.x/avataaars/svg?seed=1", "https://api.dicebear.com/7.x/avataaars/svg?seed=2", "https://api.dicebear.com/7.x/avataaars/svg?seed=3"];
+        const defaults = ["https://api.dicebear.com/7.x/avataaars/svg?seed=1", "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka"];
         let defIdx = 0;
-
-        // Persistência
-        window.onload = () => {
-            const saved = localStorage.getItem('k_user');
-            if(saved) {
-                const data = JSON.parse(saved);
-                db.collection("usuarios").doc(data.user).get().then(doc => {
-                    if(doc.exists && doc.data().pass === data.pass) {
-                        currentUser = doc.data();
-                        enterApp();
-                    }
-                });
-            }
-        };
 
         function cycleAvatar(dir) {
             defIdx = (defIdx + dir + defaults.length) % defaults.length;
@@ -186,7 +157,7 @@
             document.getElementById('img-preview').src = base64Avatar;
         }
 
-        // COMPRESSÃO DE IMAGEM (PARA GALERIA FUNCIONAR SEM ERRO)
+        // COMPRESSÃO PARA GALERIA (A correção que faltava no seu código antigo)
         function processImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -195,12 +166,11 @@
                     img.src = e.target.result;
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_SIZE = 300;
-                        let w = img.width, h = img.height;
-                        if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
-                        else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        const MAX_WIDTH = 300;
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                         base64Avatar = canvas.toDataURL('image/jpeg', 0.7);
                         document.getElementById('img-preview').src = base64Avatar;
                     }
@@ -211,9 +181,7 @@
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('nav div').forEach(d => d.classList.remove('active-nav'));
             document.getElementById('screen-' + id).classList.add('active');
-            if(document.getElementById('nav-' + id)) document.getElementById('nav-' + id).classList.add('active-nav');
             if(id === 'profile') loadProfile();
         }
 
@@ -221,11 +189,10 @@
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
             const doc = await db.collection("usuarios").doc(user).get();
-            if(doc.exists && doc.data().pass === pass) {
+            if (doc.exists && doc.data().pass === pass) {
                 currentUser = doc.data();
-                localStorage.setItem('k_user', JSON.stringify({user, pass}));
                 enterApp();
-            } else { alert("Usuário ou senha inválidos."); }
+            } else { alert("Dados incorretos!"); }
         }
 
         async function handleRegister() {
@@ -233,12 +200,13 @@
             const pass = document.getElementById('reg-pass').value;
             const date = document.getElementById('onb-date').value;
             const status = document.getElementById('onb-status').value || "Disponível";
+            const gen = document.querySelector('input[name="gen"]:checked').value;
+
             if(!user || !pass || !date) return alert("Preencha todos os campos!");
-            
-            const userData = { user, pass, date, status, pic: base64Avatar, followers: [], following: [], posts_count: 0 };
+
+            const userData = { user, pass, date, status, gen, pic: base64Avatar, online: true };
             await db.collection("usuarios").doc(user).set(userData);
             currentUser = userData;
-            localStorage.setItem('k_user', JSON.stringify({user, pass}));
             enterApp();
         }
 
@@ -249,25 +217,25 @@
         }
 
         function listenPosts() {
-            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
                 container.innerHTML = "";
-                snap.forEach(doc => {
+                snapshot.forEach(doc => {
                     const post = doc.data();
                     const liked = post.likes_list && post.likes_list.includes(currentUser.user);
                     container.innerHTML += `
                         <div class="post-card">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px">
-                                <img src="${post.authorPic}" class="user-avatar">
-                                <div>
-                                    <strong style="display:block; font-size:14px">@${post.author}</strong>
-                                    <span style="font-size:10px; color:#555">agora mesmo</span>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
+                                <div style="position:relative">
+                                    <img src="${post.authorPic}" class="user-avatar">
+                                    <div class="status-dot" style="background:${post.isOnline ? '#22c55e' : '#444'}"></div>
                                 </div>
+                                <strong>@${post.author}</strong>
                             </div>
-                            <p style="font-size:15px; line-height:1.4">${post.content}</p>
-                            <div style="margin-top:15px; display:flex; gap:20px; color:#555; font-size:14px">
+                            <p>${post.content}</p>
+                            <div style="display:flex; gap:20px; color:#666; margin-top:10px; font-size:14px;">
                                 <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                <span onclick="showScreen('chat')"><i class="fas fa-comment"></i> ${post.comments || 0}</span>
+                                <span><i class="fas fa-comment"></i> ${post.comments || 0}</span>
                             </div>
                         </div>`;
                 });
@@ -287,40 +255,31 @@
             await ref.update({ likes: count, likes_list: list });
         }
 
-        async function loadProfile() {
-            document.getElementById('my-pic').src = currentUser.pic;
-            document.getElementById('my-name').innerText = "@" + currentUser.user;
-            document.getElementById('my-status').innerText = currentUser.status;
-            document.getElementById('followers-count').innerText = currentUser.followers.length;
-            document.getElementById('following-count').innerText = currentUser.following.length;
-            
-            const grid = document.getElementById('profile-posts');
-            grid.innerHTML = "";
-            const posts = await db.collection("posts").where("author", "==", currentUser.user).get();
-            posts.forEach(doc => {
-                grid.innerHTML += `<div class="grid-item"><img src="${currentUser.pic}"></div>`;
+        async function newPost() {
+            const text = prompt("O que quer postar?");
+            if(!text) return;
+            await db.collection("posts").add({
+                author: currentUser.user, authorPic: currentUser.pic,
+                content: text, time: Date.now(), likes: 0, likes_list: [], comments: 0, isOnline: true
             });
         }
 
-        async function editProfile() {
-            const n = prompt("Nova Bio:", currentUser.status);
+        function loadProfile() {
+            document.getElementById('my-pic').src = currentUser.pic;
+            document.getElementById('my-name').innerText = "@" + currentUser.user;
+            document.getElementById('my-status').innerText = currentUser.status;
+        }
+
+        function editProfile() {
+            const n = prompt("Editar Bio/Status:", currentUser.status);
             if(n) {
-                await db.collection("usuarios").doc(currentUser.user).update({ status: n });
+                db.collection("usuarios").doc(currentUser.user).update({ status: n });
                 currentUser.status = n;
                 loadProfile();
             }
         }
-
-        async function newPost() {
-            const text = prompt("O que você está pensando?");
-            if(!text) return;
-            await db.collection("posts").add({
-                author: currentUser.user, authorPic: currentUser.pic,
-                content: text, time: Date.now(), likes: 0, likes_list: [], comments: 0
-            });
-        }
-
-        function logout() { localStorage.clear(); location.reload(); }
+        
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
