@@ -10,14 +10,14 @@
     
     <style>
         :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
+        /* Auth & Onboarding */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
         .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
         
@@ -32,12 +32,18 @@
         .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
         .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
 
-        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
-        
+        /* Feed & Profile */
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 10px; }
+        .grid-item { aspect-ratio: 1/1; background: #222; overflow: hidden; }
+        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Navigation */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+
+        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -58,14 +64,12 @@
             <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
-            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
         </div>
     </div>
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h2 style="margin-bottom:10px">Seu Perfil</h2>
-            
+            <h2>Seu Perfil</h2>
             <div class="avatar-carousel">
                 <i class="fas fa-chevron-left" onclick="cycleAvatar(-1)" style="color:var(--accent-purple); font-size:20px"></i>
                 <div class="avatar-frame" onclick="document.getElementById('file-input').click()">
@@ -76,9 +80,8 @@
             </div>
             <p style="font-size:11px; color:var(--accent-pink); cursor:pointer" onclick="document.getElementById('file-input').click()">Toque na foto para galeria</p>
 
-            <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
+            <div class="custom-input-group"><i class="fas fa-calendar-alt"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
-            
             <div class="gender-selector">
                 <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
@@ -89,10 +92,31 @@
     </div>
 
     <div id="screen-feed" class="screen">
-        <header style="padding:15px 20px; display:flex; background:var(--bg-dark); border-bottom:1px solid #1a1a1e;">
+        <header style="padding:15px 20px; display:flex; align-items:center; background:var(--bg-dark); border-bottom:1px solid #1a1a1e; position:sticky; top:0; z-index:100;">
             <div class="logo-k" style="font-size:24px">K.</div>
+            <div style="flex:1; background:#1a1a1e; border-radius:12px; margin-left:15px; padding:8px 15px; display:flex; align-items:center;">
+                <i class="fas fa-search" style="color:#444"></i>
+                <input type="text" placeholder="Buscar..." style="background:transparent; border:none; color:white; width:100%; outline:none; margin-left:10px;">
+            </div>
         </header>
         <div id="feed-content"></div>
+    </div>
+
+    <div id="screen-profile" class="screen">
+        <div class="auth-container" style="padding-bottom:10px">
+            <div style="position:relative">
+                <img id="my-pic" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
+                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:var(--accent-purple); padding:8px; border-radius:50%; font-size:10px"><i class="fas fa-pen"></i></div>
+            </div>
+            <h2 id="my-name">@user</h2>
+            <p id="my-status" style="color:#777"></p>
+            <div style="display:flex; gap:20px; font-size:14px; margin-top:10px">
+                <span><strong id="followers-count">0</strong> Seguidores</span>
+                <span><strong id="following-count">0</strong> Seguindo</span>
+            </div>
+        </div>
+        <div class="profile-grid" id="profile-posts"></div>
+        <button class="btn-premium" onclick="logout()" style="width:80%; margin:20px 10%; background:#222; color:red">Sair</button>
     </div>
 
     <nav id="main-nav" style="display:none">
@@ -116,14 +140,25 @@
         
         let currentUser = null;
         let base64Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=1";
-        
-        const defaults = [
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
-            "https://api.dicebear.com/7.x/avataaars/svg?seed=4"
-        ];
+        const defaults = ["https://api.dicebear.com/7.x/avataaars/svg?seed=1", "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka", "https://api.dicebear.com/7.x/avataaars/svg?seed=Max"];
         let defIdx = 0;
+
+        // LOGIN AUTOMÁTICO
+        window.onload = () => {
+            const saved = localStorage.getItem('kchat_user');
+            if(saved) {
+                const data = JSON.parse(saved);
+                autoLogin(data.user, data.pass);
+            }
+        };
+
+        async function autoLogin(user, pass) {
+            const doc = await db.collection("usuarios").doc(user).get();
+            if (doc.exists && doc.data().pass === pass) {
+                currentUser = doc.data();
+                enterApp();
+            }
+        }
 
         function cycleAvatar(dir) {
             defIdx = (defIdx + dir + defaults.length) % defaults.length;
@@ -131,7 +166,6 @@
             document.getElementById('img-preview').src = base64Avatar;
         }
 
-        // FUNÇÃO DE COMPRESSÃO - CORREÇÃO PARA O ERRO DE NÃO CONCLUIR
         function processImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -140,18 +174,14 @@
                     img.src = e.target.result;
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; // Tamanho reduzido para o Firebase aceitar
+                        const MAX_WIDTH = 300;
                         const scaleSize = MAX_WIDTH / img.width;
                         canvas.width = MAX_WIDTH;
                         canvas.height = img.height * scaleSize;
-
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                        // Exporta como JPEG comprimido
-                        base64Avatar = canvas.toDataURL('image/jpeg', 0.7); 
+                        base64Avatar = canvas.toDataURL('image/jpeg', 0.7);
                         document.getElementById('img-preview').src = base64Avatar;
-                        console.log("Imagem comprimida com sucesso!");
                     }
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -161,73 +191,115 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
+            if(id === 'profile') loadProfile();
         }
 
-        async function handleRegister() {
-            const btn = document.getElementById('btn-finish');
-            const user = document.getElementById('reg-user').value.toLowerCase().trim();
-            const pass = document.getElementById('reg-pass').value;
-            const date = document.getElementById('onb-date').value;
-            const status = document.getElementById('onb-status').value || "Disponível";
-            const gen = document.querySelector('input[name="gen"]:checked').value;
-
-            if(!user || !pass || !date) return alert("Preencha tudo!");
-
-            btn.disabled = true;
-            btn.innerText = "Salvando...";
-
-            try {
-                const check = await db.collection("usuarios").doc(user).get();
-                if(check.exists) {
-                    btn.disabled = false;
-                    btn.innerText = "Finalizar Registro";
-                    return alert("Usuário já existe!");
-                }
-
-                const userData = { user, pass, date, status, gen, pic: base64Avatar, online: true };
-                await db.collection("usuarios").doc(user).set(userData);
-                
-                currentUser = userData;
-                document.getElementById('main-nav').style.display = 'flex';
-                showScreen('feed');
-                listenPosts();
-            } catch(e) { 
-                console.error(e);
-                alert("Erro ao salvar perfil. Tente uma foto menor.");
-                btn.disabled = false;
-                btn.innerText = "Finalizar Registro";
-            }
-        }
-
-        // Funções de login e feed mantidas conforme o original...
         async function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
             const doc = await db.collection("usuarios").doc(user).get();
             if (doc.exists && doc.data().pass === pass) {
                 currentUser = doc.data();
-                document.getElementById('main-nav').style.display = 'flex';
-                showScreen('feed');
-                listenPosts();
+                localStorage.setItem('kchat_user', JSON.stringify({user, pass}));
+                enterApp();
             } else { alert("Dados incorretos!"); }
         }
 
+        async function handleRegister() {
+            const user = document.getElementById('reg-user').value.toLowerCase().trim();
+            const pass = document.getElementById('reg-pass').value;
+            const date = document.getElementById('onb-date').value;
+            const status = document.getElementById('onb-status').value || "Disponível";
+            if(!user || !pass || !date) return alert("Preencha tudo!");
+
+            const userData = { user, pass, date, status, pic: base64Avatar, followers: [], following: [], online: true };
+            await db.collection("usuarios").doc(user).set(userData);
+            currentUser = userData;
+            localStorage.setItem('kchat_user', JSON.stringify({user, pass}));
+            enterApp();
+        }
+
+        function enterApp() {
+            document.getElementById('main-nav').style.display = 'flex';
+            showScreen('feed');
+            listenPosts();
+        }
+
         function listenPosts() {
-            db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
                 const container = document.getElementById('feed-content');
                 container.innerHTML = "";
-                snapshot.forEach(doc => {
+                snap.forEach(doc => {
                     const post = doc.data();
+                    const isFollowing = currentUser.following.includes(post.author);
                     container.innerHTML += `
                         <div class="post-card">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
-                                <img src="${post.authorPic}" class="user-avatar">
-                                <strong>@${post.author}</strong>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                                <div style="display:flex; align-items:center; gap:10px">
+                                    <img src="${post.authorPic}" class="user-avatar">
+                                    <strong>@${post.author}</strong>
+                                </div>
+                                ${post.author !== currentUser.user ? `<button onclick="toggleFollow('${post.author}')" style="background:none; border:1px solid var(--accent-purple); color:white; padding:4px 10px; border-radius:10px; font-size:12px">${isFollowing ? 'Seguindo' : 'Seguir'}</button>` : ''}
                             </div>
                             <p>${post.content}</p>
+                            <div style="margin-top:10px; display:flex; gap:15px; font-size:13px; color:#aaa">
+                                <span onclick="toggleLike('${doc.id}')"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
+                                <span onclick="viewDetails('${doc.id}')"><i class="fas fa-comment"></i> Detalhes</span>
+                            </div>
                         </div>`;
                 });
             });
+        }
+
+        async function toggleFollow(target) {
+            const myRef = db.collection("usuarios").doc(currentUser.user);
+            const targetRef = db.collection("usuarios").doc(target);
+            if(currentUser.following.includes(target)) {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayRemove(target) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayRemove(currentUser.user) });
+            } else {
+                await myRef.update({ following: firebase.firestore.FieldValue.arrayUnion(target) });
+                await targetRef.update({ followers: firebase.firestore.FieldValue.arrayUnion(currentUser.user) });
+            }
+            const up = await myRef.get(); currentUser = up.data();
+            listenPosts();
+        }
+
+        async function loadProfile() {
+            document.getElementById('my-pic').src = currentUser.pic;
+            document.getElementById('my-name').innerText = "@" + currentUser.user;
+            document.getElementById('my-status').innerText = currentUser.status;
+            document.getElementById('followers-count').innerText = currentUser.followers.length;
+            document.getElementById('following-count').innerText = currentUser.following.length;
+            
+            const grid = document.getElementById('profile-posts');
+            grid.innerHTML = "";
+            const posts = await db.collection("posts").where("author", "==", currentUser.user).get();
+            posts.forEach(doc => {
+                grid.innerHTML += `<div class="grid-item"><img src="${currentUser.pic}"></div>`;
+            });
+        }
+
+        async function editProfile() {
+            const newBio = prompt("Nova Bio:", currentUser.status);
+            if(newBio) {
+                await db.collection("usuarios").doc(currentUser.user).update({ status: newBio });
+                currentUser.status = newBio;
+                loadProfile();
+            }
+        }
+
+        async function newPost() {
+            const text = prompt("O que quer postar?");
+            if(!text) return;
+            await db.collection("posts").add({ author: currentUser.user, authorPic: currentUser.pic, content: text, time: Date.now(), likes: 0, likes_list: [] });
+        }
+
+        function logout() { localStorage.removeItem('kchat_user'); location.reload(); }
+        
+        // Espaço para a função de Ver Detalhes que você pediu
+        function viewDetails(id) {
+            alert("Abrindo detalhes do post: " + id + "\nEm breve: Comentários e Curtidas detalhadas.");
         }
     </script>
 </body>
