@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KChat - Social & RP</title>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore-compat.js"></script>
@@ -16,69 +15,56 @@
         body { font-family: sans-serif; margin: 0; background: #0f172a; color: white; padding-bottom: 60px; }
         .hidden { display: none !important; }
         
-        /* HEADER */
+        /* LOGIN */
+        #auth-screen { padding: 40px 20px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        .logo { font-size: 40px; font-weight: bold; color: #38bdf8; margin-bottom: 20px; }
+        input { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: none; background: #334155; color: white; font-size: 16px; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-login { background: #38bdf8; color: #0f172a; }
+        .btn-register { background: transparent; color: #38bdf8; border: 1px solid #38bdf8; }
+        
+        /* APP */
         .header { position: fixed; top: 0; width: 100%; height: 55px; background: #1e293b; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 100; border-bottom: 1px solid #334155; }
-        .logo { font-size: 20px; font-weight: bold; color: #38bdf8; }
-
-        /* STORIES */
-        .stories { display: flex; padding: 15px; overflow-x: auto; background: #1e293b; margin-top: 55px; }
-        .story { min-width: 65px; height: 65px; border-radius: 50%; border: 2px solid #38bdf8; margin-right: 12px; background: #334155; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .story img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* POSTS */
-        .post { background: #1e293b; margin: 10px 0; border-radius: 10px; overflow: hidden; }
-        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
-        .post-info { padding: 12px; }
-
-        /* TELA DE LOGIN */
-        #auth-screen { padding: 50px 20px; text-align: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; background: #334155; color: white; }
-        .btn { width: 100%; padding: 12px; background: #38bdf8; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
-
-        /* MENU INFERIOR */
         .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 55px; background: #1e293b; border-top: 1px solid #334155; display: flex; justify-content: space-around; align-items: center; }
+        .page { margin-top: 60px; padding: 10px; }
+        .post { background: #1e293b; margin-bottom: 15px; border-radius: 12px; overflow: hidden; border: 1px solid #334155; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <h1 class="logo" style="font-size: 40px;">KChat</h1>
-        <p>Crie sua conta para entrar</p>
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="password" id="pass" placeholder="Senha">
-        <button class="btn" onclick="entrar()">Entrar / Cadastrar</button>
+        <div class="logo">KChat</div>
+        <input type="email" id="email" placeholder="Seu e-mail">
+        <input type="password" id="pass" placeholder="Sua senha">
+        
+        <button class="btn btn-login" onclick="fazerLogin()">ENTRAR</button>
+        <button class="btn btn-register" onclick="fazerCadastro()">CRIAR NOVA CONTA</button>
+        
+        <p id="auth-error" style="color: #ff4b4b; font-size: 13px; margin-top: 15px;"></p>
     </div>
 
     <div id="app-screen" class="hidden">
         <div class="header">
-            <span class="logo">KChat</span>
-            <i data-lucide="plus-square" onclick="showPage('create-page')"></i>
+            <span style="color:#38bdf8; font-weight:bold;">KChat</span>
+            <i data-lucide="log-out" onclick="sair()" style="width:20px"></i>
         </div>
 
         <div id="home-page" class="page">
-            <div class="stories" id="stories-list">
-                <div class="story" onclick="document.getElementById('story-input').click()"><i data-lucide="plus"></i></div>
-                <input type="file" id="story-input" class="hidden" onchange="uploadStory(this)">
+            <div id="feed-list">
+                <p style="text-align:center; color:#94a3b8">Carregando feed...</p>
             </div>
-            <div id="feed-list" style="padding: 10px;"></div>
-        </div>
-
-        <div id="create-page" class="page hidden" style="padding: 20px; margin-top: 60px;">
-            <h2>Novo Post</h2>
-            <input type="file" id="post-file">
-            <input type="text" id="post-caption" placeholder="Legenda do post...">
-            <button class="btn" onclick="uploadPost()">Publicar no Feed</button>
         </div>
 
         <nav class="nav-bottom">
-            <i data-lucide="home" onclick="showPage('home-page')"></i>
+            <i data-lucide="home"></i>
+            <i data-lucide="plus-square"></i>
             <i data-lucide="message-circle"></i>
             <i data-lucide="user"></i>
         </nav>
     </div>
 
     <script>
-        // CONFIGURAÇÃO AUTOMÁTICA COM SUAS CHAVES
         const firebaseConfig = {
             apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
             authDomain: "kchat-1debf.firebaseapp.com",
@@ -91,63 +77,65 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
         lucide.createIcons();
 
-        // LOGIN E CADASTRO
-        function entrar() {
+        // FUNÇÃO DE LOGIN
+        function fazerLogin() {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('pass').value;
-            auth.signInWithEmailAndPassword(email, pass).catch(() => {
-                auth.createUserWithEmailAndPassword(email, pass);
-            });
+            const errorLabel = document.getElementById('auth-error');
+
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => { errorLabel.innerText = ""; })
+                .catch((error) => { errorLabel.innerText = "Erro ao entrar: Verifique e-mail e senha."; });
         }
 
+        // FUNÇÃO DE CADASTRO
+        function fazerCadastro() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const errorLabel = document.getElementById('auth-error');
+
+            if(pass.length < 6) {
+                errorLabel.innerText = "A senha deve ter pelo menos 6 dígitos.";
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then(() => { alert("Conta criada com sucesso!"); })
+                .catch((error) => { errorLabel.innerText = "Erro ao cadastrar: " + error.message; });
+        }
+
+        function sair() { auth.signOut(); location.reload(); }
+
+        // MONITOR DE ESTADO (LOGADO OU NÃO)
         auth.onAuthStateChanged(user => {
             if(user) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 carregarPosts();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('hidden');
             }
         });
 
-        // CRIAR POST (FEED)
-        async function uploadPost() {
-            const file = document.getElementById('post-file').files[0];
-            const caption = document.getElementById('post-caption').value;
-            if(!file) return alert("Escolha uma foto!");
-
-            const ref = storage.ref(`posts/${Date.now()}`);
-            await ref.put(file);
-            const url = await ref.getDownloadURL();
-
-            await db.collection('posts').add({
-                url, caption, user: auth.currentUser.email, date: Date.now()
-            });
-            showPage('home-page');
-        }
-
-        // CARREGAR POSTS EM TEMPO REAL
         function carregarPosts() {
             db.collection('posts').orderBy('date', 'desc').onSnapshot(snap => {
                 const feed = document.getElementById('feed-list');
                 feed.innerHTML = "";
+                if(snap.empty) feed.innerHTML = "<p style='text-align:center'>Nenhum post ainda.</p>";
                 snap.forEach(doc => {
                     const post = doc.data();
                     feed.innerHTML += `
                         <div class="post">
                             <div style="padding:10px; font-size:12px; color:#94a3b8">${post.user}</div>
                             <img src="${post.url}" class="post-img">
-                            <div class="post-info"><strong>${post.user.split('@')[0]}</strong> ${post.caption}</div>
+                            <div style="padding:12px;"><strong>${post.user.split('@')[0]}</strong> ${post.caption}</div>
                         </div>`;
                 });
             });
-        }
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
         }
     </script>
 </body>
