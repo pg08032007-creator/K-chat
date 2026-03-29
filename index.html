@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KChat | Oficial</title>
+    <title>KChat | Network</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -13,215 +13,263 @@
         .fade-in { animation: fadeIn 0.2s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         body::-webkit-scrollbar { display: none; }
-        input, select, textarea { font-size: 16px !important; } /* Evita zoom no iPhone */
+        .glass { bg-[#16161e]/80 backdrop-blur-md; }
     </style>
 </head>
 <body class="bg-[#0a0a0c] text-white font-sans overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback } = React;
+        const { useState, useEffect } = React;
 
         function App() {
+            // --- ESTADOS PRINCIPAIS ---
             const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('kchat_user')) || null);
             const [view, setView] = useState('feed'); 
-            const [authState, setAuthState] = useState('welcome'); 
+            const [authState, setAuthState] = useState('welcome');
             const [posts, setPosts] = useState(JSON.parse(localStorage.getItem('kchat_posts')) || []);
+            const [allUsers, setAllUsers] = useState(JSON.parse(localStorage.getItem('kchat_users_db')) || []);
+            
+            // Edição de Perfil
+            const [isEditing, setIsEditing] = useState(false);
+            const [editData, setEditData] = useState(user || {});
 
-            // Estados de formulário separados para evitar re-render do componente pai ao digitar
+            // Pesquisa
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedUser, setSelectedUser] = useState(null);
+
+            // Cadastro temporário
             const [regName, setRegName] = useState('');
             const [regPass, setRegPass] = useState('');
-            const [regAge, setRegAge] = useState('');
-            const [regGender, setRegGender] = useState('Outro');
-            const [regAvatar, setRegAvatar] = useState('https://api.dicebear.com/8.x/notionists/svg?seed=Izis');
 
-            // --- LÓGICA DE LOGIN ---
+            // --- LÓGICA DE USUÁRIO ---
             const handleLogin = () => {
-                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
-                const found = db.find(u => u.name.toLowerCase() === regName.toLowerCase() && u.pass === regPass);
+                const found = allUsers.find(u => u.name.toLowerCase() === regName.toLowerCase() && u.pass === regPass);
                 if (found) {
                     setUser(found);
+                    setEditData(found);
                     sessionStorage.setItem('kchat_user', JSON.stringify(found));
-                } else {
-                    alert("Usuário ou senha incorretos!");
-                }
+                } else alert("Acesso negado!");
             };
 
-            // --- LÓGICA DE REGISTRO ---
-            const nextStepRegister = () => {
-                if (!regName || !regPass) return alert("Preencha nome e senha!");
-                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
-                if (db.find(u => u.name.toLowerCase() === regName.toLowerCase())) return alert("Nome já existe!");
-                setAuthState('register_profile');
-            };
-
-            const finalizeRegister = () => {
-                if (!regAge) return alert("Informe sua idade!");
-                const newUser = { name: regName, pass: regPass, age: regAge, gender: regGender, avatar: regAvatar, id: Date.now() };
-                const db = JSON.parse(localStorage.getItem('kchat_users_db')) || [];
-                db.push(newUser);
-                localStorage.setItem('kchat_users_db', JSON.stringify(db));
+            const finalizeRegister = (profileData) => {
+                const newUser = { ...profileData, name: regName, pass: regPass, id: Date.now(), followers: 0, following: 0, bio: 'Explorando o KChat 🚀' };
+                const newDb = [...allUsers, newUser];
+                setAllUsers(newDb);
+                localStorage.setItem('kchat_users_db', JSON.stringify(newDb));
                 setUser(newUser);
+                setEditData(newUser);
                 sessionStorage.setItem('kchat_user', JSON.stringify(newUser));
             };
 
-            const uploadImg = (e, setter) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setter(reader.result);
-                    reader.readAsDataURL(file);
-                }
-            };
-
-            const handleNewPost = (img, text) => {
-                const p = { id: Date.now(), user: user.name, avatar: user.avatar, img, text, likes: 0 };
-                const newPosts = [p, ...posts];
-                setPosts(newPosts);
-                localStorage.setItem('kchat_posts', JSON.stringify(newPosts));
-                setView('feed');
+            const updateProfile = () => {
+                const newDb = allUsers.map(u => u.id === user.id ? editData : u);
+                setAllUsers(newDb);
+                localStorage.setItem('kchat_users_db', JSON.stringify(newDb));
+                setUser(editData);
+                sessionStorage.setItem('kchat_user', JSON.stringify(editData));
+                setIsEditing(false);
             };
 
             // --- TELAS DE AUTH ---
             if (!user) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 fade-in">
-                        <div className="w-full max-w-sm bg-[#16161e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl text-center">
-                            <h1 className="text-4xl font-black mb-10 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent italic tracking-tighter">KChat</h1>
-                            
+                    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050507] fade-in">
+                        <div className="w-full max-w-sm bg-[#111118] p-8 rounded-[2.5rem] border border-white/5 text-center shadow-2xl">
+                            <h1 className="text-4xl font-black mb-10 text-purple-500 italic">KChat</h1>
                             {authState === 'welcome' && (
                                 <div className="space-y-4 fade-in">
-                                    <i className="bi bi-chat-heart-fill text-6xl text-purple-600 mb-10 block"></i>
-                                    <button onClick={() => setAuthState('login')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">Sou usuário existente</button>
-                                    <button onClick={() => setAuthState('register_creds')} className="w-full py-4 bg-slate-800 rounded-2xl font-bold active:scale-95 transition">Sou novo usuário</button>
+                                    <button onClick={() => setAuthState('login')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold">Entrar</button>
+                                    <button onClick={() => setAuthState('reg')} className="w-full py-4 bg-slate-800 rounded-2xl font-bold">Criar Conta</button>
                                 </div>
                             )}
-
-                            {(authState === 'login' || authState === 'register_creds') && (
+                            {(authState === 'login' || authState === 'reg') && (
                                 <div className="space-y-4 fade-in">
-                                    <input value={regName} onChange={e => setRegName(e.target.value)} placeholder="Nome de usuário" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" />
-                                    <input type="password" value={regPass} onChange={e => setRegPass(e.target.value)} placeholder="Senha" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5 focus:border-purple-500" />
-                                    <button onClick={authState === 'login' ? handleLogin : nextStepRegister} className="w-full py-4 bg-purple-600 rounded-2xl font-bold active:scale-95 transition">
-                                        {authState === 'login' ? 'Entrar' : 'Continuar'}
-                                    </button>
-                                    <button onClick={() => setAuthState('welcome')} className="text-slate-500 text-xs">Voltar</button>
+                                    <input value={regName} onChange={e => setRegName(e.target.value)} placeholder="Usuário" className="w-full bg-slate-900 p-4 rounded-2xl outline-none" />
+                                    <input type="password" value={regPass} onChange={e => setRegPass(e.target.value)} placeholder="Senha" className="w-full bg-slate-900 p-4 rounded-2xl outline-none" />
+                                    <button onClick={authState === 'login' ? handleLogin : () => setAuthState('prof')} className="w-full py-4 bg-purple-600 rounded-2xl font-bold">Continuar</button>
                                 </div>
                             )}
-
-                            {authState === 'register_profile' && (
-                                <div className="space-y-5 fade-in">
-                                    <div className="relative w-24 h-24 mx-auto mb-4">
-                                        <img src={regAvatar} className="w-full h-full rounded-full border-4 border-purple-600 object-cover" />
-                                        <label className="absolute bottom-0 right-0 bg-purple-600 p-2 rounded-full cursor-pointer"><i className="bi bi-camera-fill"></i>
-                                            <input type="file" className="hidden" onChange={e => uploadImg(e, setRegAvatar)} />
-                                        </label>
-                                    </div>
-                                    <input type="number" value={regAge} onChange={e => setRegAge(e.target.value)} placeholder="Sua idade" className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5" />
-                                    <select value={regGender} onChange={e => setRegGender(e.target.value)} className="w-full bg-slate-800/50 p-4 rounded-2xl outline-none border border-white/5">
-                                        <option>Feminino</option><option>Masculino</option><option>Outro</option>
-                                    </select>
-                                    <button onClick={finalizeRegister} className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold active:scale-95 transition">Criar Conta</button>
-                                </div>
-                            )}
+                            {authState === 'prof' && <ProfileSetup onFinish={finalizeRegister} />}
                         </div>
                     </div>
                 );
             }
 
-            // --- APP LOGADO ---
+            // --- COMPONENTE DE PERFIL (Para reuso) ---
+            const ProfileDisplay = ({ targetUser, isMe }) => (
+                <div className="p-6 fade-in pb-24">
+                    <div className="flex flex-col items-center">
+                        <img src={targetUser.avatar} className="w-28 h-28 rounded-full border-4 border-purple-600 p-1 mb-4 object-cover" />
+                        <h2 className="text-2xl font-black">{targetUser.name}</h2>
+                        <p className="text-slate-400 text-sm mt-1 mb-4 italic">"{targetUser.bio || 'Sem bio...'}"</p>
+                        
+                        <div className="flex gap-6 w-full max-w-xs justify-center mb-6">
+                            <div className="text-center"><p className="font-bold text-lg">{targetUser.followers || 0}</p><p className="text-[10px] text-slate-500 uppercase">Seguidores</p></div>
+                            <div className="text-center"><p className="font-bold text-lg">{targetUser.following || 0}</p><p className="text-[10px] text-slate-500 uppercase">Seguindo</p></div>
+                        </div>
+
+                        {isMe ? (
+                            <button onClick={() => setIsEditing(true)} className="w-full py-3 bg-slate-800 rounded-xl font-bold text-xs uppercase">Editar Perfil</button>
+                        ) : (
+                            <button onClick={() => alert('Seguindo!')} className="w-full py-3 bg-purple-600 rounded-xl font-bold text-xs uppercase italic tracking-widest">Seguir</button>
+                        )}
+                    </div>
+                </div>
+            );
+
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto bg-[#0a0a0c] relative shadow-2xl">
                     <header className="h-16 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/90 backdrop-blur-lg z-40 border-b border-white/5">
-                        <h2 className="text-2xl font-black italic text-purple-400 tracking-tighter">KChat</h2>
-                        <div className="flex gap-5 text-xl"><i className="bi bi-bell"></i><i className="bi bi-chat-left-text"></i></div>
+                        <h2 className="text-2xl font-black italic text-purple-500 tracking-tighter">KChat</h2>
+                        <div className="flex gap-5 text-xl"><i className="bi bi-chat-left-dots"></i></div>
                     </header>
 
-                    <main className="flex-1 pb-24 overflow-y-auto">
+                    <main className="flex-1 overflow-y-auto">
                         {view === 'feed' && (
                             <div className="p-4 space-y-8 fade-in">
-                                {posts.length === 0 ? (
-                                    <div className="mt-20 text-center p-10 bg-[#111118] rounded-[2rem] border border-white/5 text-slate-600">
-                                        <i className="bi bi-grid-3x3-gap text-5xl mb-4 block"></i>
-                                        <p className="font-bold">Sua For You está vazia</p>
-                                        <p className="text-xs">Crie seu primeiro post no botão [+].</p>
-                                    </div>
-                                ) : posts.map(p => (
-                                    <div key={p.id} className="bg-[#111118] rounded-[2rem] border border-white/5 overflow-hidden shadow-xl">
+                                {posts.length === 0 ? <p className="text-center mt-20 text-slate-700">Nada postado ainda.</p> : 
+                                posts.map(p => (
+                                    <div key={p.id} className="bg-[#111118] rounded-[2rem] border border-white/5 overflow-hidden">
                                         <div className="p-4 flex items-center gap-3">
-                                            <img src={p.avatar} className="w-9 h-9 rounded-full border border-purple-500/50" />
-                                            <span className="font-bold text-sm">{p.user}</span>
+                                            <img src={p.avatar} className="w-8 h-8 rounded-full" />
+                                            <span className="font-bold text-xs uppercase tracking-tight">{p.user}</span>
                                         </div>
                                         <img src={p.img} className="w-full aspect-square object-cover" />
-                                        <div className="p-4 space-y-3">
-                                            <div className="flex gap-4 text-2xl"><i className="bi bi-heart"></i><i className="bi bi-chat"></i></div>
-                                            <p className="text-sm"><span className="font-bold mr-2">{p.user}</span>{p.text}</p>
+                                        <div className="p-4 space-y-2">
+                                            <div className="flex gap-4 text-xl"><i className="bi bi-heart-fill text-purple-500"></i><i className="bi bi-chat"></i></div>
+                                            <p className="text-sm"><span className="font-bold mr-2 text-purple-400">{p.user}</span>{p.text}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         )}
 
+                        {view === 'search' && (
+                            <div className="p-6 fade-in">
+                                <div className="relative mb-6">
+                                    <i className="bi bi-search absolute left-4 top-3.5 text-slate-500"></i>
+                                    <input placeholder="Buscar usuários..." className="w-full bg-[#111118] p-4 pl-12 rounded-2xl outline-none border border-white/5" 
+                                    onChange={e => setSearchTerm(e.target.value)} />
+                                </div>
+                                <div className="space-y-4">
+                                    {allUsers.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()) && u.id !== user.id).map(u => (
+                                        <div key={u.id} onClick={() => {setSelectedUser(u); setView('other_profile')}} className="flex items-center gap-4 bg-[#111118] p-4 rounded-2xl active:scale-95 transition">
+                                            <img src={u.avatar} className="w-12 h-12 rounded-full border border-purple-500/30" />
+                                            <div>
+                                                <p className="font-bold text-sm">@{u.name}</p>
+                                                <p className="text-[10px] text-slate-500">{u.bio.substring(0,30)}...</p>
+                                            </div>
+                                            <i className="bi bi-chevron-right ml-auto text-slate-700"></i>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'other_profile' && selectedUser && (
+                            <div>
+                                <button onClick={() => setView('search')} className="m-4 text-slate-500"><i className="bi bi-arrow-left"></i> Voltar</button>
+                                <ProfileDisplay targetUser={selectedUser} isMe={false} />
+                            </div>
+                        )}
+
                         {view === 'post' && (
                             <div className="p-6 fade-in">
-                                <h3 className="text-xl font-bold mb-6">Novo Post</h3>
-                                <PostCreator onPost={handleNewPost} />
+                                <h3 className="text-xl font-bold mb-6 italic">Novo Momento</h3>
+                                <PostCreator onPost={(img, text) => {
+                                    const p = { id: Date.now(), user: user.name, avatar: user.avatar, img, text };
+                                    const newP = [p, ...posts]; setPosts(newP);
+                                    localStorage.setItem('kchat_posts', JSON.stringify(newP));
+                                    setView('feed');
+                                }} />
                             </div>
                         )}
 
-                        {view === 'meet' && (
-                            <div className="h-[70vh] flex flex-col items-center justify-center p-8 text-center fade-in">
-                                <div className="w-24 h-24 bg-purple-600/10 rounded-full flex items-center justify-center mb-6 border border-purple-500/30">
-                                    <i className="bi bi-stars text-4xl text-purple-500"></i>
-                                </div>
-                                <h2 className="text-3xl font-black italic tracking-tighter">Planet Meet</h2>
-                                <p className="text-slate-500 mb-10 text-sm">Entre em órbita com novas pessoas.</p>
-                                <button className="bg-white text-black px-12 py-4 rounded-2xl font-black text-xs uppercase shadow-lg active:scale-95 transition">Buscar sinal</button>
-                            </div>
-                        )}
-
-                        {view === 'profile' && (
-                            <div className="p-10 flex flex-col items-center fade-in text-center">
-                                <img src={user.avatar} className="w-32 h-32 rounded-full border-4 border-purple-600 p-1 mb-6 shadow-2xl" />
-                                <h2 className="text-3xl font-black">{user.name}</h2>
-                                <p className="text-purple-400 font-bold uppercase text-[10px] tracking-widest mt-2">{user.gender} • {user.age} anos</p>
-                                <button onClick={() => {sessionStorage.clear(); window.location.reload();}} className="mt-20 text-red-500 text-[10px] font-black tracking-widest uppercase border border-red-500/10 px-12 py-4 rounded-full">Sair do KChat</button>
-                            </div>
-                        )}
+                        {view === 'profile' && <ProfileDisplay targetUser={user} isMe={true} />}
                     </main>
 
+                    {/* MODAL EDIÇÃO */}
+                    {isEditing && (
+                        <div className="fixed inset-0 bg-black/95 z-[100] p-8 fade-in">
+                            <h2 className="text-xl font-bold mb-8">Editar Perfil</h2>
+                            <div className="space-y-6">
+                                <div className="flex flex-col items-center">
+                                    <img src={editData.avatar} className="w-24 h-24 rounded-full mb-4 object-cover border-2 border-purple-600" />
+                                    <input type="file" className="hidden" id="edit-img" onChange={e => {
+                                        const file = e.target.files[0];
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => setEditData({...editData, avatar: reader.result});
+                                        reader.readAsDataURL(file);
+                                    }} />
+                                    <label htmlFor="edit-img" className="text-xs text-purple-400 font-bold uppercase tracking-widest">Trocar Foto</label>
+                                </div>
+                                <input value={editData.name} onChange={e => setEditData({...editData, name: e.target.value})} placeholder="Nome" className="w-full bg-[#111118] p-4 rounded-xl outline-none border border-white/10" />
+                                <textarea value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} placeholder="Escreva sua bio..." className="w-full bg-[#111118] p-4 rounded-xl outline-none border border-white/10 h-24" />
+                                <div className="flex gap-4">
+                                    <button onClick={() => setIsEditing(false)} className="flex-1 py-4 bg-slate-900 rounded-xl font-bold text-xs uppercase">Cancelar</button>
+                                    <button onClick={updateProfile} className="flex-1 py-4 bg-purple-600 rounded-xl font-bold text-xs uppercase">Salvar</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* NAVBAR */}
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around z-50 max-w-lg mx-auto rounded-t-[2.5rem] shadow-inner">
+                    <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/90 backdrop-blur-xl border-t border-white/5 flex items-center justify-around z-50 max-w-lg mx-auto rounded-t-[2.5rem]">
                         <button onClick={() => setView('feed')} className={`p-4 ${view==='feed'?'text-purple-500':'text-slate-600'}`}><i className="bi bi-grid-1x2-fill text-xl"></i></button>
                         <button onClick={() => setView('post')} className={`p-4 ${view==='post'?'text-white':'text-slate-600'}`}><i className="bi bi-plus-square text-xl"></i></button>
-                        <button onClick={() => setView('meet')} className={`relative -top-7 w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl ${view==='meet'?'scale-110 shadow-purple-500/50':'grayscale-[40%]'}`}>
+                        <button onClick={() => setView('meet')} className="relative -top-7 w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl">
                             <i className="bi bi-pin-map-fill text-3xl text-white"></i>
                         </button>
-                        <button className="p-4 text-slate-600"><i className="bi bi-search text-xl"></i></button>
-                        <button onClick={() => setView('profile')} className={`p-4 ${view==='profile'?'text-purple-500':'text-slate-600'}`}><i className="bi bi-person-fill text-xl"></i></button>
+                        <button onClick={() => setView('search')} className={`p-4 ${view==='search'?'text-white':'text-slate-600'}`}><i className="bi bi-search text-xl"></i></button>
+                        <button onClick={() => setView('profile')} className={`p-4 ${view==='profile' || view==='other_profile' ?'text-purple-500':'text-slate-600'}`}><i className="bi bi-person-fill text-xl"></i></button>
                     </nav>
                 </div>
             );
         }
 
-        // Componente separado para o Post para não travar a digitação
+        // --- COMPONENTES AUXILIARES ---
+        function ProfileSetup({ onFinish }) {
+            const [age, setAge] = useState('');
+            const [gender, setGender] = useState('Outro');
+            const [avatar, setAvatar] = useState('https://api.dicebear.com/8.x/notionists/svg?seed=new');
+            return (
+                <div className="space-y-6 fade-in">
+                    <div className="relative w-24 h-24 mx-auto mb-4">
+                        <img src={avatar} className="w-full h-full rounded-full border-4 border-purple-600 object-cover" />
+                        <label className="absolute bottom-0 right-0 bg-purple-600 p-2 rounded-full cursor-pointer">
+                            <i className="bi bi-camera-fill"></i>
+                            <input type="file" className="hidden" onChange={e => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => setAvatar(reader.result);
+                                reader.readAsDataURL(e.target.files[0]);
+                            }} />
+                        </label>
+                    </div>
+                    <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Sua idade" className="w-full bg-slate-900 p-4 rounded-xl outline-none" />
+                    <select value={gender} onChange={e => setGender(e.target.value)} className="w-full bg-slate-900 p-4 rounded-xl outline-none">
+                        <option>Feminino</option><option>Masculino</option><option>Outro</option>
+                    </select>
+                    <button onClick={() => onFinish({ age, gender, avatar })} className="w-full py-4 bg-purple-600 rounded-xl font-bold uppercase text-xs tracking-widest">Finalizar Cadastro</button>
+                </div>
+            );
+        }
+
         function PostCreator({ onPost }) {
             const [img, setImg] = useState(null);
             const [txt, setTxt] = useState('');
             return (
                 <div className="space-y-6">
-                    <label className="block aspect-square bg-[#111118] rounded-[2rem] border-2 border-dashed border-slate-800 flex items-center justify-center overflow-hidden cursor-pointer">
+                    <label className="block aspect-square bg-[#111118] rounded-[2rem] border-2 border-dashed border-slate-800 flex items-center justify-center overflow-hidden">
                         {img ? <img src={img} className="w-full h-full object-cover" /> : <i className="bi bi-image text-4xl text-slate-800"></i>}
                         <input type="file" className="hidden" onChange={e => {
-                            const file = e.target.files[0];
-                            if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => setImg(reader.result);
-                                reader.readAsDataURL(file);
-                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => setImg(reader.result);
+                            reader.readAsDataURL(e.target.files[0]);
                         }} />
                     </label>
-                    <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="No que está pensando?" className="w-full bg-transparent border-b border-white/5 p-2 outline-none h-24 text-sm" />
-                    <button onClick={() => onPost(img, txt)} className="w-full py-4 bg-purple-600 rounded-2xl font-black uppercase text-xs">Publicar Agora</button>
+                    <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Legenda do seu post..." className="w-full bg-transparent border-b border-white/10 p-2 outline-none h-24 text-sm" />
+                    <button onClick={() => { if(img) onPost(img, txt); else alert('Escolha uma foto!') }} className="w-full py-4 bg-purple-600 rounded-xl font-black uppercase text-[10px] tracking-[0.2em]">Compartilhar</button>
                 </div>
             );
         }
