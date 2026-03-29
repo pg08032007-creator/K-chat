@@ -3,27 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>k.chat - Cloud</title>
+    <title>k.chat - Cloud Premium</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Mantendo o seu estilo premium que criamos */
-        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; }
+        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
+        
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; justify-content: space-between; }
-        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; }
-        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
-        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4); }
+        
+        .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
+        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
+        
+        /* Gêneros Premium */
+        .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
+        .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
+        .gender-option input { position: absolute; opacity: 0; cursor: pointer; }
+        .gender-option i { font-size: 24px; color: #444; }
+        .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
+        .gender-option input:checked ~ span { color: var(--accent-pink); }
+        .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
+
+        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; box-shadow: 0 4px 15px rgba(168,85,247,0.3); }
+        
+        /* Avatar */
+        .avatar-upload { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-purple); position: relative; overflow: hidden; margin: 0 auto; }
+        #img-preview { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Feed */
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
-        .avatar-upload { width: 110px; height: 110px; border-radius: 50%; border: 2px solid var(--accent-purple); object-fit: cover; }
+        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; }
     </style>
 </head>
 <body>
@@ -31,26 +47,44 @@
     <div id="screen-login" class="screen active">
         <div class="auth-container">
             <div class="logo-k">K.</div>
-            <div class="custom-input-group"><input type="text" id="login-user" placeholder="Usuário"></div>
-            <div class="custom-input-group"><input type="password" id="login-pass" placeholder="Senha"></div>
+            <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Usuário"></div>
+            <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="handleLogin()">Entrar</button>
-            <p onclick="showScreen('register')">Cadastre-se</p>
+            <p onclick="showScreen('register')" style="color:#666">Não tem conta? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
         </div>
     </div>
 
     <div id="screen-register" class="screen">
         <div class="auth-container">
             <div class="logo-k">Cadastro</div>
-            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Usuário"></div>
+            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
-            <button class="btn-premium" onclick="handleRegister()">Continuar</button>
+            <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
+            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
+        </div>
+    </div>
+
+    <div id="screen-onboarding" class="screen">
+        <div class="auth-container">
+            <h2 style="margin-bottom:10px">Seu Perfil</h2>
+            <div class="avatar-upload" onclick="document.getElementById('file-input').click()">
+                <img id="img-preview" src="https://via.placeholder.com/110?text=+" alt="Avatar">
+                <input type="file" id="file-input" accept="image/*" onchange="previewImage(this)" style="display:none">
+            </div>
+            <div class="custom-input-group"><input type="date" id="onb-date"></div>
+            <div class="gender-selector">
+                <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="nb"><i class="fas fa-genderless"></i><span>Neutro</span></label>
+            </div>
+            <button class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
     </div>
 
     <div id="screen-feed" class="screen">
-        <header style="padding:20px; display:flex; justify-content:space-between;">
+        <header style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <i class="fas fa-sync-alt" onclick="listenPosts()"></i>
+            <i class="fas fa-sync-alt" onclick="listenPosts()" style="color:var(--accent-purple)"></i>
         </header>
         <div id="feed-content"></div>
     </div>
@@ -62,60 +96,76 @@
     </nav>
 
     <script>
-        // --- COLE SUAS CONFIGURAÇÕES DO PASSO 2 AQUI ---
+        // CONFIGURAÇÃO CORRIGIDA (Sem a chave extra)
         const firebaseConfig = {
-  apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
-  authDomain: "kchat-web-8415c.firebaseapp.com",
-  projectId: "kchat-web-8415c",
-  storageBucket: "kchat-web-8415c.firebasestorage.app",
-  messagingSenderId: "878265144053",
-  appId: "1:878265144053:web:407389cd133d955f76abbc",
-  measurementId: "G-5SZQE6TP9L"
-};
+            apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
+            authDomain: "kchat-web-8415c.firebaseapp.com",
+            projectId: "kchat-web-8415c",
+            storageBucket: "kchat-web-8415c.firebasestorage.app",
+            messagingSenderId: "878265144053",
+            appId: "1:878265144053:web:407389cd133d955f76abbc"
         };
 
-        // Inicializa Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let currentUser = null;
+        let base64Avatar = "";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
         }
 
-        // LOGIN SINCRONIZADO
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    base64Avatar = e.target.result;
+                    document.getElementById('img-preview').src = base64Avatar;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         async function handleLogin() {
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
-            
-            const userDoc = await db.collection("usuarios").doc(user).get();
-            if (userDoc.exists && userDoc.data().pass === pass) {
-                currentUser = userDoc.data();
-                enterApp();
-            } else { alert("Usuário ou senha incorretos!"); }
+            if(!user || !pass) return alert("Preencha os campos!");
+
+            try {
+                const userDoc = await db.collection("usuarios").doc(user).get();
+                if (userDoc.exists && userDoc.data().pass === pass) {
+                    currentUser = userDoc.data();
+                    enterApp();
+                } else { alert("Usuário ou senha incorretos!"); }
+            } catch(e) { console.error(e); alert("Erro ao conectar ao banco."); }
         }
 
-        // REGISTRO SINCRONIZADO
         async function handleRegister() {
             const user = document.getElementById('reg-user').value;
             const pass = document.getElementById('reg-pass').value;
+            const date = document.getElementById('onb-date').value;
+            const gen = document.querySelector('input[name="gen"]:checked').value;
             
-            const check = await db.collection("usuarios").doc(user).get();
-            if(check.exists) return alert("Usuário já existe!");
+            if(!user || !pass || !date) return alert("Preencha todos os dados!");
 
-            await db.collection("usuarios").doc(user).set({ user, pass });
-            currentUser = { user, pass };
-            enterApp();
+            try {
+                const check = await db.collection("usuarios").doc(user).get();
+                if(check.exists) return alert("Usuário já existe!");
+
+                const userData = { user, pass, date, gen, pic: base64Avatar || "" };
+                await db.collection("usuarios").doc(user).set(userData);
+                currentUser = userData;
+                enterApp();
+            } catch(e) { console.error(e); alert("Erro ao registrar."); }
         }
 
         function enterApp() {
             document.getElementById('main-nav').style.display = 'flex';
             showScreen('feed');
-            listenPosts(); // Começa a ouvir posts em tempo real
+            listenPosts();
         }
 
-        // POSTS EM TEMPO REAL (Aparece no app e na web ao mesmo tempo)
         function listenPosts() {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
@@ -124,7 +174,10 @@
                     const post = doc.data();
                     container.innerHTML += `
                         <div class="post-card">
-                            <strong>@${post.author}</strong>
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
+                                <img src="${post.authorPic || 'https://via.placeholder.com/40'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover;">
+                                <strong>@${post.author}</strong>
+                            </div>
                             <p>${post.content}</p>
                         </div>
                     `;
@@ -137,6 +190,7 @@
             if(!text) return;
             await db.collection("posts").add({
                 author: currentUser.user,
+                authorPic: currentUser.pic || "",
                 content: text,
                 time: Date.now()
             });
