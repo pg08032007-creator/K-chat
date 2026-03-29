@@ -2,259 +2,245 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KCHΛT | Global Sync</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com-react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KChat - Global Connect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        body { background-color: #020205; color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; overflow: hidden; }
-        .glass-nav { background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.05); }
-        .glass-header { background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .post-card { background: #0a0a0f; border: 1px solid rgba(255,255,255,0.03); border-radius: 2.2rem; overflow: hidden; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .btn-primary { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); box-shadow: 0 8px 20px -8px rgba(168, 85, 247, 0.5); }
-        .sync-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        :root {
+            --bg-dark: #0f0c29;
+            --purple-main: #9d50bb;
+            --accent-green: #2ecc71;
+            --text-white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+            color: var/(--text-white);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Telas de Login/Registro */
+        #auth-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+        }
+
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { border-color: var(--purple-main); font-weight: bold; }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .gender-selection { display: flex; justify-content: space-around; margin: 10px 0; }
+        .gender-option { text-align: center; }
+        .gender-option input { width: auto; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--purple-main);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Layout Principal do App */
+        #main-app { display: none; height: 100vh; flex-direction: column; }
+
+        header {
+            padding: 15px;
+            text-align: center;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-area { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+
+        /* Barra de Navegação */
+        nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(15, 12, 41, 0.95);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid var(--glass);
+        }
+
+        nav i { font-size: 24px; cursor: pointer; color: #888; }
+        nav i.active { color: var(--purple-main); }
+
+        /* Estilo de Posts e Usuários */
+        .post, .user-card {
+            background: var(--glass);
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .update-btn {
+            background: var(--accent-green);
+            margin-bottom: 20px;
+        }
+
+        .profile-header { text-align: center; position: relative; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--purple-main); }
+        .edit-pencil { position: absolute; right: 35%; top: 70px; background: white; color: black; border-radius: 50%; padding: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+    <div id="auth-screen">
+        <h1 style="color: var(--purple-main)">KChat</h1>
+        <div class="auth-container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchAuth('login')">Login</div>
+                <div class="tab" onclick="switchAuth('register')">Registro</div>
+            </div>
 
-        const useLocalStorage = (key, initialValue) => {
-            const [value, setValue] = useState(() => {
-                const saved = localStorage.getItem(key);
-                return saved ? JSON.parse(saved) : initialValue;
-            });
-            useEffect(() => localStorage.setItem(key, JSON.stringify(value)), [key, value]);
-            return [value, setValue];
-        };
+            <div id="login-form">
+                <input type="text" placeholder="Nome de usuário" id="l-user">
+                <input type="password" placeholder="Senha" id="l-pass">
+                <button onclick="login()">Entrar</button>
+            </div>
 
-        function App() {
-            const [users, setUsers] = useLocalStorage('k_users', []);
-            const [posts, setPosts] = useLocalStorage('k_posts', []);
-            const [messages, setMessages] = useLocalStorage('k_messages', []);
-            const [currentUser, setCurrentUser] = useLocalStorage('k_session', null);
-            
-            const [view, setView] = useState('feed');
-            const [targetUser, setTargetUser] = useState(null);
-            const [searchTerm, setSearchTerm] = useState('');
-
-            const me = useMemo(() => users.find(u => u.id === currentUser?.id), [users, currentUser]);
-
-            // FUNÇÃO DE SINCRONIZAÇÃO GLOBAL
-            const handleGlobalSync = () => {
-                const action = confirm("Deseja EXPORTAR (Copiar seus dados) ou IMPORTAR (Atualizar posts de outros)? \n\n OK = Exportar | Cancelar = Importar");
+            <div id="register-form" style="display: none;">
+                <input type="text" placeholder="Nome" id="r-user">
+                <input type="password" placeholder="Senha" id="r-pass">
+                <input type="number" placeholder="Idade">
                 
-                if(action) {
-                    const dataPayload = JSON.stringify({ users, posts, messages });
-                    navigator.clipboard.writeText(dataPayload);
-                    alert("Código de Sincronização copiado! Cole este código no outro dispositivo.");
-                } else {
-                    const code = prompt("Cole o Código de Sincronização aqui para atualizar o Feed:");
-                    if(code) {
-                        try {
-                            const imported = JSON.parse(code);
-                            // Merge de usuários (mantém os únicos)
-                            const mergedUsers = [...users];
-                            imported.users.forEach(iu => {
-                                if(!mergedUsers.find(u => u.id === iu.id)) mergedUsers.push(iu);
-                            });
-                            // Merge de posts (mantém os únicos por ID)
-                            const mergedPosts = [...posts];
-                            imported.posts.forEach(ip => {
-                                if(!mergedPosts.find(p => p.id === ip.id)) mergedPosts.push(ip);
-                            });
-                            
-                            setUsers(mergedUsers);
-                            setPosts(mergedPosts.sort((a,b) => b.id - a.id));
-                            alert("KCHΛT Atualizado! " + imported.posts.length + " publicações sincronizadas.");
-                        } catch(e) { alert("Código inválido!"); }
-                    }
-                }
-            };
-
-            if (!currentUser) return <AuthScreen onLogin={(n,p) => {
-                const u = users.find(x => x.name.toLowerCase() === n.toLowerCase() && x.pass === p);
-                if(u) setCurrentUser(u); else alert("Erro de login.");
-            }} onRegister={(d) => {
-                const newUser = { ...d, id: crypto.randomUUID(), bio: 'Explorando...' };
-                setUsers([...users, newUser]); setCurrentUser(newUser);
-            }} />;
-
-            return (
-                <div className="flex flex-col h-screen max-w-md mx-auto relative bg-[#020205]">
-                    <header className="h-16 flex items-center justify-between px-6 shrink-0 glass-header z-40">
-                        <span className="text-2xl font-extrabold italic bg-gradient-to-r from-purple-500 to-fuchsia-400 bg-clip-text text-transparent tracking-tighter">KCHΛT</span>
-                        <div className="flex gap-5 items-center">
-                            <button onClick={handleGlobalSync} className="flex items-center gap-2 bg-purple-600/20 px-3 py-1 rounded-full border border-purple-500/30 active:scale-90 transition">
-                                <i className="bi bi-arrow-repeat text-purple-400"></i>
-                                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-tighter">Sync</span>
-                            </button>
-                            <i className="bi bi-chat-square-text text-xl text-slate-400" onClick={() => setView('chats')}></i>
-                        </div>
-                    </header>
-
-                    <main className="flex-1 overflow-y-auto hide-scrollbar pb-24">
-                        {view === 'feed' && <Feed posts={posts} onUserClick={(id) => { setTargetUser(users.find(u => u.id === id)); setView('other_profile'); }} />}
-                        
-                        {view === 'search' && (
-                            <div className="p-6">
-                                <input className="w-full p-4 rounded-2xl mb-6 bg-[#111118] border border-white/5" placeholder="Buscar usuários..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                                <div className="space-y-4">
-                                    {users.filter(u => u.id !== me.id && u.name.toLowerCase().includes(searchTerm.toLowerCase())).map(u => (
-                                        <div key={u.id} onClick={() => { setTargetUser(u); setView('other_profile'); }} className="flex items-center gap-4 p-4 bg-[#0a0a0f] rounded-3xl border border-white/5">
-                                            <img src={u.avatar} className="w-12 h-12 rounded-full object-cover" />
-                                            <div className="flex-1 font-bold">@{u.name}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'chat_room' && <ChatRoom partner={targetUser} me={me} messages={messages} setMessages={setMessages} onBack={() => setView('chats')} />}
-                        {view === 'chats' && <ChatList users={users} me={me} messages={messages} onOpenChat={(u) => { setTargetUser(u); setView('chat_room'); }} />}
-
-                        {(view === 'profile' || view === 'other_profile') && (
-                            <ProfileView 
-                                profile={view === 'profile' ? me : targetUser} 
-                                isMe={view === 'profile'} 
-                                posts={posts}
-                                onUpdate={(d) => {
-                                    setUsers(users.map(u => u.id === me.id ? {...u, ...d} : u));
-                                    setPosts(posts.map(p => p.userId === me.id ? {...p, user: d.name, avatar: d.avatar} : p));
-                                }}
-                                onLogout={() => setCurrentUser(null)}
-                                onMessage={(u) => { setTargetUser(u); setView('chat_room'); }}
-                            />
-                        )}
-
-                        {view === 'create' && <CreatePost me={me} onDone={(p) => { setPosts([p, ...posts]); setView('feed'); }} />}
-                    </main>
-
-                    <nav className="fixed bottom-0 left-0 right-0 h-20 glass-nav flex items-center justify-around z-40 max-w-md mx-auto rounded-t-[2.5rem] px-6">
-                        <i className={`bi bi-house-door-fill text-2xl ${view === 'feed' ? 'text-purple-500' : 'text-slate-600'}`} onClick={() => setView('feed')}></i>
-                        <i className={`bi bi-search text-2xl ${view === 'search' ? 'text-purple-500' : 'text-slate-600'}`} onClick={() => setView('search')}></i>
-                        <div className="w-14 h-14 btn-primary rounded-2xl flex items-center justify-center -translate-y-4 border-4 border-[#020205]" onClick={() => setView('create')}>
-                            <i className="bi bi-plus-lg text-white text-2xl"></i>
-                        </div>
-                        <i className={`bi bi-chat-square-text-fill text-2xl ${view === 'chats' ? 'text-purple-500' : 'text-slate-600'}`} onClick={() => setView('chats')}></i>
-                        <i className={`bi bi-person-fill text-2xl ${view === 'profile' ? 'text-purple-500' : 'text-slate-600'}`} onClick={() => setView('profile')}></i>
-                    </nav>
+                <div class="gender-selection">
+                    <div class="gender-option"><i class="fas fa-mars"></i><br><input type="radio" name="gen" checked></div>
+                    <div class="gender-option"><i class="fas fa-venus"></i><br><input type="radio" name="gen"></div>
+                    <div class="gender-option"><i class="fas fa-genderless"></i><br><input type="radio" name="gen"></div>
                 </div>
-            );
-        }
+                <button onclick="login()">Criar Conta</button>
+            </div>
+        </div>
+    </div>
 
-        // Sub-componentes (Feed, Profile, Chat, etc - Mantendo lógica anterior com melhorias de UI)
-        function Feed({ posts, onUserClick }) {
-            return (
-                <div className="p-4 space-y-6 animate-in">
-                    {posts.map(p => (
-                        <article key={p.id} className="post-card">
-                            <div className="p-4 flex items-center gap-3 cursor-pointer" onClick={() => onUserClick(p.userId)}>
-                                <img src={p.avatar} className="w-9 h-9 rounded-full object-cover border border-purple-500/30" />
-                                <span className="font-bold text-xs uppercase tracking-widest">@{p.user}</span>
-                            </div>
-                            <img src={p.img} className="w-full aspect-square object-cover" />
-                            <div className="p-5">
-                                <p className="text-sm"><span className="font-bold mr-2">@{p.user}</span>{p.text}</p>
-                            </div>
-                        </article>
-                    ))}
+    <div id="main-app">
+        <header>
+            <span style="font-weight: bold; color: var(--purple-main);">KChat</span>
+            <span>Chat</span>
+            <i class="fas fa-bell"></i>
+        </header>
+
+        <div id="home" class="content-area">
+            <button class="update-btn" onclick="updatePosts()"><i class="fas fa-sync"></i> Update Feed</button>
+            <div id="feed-content">
                 </div>
-            );
-        }
+        </div>
 
-        function ProfileView({ profile, isMe, posts, onUpdate, onLogout, onMessage }) {
-            const [isEdit, setIsEdit] = useState(false);
-            const [form, setForm] = useState({ name: profile?.name, bio: profile?.bio, avatar: profile?.avatar });
-            const myPosts = posts.filter(p => p.userId === profile?.id);
-
-            return (
-                <div className="p-0">
-                    <div className="p-8 flex flex-col items-center bg-gradient-to-b from-purple-900/10 to-transparent">
-                        <img src={isEdit ? form.avatar : profile?.avatar} className="w-28 h-28 rounded-full border-4 border-purple-500 object-cover mb-4" />
-                        {isEdit ? (
-                            <div className="w-full space-y-3">
-                                <input className="w-full p-3 rounded-xl bg-[#111118]" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
-                                <textarea className="w-full p-3 rounded-xl bg-[#111118]" value={form.bio} onChange={e=>setForm({...form, bio: e.target.value})} />
-                                <button className="w-full py-3 btn-primary rounded-xl font-bold" onClick={() => { onUpdate(form); setIsEdit(false); }}>SALVAR</button>
-                            </div>
-                        ) : (
-                            <>
-                                <h2 className="text-xl font-black italic uppercase">@{profile?.name}</h2>
-                                <p className="text-slate-400 text-sm mt-2 px-10 text-center">{profile?.bio}</p>
-                                <div className="flex gap-2 mt-6 w-full">
-                                    {isMe ? <button onClick={()=>setIsEdit(true)} className="flex-1 py-3 bg-white/5 rounded-2xl text-xs font-bold uppercase border border-white/10">Editar</button> : 
-                                            <button onClick={()=>onMessage(profile)} className="flex-1 py-3 btn-primary rounded-2xl text-xs font-bold uppercase">Chat</button>}
-                                    {isMe && <button onClick={onLogout} className="px-4 py-3 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20"><i className="bi bi-box-arrow-right"></i></button>}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 p-1">
-                        {myPosts.map(p => <img key={p.id} src={p.img} className="aspect-square object-cover rounded-sm" />)}
-                    </div>
+        <div id="search" class="content-area" style="display: none;">
+            <input type="text" placeholder="Pesquisar usuários..." onkeyup="searchUser()">
+            <div id="user-list">
                 </div>
-            );
-        }
+        </div>
 
-        // ... (Outros componentes simplificados para economia de espaço, mas mantendo a lógica de funcionamento)
-        function ChatList({ users, me, messages, onOpenChat }) {
-            return <div className="p-6 space-y-4">{users.filter(u=>u.id!==me.id).map(u => (
-                <div key={u.id} onClick={()=>onOpenChat(u)} className="flex items-center gap-4 p-4 bg-[#0a0a0f] rounded-3xl border border-white/5">
-                    <img src={u.avatar} className="w-12 h-12 rounded-full object-cover" /><div className="flex-1 font-bold">@{u.name}</div>
+        <div id="profile" class="content-area" style="display: none;">
+            <div class="profile-header">
+                <img src="https://via.placeholder.com/100" class="profile-img" id="p-img">
+                <i class="fas fa-pencil edit-pencil" onclick="editProfile()"></i>
+                <h2 id="p-name">Nome do Usuário</h2>
+                <p id="p-bio">Sua bio aparece aqui...</p>
+                <div style="display: flex; justify-content: center; gap: 20px;">
+                    <span><b>128</b> Seguidores</span>
+                    <span><b>256</b> Seguindo</span>
                 </div>
-            ))}</div>;
+            </div>
+        </div>
+
+        <nav>
+            <i class="fas fa-home active" onclick="showTab('home', this)"></i>
+            <i class="fas fa-search" onclick="showTab('search', this)"></i>
+            <i class="fas fa-user" onclick="showTab('profile', this)"></i>
+        </nav>
+    </div>
+
+    <script>
+        // Lógica de Navegação
+        function switchAuth(type) {
+            document.getElementById('login-form').style.display = type === 'login' ? 'block' : 'none';
+            document.getElementById('register-form').style.display = type === 'register' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active'));
         }
 
-        function ChatRoom({ partner, me, messages, setMessages, onBack }) {
-            const [txt, setTxt] = useState('');
-            const log = messages.filter(m => (m.from===me.id && m.to===partner.id) || (m.from===partner.id && m.to===me.id));
-            const send = () => { if(!txt) return; setMessages([...messages, {id:Date.now(), from:me.id, to:partner.id, text:txt, time:'Agora'}]); setTxt(''); };
-            return <div className="fixed inset-0 z-50 bg-[#020205] flex flex-col">
-                <div className="h-16 flex items-center px-6 border-b border-white/5 gap-4"><i className="bi bi-chevron-left" onClick={onBack}></i><img src={partner.avatar} className="w-8 h-8 rounded-full" /><span className="font-bold">@{partner.name}</span></div>
-                <div className="flex-1 p-6 space-y-4 overflow-y-auto">{log.map(m => <div key={m.id} className={`flex ${m.from===me.id?'justify-end':'justify-start'}`}><div className={`p-4 rounded-2xl max-w-[80%] ${m.from===me.id?'bg-purple-600':'bg-[#111118]'}`}>{m.text}</div></div>)}</div>
-                <div className="p-6 flex gap-2"><input className="flex-1 p-4 rounded-2xl bg-[#111118]" value={txt} onChange={e=>setTxt(e.target.value)} /><button onClick={send} className="w-14 btn-primary rounded-2xl"><i className="bi bi-send"></i></button></div>
-            </div>;
+        function login() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
+            updatePosts();
         }
 
-        function CreatePost({ me, onDone }) {
-            const [img, setImg] = useState(null);
-            const [text, setText] = useState('');
-            const read = (e) => { const r = new FileReader(); r.onload = () => setImg(r.result); r.readAsDataURL(e.target.files[0]); };
-            return <div className="p-8 space-y-6">
-                <label className="block aspect-square bg-[#0a0a0f] border-2 border-dashed border-white/10 rounded-[2rem] flex items-center justify-center overflow-hidden">
-                    {img ? <img src={img} className="w-full h-full object-cover" /> : <i className="bi bi-camera text-4xl text-purple-600"></i>}
-                    <input type="file" className="hidden" onChange={read} />
-                </label>
-                <textarea className="w-full p-4 rounded-2xl bg-[#111118]" placeholder="Legenda..." onChange={e=>setText(e.target.value)} />
-                <button onClick={()=>img && onDone({id:Date.now(), userId:me.id, user:me.name, avatar:me.avatar, img, text})} className="w-full py-5 btn-primary rounded-[2rem] font-black">POSTAR</button>
-            </div>;
+        function showTab(tabId, el) {
+            document.querySelectorAll('.content-area').forEach(c => c.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
+            document.querySelectorAll('nav i').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        function AuthScreen({ onLogin, onRegister }) {
-            const [isReg, setIsReg] = useState(false);
-            const [f, setF] = useState({ name: '', pass: '', avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}` });
-            return <div className="min-h-screen flex items-center justify-center p-6"><div className="w-full max-w-sm text-center">
-                <h1 className="text-5xl font-black italic text-purple-600 mb-12">KCHΛT</h1>
-                <div className="space-y-4">
-                    <input className="w-full p-5 rounded-3xl bg-[#111118]" placeholder="Usuário" onChange={e=>setF({...f, name: e.target.value})} />
-                    <input className="w-full p-5 rounded-3xl bg-[#111118]" type="password" placeholder="Senha" onChange={e=>setF({...f, pass: e.target.value})} />
-                    <button className="w-full py-5 btn-primary rounded-3xl font-black" onClick={()=>isReg?onRegister(f):onLogin(f.name, f.pass)}>{isReg?'CADASTRAR':'ENTRAR'}</button>
-                    <p className="text-slate-500 text-xs mt-4 font-bold uppercase cursor-pointer" onClick={()=>setIsReg(!isReg)}>{isReg?'Já tem conta? Login':'Criar nova conta'}</p>
+        // Funcionalidade de Home (Posts)
+        function updatePosts() {
+            const feed = document.getElementById('feed-content');
+            feed.innerHTML = `<div class="post"><b>@Admin:</b> Bem-vindo ao KChat Global! 🚀</div>` + feed.innerHTML;
+        }
+
+        // Funcionalidade de Busca
+        const users = [
+            {name: 'Luna_Star', followers: 120},
+            {name: 'DevMaster', followers: 540},
+            {name: 'K-Lover', followers: 89}
+        ];
+
+        function searchUser() {
+            const list = document.getElementById('user-list');
+            list.innerHTML = users.map(u => `
+                <div class="user-card">
+                    <b>${u.name}</b> - ${u.followers} seguidores
+                    <button style="width: auto; padding: 5px 10px; float: right;" onclick="this.innerText='Seguindo'">Seguir</button>
                 </div>
-            </div></div>;
+            `).join('');
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Edição de Perfil
+        function editProfile() {
+            const newName = prompt("Novo nome:");
+            const newBio = prompt("Nova bio:");
+            if(newName) document.getElementById('p-name').innerText = newName;
+            if(newBio) document.getElementById('p-bio').innerText = newBio;
+        }
     </script>
 </body>
 </html>
