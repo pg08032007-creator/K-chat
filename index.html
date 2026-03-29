@@ -10,22 +10,17 @@
     
     <style>
         :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* Auth & Onboarding */
+        /* Auth Styles */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
         .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
         
-        /* Carrossel de Avatar (Restaurado) */
-        .avatar-carousel { display: flex; align-items: center; gap: 15px; margin: 10px 0; }
-        .avatar-frame { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent-purple); position:relative; overflow:hidden; background: #1a1a1e; cursor: pointer; }
-        .avatar-frame img { width:100%; height:100%; object-fit:cover; }
-
         .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
         .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
         .gender-option input { position: absolute; opacity: 0; }
@@ -35,19 +30,20 @@
 
         .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
         
-        /* Feed Header (Seu design original) */
+        /* App Header */
         .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        /* Post Card com Status Dot */
+        /* Post Cards */
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
         
-        /* Navegação */
+        /* Navigation */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; }
+        nav i { color: #555; font-size: 20px; }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white; margin-top: -40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
@@ -68,22 +64,18 @@
             <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
+            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
         </div>
     </div>
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
             <h2 style="margin-bottom:10px">Seu Perfil</h2>
-            
-            <div class="avatar-carousel">
-                <i class="fas fa-chevron-left" onclick="cycleAvatar(-1)" style="color:var(--accent-purple)"></i>
-                <div class="avatar-frame" onclick="document.getElementById('file-input').click()">
-                    <img id="img-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=1">
-                    <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
-                </div>
-                <i class="fas fa-chevron-right" onclick="cycleAvatar(1)" style="color:var(--accent-purple)"></i>
+            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); position:relative; overflow:hidden; margin:0 auto;" onclick="document.getElementById('file-input').click()">
+                <img id="img-preview" src="https://via.placeholder.com/110?text=+" style="width:100%; height:100%; object-fit:cover;">
+                <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
             </div>
-            <p style="font-size:11px; color:var(--accent-pink); cursor:pointer" onclick="document.getElementById('file-input').click()">Toque na foto para galeria</p>
+            <p style="font-size:12px; color:var(--accent-pink); margin-top:-10px">Toque para carregar foto</p>
 
             <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
@@ -92,7 +84,7 @@
                 <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="nb"><i class="fas fa-genderless"></i><span>Neutro</span></label>
             </div>
-            <button id="btn-finish" class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
+            <button class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
     </div>
 
@@ -111,18 +103,21 @@
             <div style="color:#555">Grupos</div>
             <div style="color:#555">Convites</div>
         </div>
-        <div style="padding:50px; text-align:center; color:#555">Mensagens aparecem aqui.</div>
+        <div style="padding:50px; text-align:center; color:#555">
+            <i class="fas fa-comments" style="font-size:40px; margin-bottom:15px; display:block"></i>
+            Mensagens aparecerão aqui.
+        </div>
     </div>
 
     <div id="screen-profile" class="screen">
         <div class="auth-container">
             <div style="position:relative">
                 <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
+                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444; cursor:pointer"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
             </div>
             <h2 id="my-name">@user</h2>
             <p id="my-status" style="color:#777"></p>
-            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px">Sair</button>
+            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px; border:1px solid #333">Sair da Conta</button>
         </div>
     </div>
 
@@ -145,19 +140,10 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
         let currentUser = null;
-        let base64Avatar = "https://api.dicebear.com/7.x/avataaars/svg?seed=1";
-        const defaults = ["https://api.dicebear.com/7.x/avataaars/svg?seed=1", "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka"];
-        let defIdx = 0;
+        let base64Avatar = "";
 
-        function cycleAvatar(dir) {
-            defIdx = (defIdx + dir + defaults.length) % defaults.length;
-            base64Avatar = defaults[defIdx];
-            document.getElementById('img-preview').src = base64Avatar;
-        }
-
-        // COMPRESSÃO PARA GALERIA (A correção que faltava no seu código antigo)
+        // CORREÇÃO: Função de compressão para evitar erro de registro
         function processImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -188,11 +174,14 @@
         async function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
-            const doc = await db.collection("usuarios").doc(user).get();
-            if (doc.exists && doc.data().pass === pass) {
-                currentUser = doc.data();
-                enterApp();
-            } else { alert("Dados incorretos!"); }
+            try {
+                const doc = await db.collection("usuarios").doc(user).get();
+                if (doc.exists && doc.data().pass === pass) {
+                    currentUser = doc.data();
+                    updateStatus(true);
+                    enterApp();
+                } else { alert("Dados incorretos!"); }
+            } catch(e) { alert("Erro de conexão."); }
         }
 
         async function handleRegister() {
@@ -204,10 +193,19 @@
 
             if(!user || !pass || !date) return alert("Preencha todos os campos!");
 
-            const userData = { user, pass, date, status, gen, pic: base64Avatar, online: true };
-            await db.collection("usuarios").doc(user).set(userData);
-            currentUser = userData;
-            enterApp();
+            try {
+                const check = await db.collection("usuarios").doc(user).get();
+                if(check.exists) return alert("Usuário já existe!");
+
+                const userData = { user, pass, date, status, gen, pic: base64Avatar || "", online: true };
+                await db.collection("usuarios").doc(user).set(userData);
+                currentUser = userData;
+                enterApp();
+            } catch(e) { alert("Erro no registro."); }
+        }
+
+        function updateStatus(isOnline) {
+            if(currentUser) db.collection("usuarios").doc(currentUser.user).update({ online: isOnline });
         }
 
         function enterApp() {
@@ -227,7 +225,7 @@
                         <div class="post-card">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
                                 <div style="position:relative">
-                                    <img src="${post.authorPic}" class="user-avatar">
+                                    <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
                                     <div class="status-dot" style="background:${post.isOnline ? '#22c55e' : '#444'}"></div>
                                 </div>
                                 <strong>@${post.author}</strong>
@@ -235,9 +233,10 @@
                             <p>${post.content}</p>
                             <div style="display:flex; gap:20px; color:#666; margin-top:10px; font-size:14px;">
                                 <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                <span><i class="fas fa-comment"></i> ${post.comments || 0}</span>
+                                <span onclick="showScreen('chat')"><i class="fas fa-comment"></i> ${post.comments || 0}</span>
                             </div>
-                        </div>`;
+                        </div>
+                    `;
                 });
             });
         }
@@ -259,13 +258,13 @@
             const text = prompt("O que quer postar?");
             if(!text) return;
             await db.collection("posts").add({
-                author: currentUser.user, authorPic: currentUser.pic,
+                author: currentUser.user, authorPic: currentUser.pic || "",
                 content: text, time: Date.now(), likes: 0, likes_list: [], comments: 0, isOnline: true
             });
         }
 
         function loadProfile() {
-            document.getElementById('my-pic').src = currentUser.pic;
+            document.getElementById('my-pic').src = currentUser.pic || 'https://via.placeholder.com/110';
             document.getElementById('my-name').innerText = "@" + currentUser.user;
             document.getElementById('my-status').innerText = currentUser.status;
         }
@@ -279,7 +278,8 @@
             }
         }
         
-        function logout() { location.reload(); }
+        function logout() { updateStatus(false); localStorage.clear(); location.reload(); }
+        window.onbeforeunload = () => updateStatus(false);
     </script>
 </body>
 </html>
