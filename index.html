@@ -10,88 +10,96 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <style>
-        * { box-sizing: border-box; outline: none; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: #000; color: white; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: #000; color: white; overflow-x: hidden; }
         .hidden { display: none !important; }
-        .logo { font-size: 32px; font-weight: bold; background: linear-gradient(45deg, #f09433, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* AUTH & PROFILE SETUP */
-        .full-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
-        input, textarea { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; border: 1px solid #262626; background: #121212; color: #fff; }
-        .btn-blue { width: 100%; background: #0095f6; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* TRAVA DE SEGURANÇA (LOADING) */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .logo-gradient { font-size: 35px; font-weight: bold; background: linear-gradient(45deg, #f09433, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* FEED & UI */
-        .header { position: fixed; top: 0; width: 100%; height: 55px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 100; border-bottom: 0.1px solid #262626; }
-        .page { margin-top: 55px; padding-bottom: 70px; min-height: 100vh; }
-        .post { border-bottom: 0.1px solid #262626; padding-bottom: 15px; }
-        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+        /* AUTH & SETUP SCREENS */
+        .auth-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
+        input, textarea { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; border: 1px solid #262626; background: #121212; color: #fff; font-size: 14px; }
+        .btn-blue { width: 100%; background: #0095f6; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-link { background: none; border: none; color: #0095f6; font-size: 13px; margin-top: 15px; cursor: pointer; }
+
+        /* UI DO APP */
+        .header { position: fixed; top: 0; width: 100%; height: 50px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 500; border-bottom: 0.1px solid #262626; }
+        .page { margin-top: 50px; padding-bottom: 70px; min-height: 100vh; width: 100%; }
         
-        /* CHAT */
-        #chat-content { height: 70vh; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { background: #262626; padding: 10px; border-radius: 12px; max-width: 80%; width: fit-content; }
+        /* FEED */
+        .post { width: 100%; border-bottom: 0.1px solid #262626; padding-bottom: 15px; }
+        .post-header { padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #121212; }
 
-        /* NAV */
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 55px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.1px solid #262626; }
+        /* NAV BOTTOM */
+        .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 50px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.1px solid #262626; z-index: 1000; }
+        .nav-icon { color: #fff; cursor: pointer; width: 22px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="full-screen">
-        <div class="logo">KChat</div>
+    <div id="loading-screen"><div class="logo-gradient">KChat</div></div>
+
+    <div id="login-screen" class="auth-container hidden">
+        <div class="logo-gradient" style="font-size: 45px; margin-bottom: 30px;">KChat</div>
         <input type="email" id="l-email" placeholder="E-mail">
         <input type="password" id="l-pass" placeholder="Senha">
         <button class="btn-blue" onclick="authAction('login')">Entrar</button>
-        <button class="btn-blue" style="background:transparent; color:#0095f6" onclick="showAuth('signup-screen')">Criar nova conta</button>
+        <button class="btn-link" onclick="toggleAuth('signup-screen')">Não tem conta? Cadastre-se</button>
     </div>
 
-    <div id="signup-screen" class="full-screen hidden">
-        <div class="logo">KChat</div>
+    <div id="signup-screen" class="auth-container hidden">
+        <div class="logo-gradient" style="font-size: 40px;">KChat</div>
+        <p style="color: #94a3b8; font-size: 13px;">Cadastre-se para ver fotos dos seus amigos.</p>
         <input type="email" id="s-email" placeholder="E-mail">
-        <input type="password" id="s-pass" placeholder="Senha (min. 6)">
+        <input type="password" id="s-pass" placeholder="Senha (min. 6 dígitos)">
         <button class="btn-blue" onclick="authAction('signup')">Cadastrar</button>
-        <button class="btn-blue" style="background:transparent; color:#0095f6" onclick="showAuth('login-screen')">Já tenho conta</button>
+        <button class="btn-link" onclick="toggleAuth('login-screen')">Já tem conta? Entre</button>
     </div>
 
-    <div id="setup-screen" class="full-screen hidden">
-        <h2>Complete seu Perfil</h2>
-        <input type="text" id="p-name" placeholder="Seu Nome">
-        <textarea id="p-bio" placeholder="Sua Bio..."></textarea>
+    <div id="setup-screen" class="auth-container hidden">
+        <h2 style="margin-bottom: 5px;">Criar Perfil</h2>
+        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Como os outros vão te ver no KChat</p>
+        <input type="text" id="p-name" placeholder="Nome de exibição">
+        <textarea id="p-bio" placeholder="Sua bio..."></textarea>
         <input type="text" id="p-img" placeholder="URL da foto de perfil">
-        <button class="btn-blue" onclick="saveProfile()">Começar a usar</button>
+        <button class="btn-blue" onclick="saveProfile()">Concluir</button>
     </div>
 
     <div id="app-screen" class="hidden">
         <div class="header">
-            <span class="logo" style="font-size: 22px;">KChat</span>
-            <i data-lucide="log-out" onclick="firebase.auth().signOut()"></i>
+            <span class="logo-gradient" style="font-size: 22px;">KChat</span>
+            <i data-lucide="log-out" class="nav-icon" onclick="auth.signOut()"></i>
         </div>
 
         <div id="home-page" class="page">
             <div id="feed-list"></div>
         </div>
 
-        <div id="chat-page" class="page hidden">
-            <div id="chat-content"></div>
-            <div style="padding: 10px; display: flex; gap: 5px;">
+        <div id="chat-page" class="page hidden" style="padding: 10px;">
+            <div id="chat-box" style="height: 70vh; overflow-y: auto; padding-bottom: 20px;"></div>
+            <div style="position: fixed; bottom: 60px; left: 0; width: 100%; padding: 10px; display: flex; gap: 8px;">
                 <input type="text" id="msg-input" placeholder="Mensagem...">
-                <button onclick="sendMsg()" style="background:#0095f6; border:none; padding:10px; border-radius:8px; color:white;">Enviar</button>
+                <button onclick="sendMsg()" style="background:#0095f6; border:none; border-radius:8px; padding:0 15px; color:white;">OK</button>
             </div>
         </div>
 
         <div id="post-page" class="page hidden">
-            <div class="full-screen" style="height: auto;">
-                <h3>Novo Post</h3>
-                <input type="text" id="post-url" placeholder="URL da Imagem">
-                <textarea id="post-caption" placeholder="Legenda..."></textarea>
-                <button class="btn-blue" onclick="createPost()">Publicar</button>
+            <div class="auth-container" style="height: auto;">
+                <h3 style="margin-bottom: 20px;">Nova Publicação</h3>
+                <input type="text" id="post-url" placeholder="URL da Foto">
+                <textarea id="post-caption" placeholder="Escreva uma legenda..."></textarea>
+                <button class="btn-blue" onclick="createPost()">Compartilhar</button>
             </div>
         </div>
 
         <nav class="nav-bottom">
-            <i data-lucide="home" onclick="showPage('home-page')"></i>
-            <i data-lucide="plus-square" onclick="showPage('post-page')"></i>
-            <i data-lucide="message-circle" onclick="showPage('chat-page')"></i>
-            <i data-lucide="user"></i>
+            <i data-lucide="home" class="nav-icon" onclick="showPage('home-page')"></i>
+            <i data-lucide="plus-square" class="nav-icon" onclick="showPage('post-page')"></i>
+            <i data-lucide="message-circle" class="nav-icon" onclick="showPage('chat-page')"></i>
+            <i data-lucide="user" class="nav-icon"></i>
         </nav>
     </div>
 
@@ -111,66 +119,72 @@
         const db = firebase.database();
         lucide.createIcons();
 
-        let userData = null;
+        let currentUserData = null;
 
-        // AUTH LOGIC
-        function showAuth(id) {
-            document.querySelectorAll('.full-screen').forEach(s => s.classList.add('hidden'));
+        // SISTEMA DE BLOQUEIO E VERIFICAÇÃO
+        auth.onAuthStateChanged(async user => {
+            const loading = document.getElementById('loading-screen');
+            const app = document.getElementById('app-screen');
+            const login = document.getElementById('login-screen');
+            const setup = document.getElementById('setup-screen');
+
+            if (!user) {
+                app.classList.add('hidden');
+                setup.classList.add('hidden');
+                login.classList.remove('hidden');
+                loading.classList.add('hidden');
+            } else {
+                const snap = await db.ref('users/' + user.uid).once('value');
+                if (!snap.exists()) {
+                    login.classList.add('hidden');
+                    setup.classList.remove('hidden');
+                } else {
+                    currentUserData = snap.val();
+                    login.classList.add('hidden');
+                    setup.classList.add('hidden');
+                    app.classList.remove('hidden');
+                    loadFeed();
+                    loadChat();
+                }
+                loading.classList.add('hidden');
+            }
+        });
+
+        // AÇÕES DE AUTH
+        function toggleAuth(id) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('signup-screen').classList.add('hidden');
             document.getElementById(id).classList.remove('hidden');
         }
 
         async function authAction(type) {
             const email = type === 'login' ? document.getElementById('l-email').value : document.getElementById('s-email').value;
             const pass = type === 'login' ? document.getElementById('l-pass').value : document.getElementById('s-pass').value;
-            
             try {
-                if(type === 'login') await auth.signInWithEmailAndPassword(email, pass);
+                if (type === 'login') await auth.signInWithEmailAndPassword(email, pass);
                 else await auth.createUserWithEmailAndPassword(email, pass);
-            } catch(e) { alert(e.message); }
+            } catch (e) { alert(e.message); }
         }
 
-        auth.onAuthStateChanged(async user => {
-            if(user) {
-                const snapshot = await db.ref('users/' + user.uid).once('value');
-                if(!snapshot.exists()) {
-                    showAuth('setup-screen');
-                } else {
-                    userData = snapshot.val();
-                    document.querySelectorAll('.full-screen').forEach(s => s.classList.add('hidden'));
-                    document.getElementById('app-screen').classList.remove('hidden');
-                    loadFeed();
-                    loadChat();
-                }
-            } else {
-                showAuth('login-screen');
-                document.getElementById('app-screen').classList.add('hidden');
-            }
-        });
-
-        // PROFILE SETUP
         function saveProfile() {
             const name = document.getElementById('p-name').value;
             const bio = document.getElementById('p-bio').value;
             const img = document.getElementById('p-img').value || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + name;
-            
-            if(!name) return alert("Nome é obrigatório!");
-            
-            db.ref('users/' + auth.currentUser.uid).set({ name, bio, img })
-            .then(() => location.reload());
+            if (!name) return alert("Dê um nome ao seu perfil!");
+            db.ref('users/' + auth.currentUser.uid).set({ name, bio, img }).then(() => location.reload());
         }
 
-        // FEED & POSTS
+        // POSTS & FEED
         function createPost() {
             const url = document.getElementById('post-url').value;
             const cap = document.getElementById('post-caption').value;
-            if(!url) return;
-
+            if (!url) return alert("Insira a URL da imagem!");
             db.ref('posts').push({
-                userName: userData.name,
-                userImg: userData.img,
-                postImg: url,
-                caption: cap,
-                timestamp: Date.now()
+                uName: currentUserData.name,
+                uImg: currentUserData.img,
+                pImg: url,
+                pCap: cap,
+                time: Date.now()
             }).then(() => {
                 showPage('home-page');
                 document.getElementById('post-url').value = "";
@@ -186,35 +200,37 @@
                     const p = d.val();
                     list.innerHTML = `
                         <div class="post">
-                            <div style="padding:10px; display:flex; align-items:center; gap:10px;">
-                                <img src="${p.userImg}" style="width:30px; height:30px; border-radius:50%">
-                                <strong>${p.userName}</strong>
+                            <div class="post-header">
+                                <img src="${p.uImg}" style="width:32px; height:32px; border-radius:50%">
+                                <span style="font-weight:bold; font-size:14px;">${p.uName}</span>
                             </div>
-                            <img src="${p.postImg}" class="post-img">
-                            <div style="padding:10px;"><strong>${p.userName}</strong> ${p.caption}</div>
+                            <img src="${p.pImg}" class="post-img">
+                            <div style="padding:10px; font-size:14px;"><strong>${p.uName}</strong> ${p.pCap}</div>
                         </div>
                     ` + list.innerHTML;
                 });
             });
         }
 
-        // CHAT LOGIC
+        // CHAT
         function sendMsg() {
             const input = document.getElementById('msg-input');
-            if(!input.value) return;
-            db.ref('chat').push({ name: userData.name, text: input.value });
+            if (!input.value) return;
+            db.ref('global_chat').push({ uName: currentUserData.name, text: input.value });
             input.value = "";
         }
 
         function loadChat() {
-            db.ref('chat').limitToLast(20).on('value', snap => {
-                const cont = document.getElementById('chat-content');
-                cont.innerHTML = "";
+            db.ref('global_chat').limitToLast(20).on('value', snap => {
+                const box = document.getElementById('chat-box');
+                box.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.val();
-                    cont.innerHTML += `<div class="bubble"><strong>${m.name}:</strong><br>${m.text}</div>`;
+                    box.innerHTML += `<div style="background:#262626; padding:10px; border-radius:12px; margin-bottom:10px; width:fit-content; max-width:80%">
+                        <span style="font-size:10px; color:#0095f6">@${m.uName}</span><br>${m.text}
+                    </div>`;
                 });
-                cont.scrollTop = cont.scrollHeight;
+                box.scrollTop = box.scrollHeight;
             });
         }
 
