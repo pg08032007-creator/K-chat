@@ -1,243 +1,244 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KChat - Social & Discovery</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+import React, { useState, useEffect } from 'react';
+import { Planet, Home, Search, PlusSquare, User, Camera, Send, Heart, MessageCircle, X, Check } from 'lucide-react';
 
-    <style>
-        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: #000; color: white; overflow-x: hidden; }
-        .hidden { display: none !important; }
+// --- DATABASE SIMULADA (Para as salas do Meet parecerem vivas) ---
+const MOCK_USERS = [
+  { username: 'Lana_Vibe', age: 21, gender: 'Feminino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lana', bio: 'Amo pixel art e RPG' },
+  { username: 'Kael_Dev', age: 24, gender: 'Masculino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kael', bio: 'Codando o dia todo 🚀' },
+  { username: 'Izis_Neon', age: 25, gender: 'Feminino', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Izis', bio: 'Explorando o multiverso' }
+];
 
-        /* TRAVA DE SEGURANÇA (LOADING) */
-        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .logo-gradient { font-size: 35px; font-weight: bold; background: linear-gradient(45deg, #f09433, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+const App = () => {
+  // Estados de Sessão
+  const [user, setUser] = useState(JSON.parse(sessionStorage.getItem('active_user')) || null);
+  const [view, setView] = useState('feed'); // feed, meet, profile
+  const [usersDb, setUsersDb] = useState(JSON.parse(localStorage.getItem('local_users')) || []);
 
-        /* AUTH & SETUP SCREENS */
-        .auth-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; text-align: center; }
-        input, textarea { width: 100%; padding: 14px; margin: 8px 0; border-radius: 8px; border: 1px solid #262626; background: #121212; color: #fff; font-size: 14px; }
-        .btn-blue { width: 100%; background: #0095f6; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-link { background: none; border: none; color: #0095f6; font-size: 13px; margin-top: 15px; cursor: pointer; }
+  // Estados de Cadastro
+  const [regName, setRegName] = useState('');
+  const [regPass, setRegPass] = useState('');
+  const [regAge, setRegAge] = useState('');
+  const [regGender, setRegGender] = useState('Feminino');
+  const [regAvatar, setRegAvatar] = useState('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
 
-        /* UI DO APP */
-        .header { position: fixed; top: 0; width: 100%; height: 50px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 500; border-bottom: 0.1px solid #262626; }
-        .page { margin-top: 50px; padding-bottom: 70px; min-height: 100vh; width: 100%; }
+  // Estados do Meet (Planeta)
+  const [meetStatus, setMeetStatus] = useState('idle'); // idle, searching, matched
+  const [match, setMatch] = useState(null);
+
+  // --- LÓGICA DE CADASTRO ---
+  const handleJoin = () => {
+    if (!regName || !regPass || !regAge) return alert("Preencha tudo!");
+    
+    // Verifica se nome já existe no "banco" local
+    const exists = usersDb.find(u => u.username.toLowerCase() === regName.toLowerCase());
+    if (exists) return alert("Este nome já está em órbita! Escolha outro.");
+
+    const newUser = { 
+      username: regName, 
+      password: regPass, 
+      age: regAge, 
+      gender: regGender, 
+      avatar: regAvatar 
+    };
+
+    const newDb = [...usersDb, newUser];
+    setUsersDb(newDb);
+    localStorage.setItem('local_users', JSON.stringify(newDb));
+    setUser(newUser);
+    sessionStorage.setItem('active_user', JSON.stringify(newUser));
+    setView('feed');
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setRegAvatar(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // --- LÓGICA DO MEET (PLANETA) ---
+  const startMeet = () => {
+    setMeetStatus('searching');
+    setTimeout(() => {
+      const randomFriend = MOCK_USERS[Math.floor(Math.random() * MOCK_USERS.length)];
+      setMatch(randomFriend);
+      setMeetStatus('matched');
+    }, 3000);
+  };
+
+  // --- TELAS ---
+  if (!user) return (
+    <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-md bg-[#16161e] p-8 rounded-3xl border border-purple-500/30 shadow-2xl">
+        <h1 className="text-3xl font-black text-center mb-2 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent italic">
+          Z-GRAM
+        </h1>
+        <p className="text-center text-slate-400 text-sm mb-8 font-light">Sua nova dimensão social</p>
+
+        <div className="space-y-4">
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative group">
+              <img src={regAvatar} className="w-24 h-24 rounded-full border-4 border-purple-600 object-cover shadow-lg" alt="Avatar" />
+              <label className="absolute bottom-0 right-0 bg-purple-600 p-2 rounded-full cursor-pointer hover:scale-110 transition">
+                <Camera size={16} />
+                <input type="file" className="hidden" onChange={handleFile} />
+              </label>
+            </div>
+          </div>
+
+          <input placeholder="Nome de usuário" className="w-full bg-[#1c1c27] p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 transition" 
+            onChange={e => setRegName(e.target.value)} />
+          
+          <input type="password" placeholder="Senha" className="w-full bg-[#1c1c27] p-4 rounded-2xl outline-none focus:ring-2 ring-purple-500 transition" 
+            onChange={e => setRegPass(e.target.value)} />
+
+          <div className="flex gap-3">
+            <input type="number" placeholder="Idade" className="w-1/3 bg-[#1c1c27] p-4 rounded-2xl outline-none" 
+              onChange={e => setRegAge(e.target.value)} />
+            <select className="w-2/3 bg-[#1c1c27] p-4 rounded-2xl outline-none" onChange={e => setRegGender(e.target.value)}>
+              <option>Feminino</option>
+              <option>Masculino</option>
+              <option>Não-binário</option>
+            </select>
+          </div>
+
+          <button onClick={handleJoin} className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-lg mt-4 active:scale-95 transition shadow-lg shadow-purple-500/20">
+            Explorar o Universo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0c] text-white flex flex-col max-w-lg mx-auto border-x border-white/5">
+      {/* HEADER */}
+      <header className="h-14 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/80 backdrop-blur-md z-40">
+        <h2 className="text-xl font-black italic text-purple-400">Z-GRAM</h2>
+        <div className="flex gap-4">
+          <Heart size={22} />
+          <Send size={22} />
+        </div>
+      </header>
+
+      {/* CONTEÚDO DINÂMICO */}
+      <main className="flex-1 pb-20">
+        {view === 'feed' && (
+          <div className="p-4 space-y-8 animate-in fade-in duration-500">
+            {[1, 2].map(i => (
+              <div key={i} className="rounded-2xl bg-[#16161e] border border-white/5 overflow-hidden">
+                <div className="p-3 flex items-center gap-3">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=User${i+10}`} className="w-10 h-10 rounded-full border border-purple-500" alt="post" />
+                  <span className="font-bold text-sm">cyber_phantom_{i}</span>
+                </div>
+                <div className="h-80 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center italic text-white/20">
+                  {i === 1 ? "[Arte Digital de Carro Modificado]" : "[Setup de Programação]"}
+                </div>
+                <div className="p-4 flex gap-4 border-t border-white/5">
+                  <Heart size={24} className="hover:text-red-500 transition cursor-pointer" />
+                  <MessageCircle size={24} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {view === 'meet' && (
+          <div className="h-full flex flex-col items-center justify-center p-8 text-center min-h-[70vh]">
+            {meetStatus === 'idle' && (
+              <div className="animate-in zoom-in duration-300">
+                <div className="w-32 h-32 bg-purple-500/10 rounded-full flex items-center justify-center mb-6 mx-auto border border-purple-500/30">
+                  <Planet size={64} className="text-purple-500" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Sala de Espera Planetária</h2>
+                <p className="text-slate-400 mb-8">Encontre pessoas aleatórias que estão em órbita agora.</p>
+                <button onClick={startMeet} className="px-12 py-4 bg-purple-600 rounded-full font-bold hover:bg-purple-500 transition shadow-xl shadow-purple-900/40">
+                  Entrar no Meet
+                </button>
+              </div>
+            )}
+
+            {meetStatus === 'searching' && (
+              <div className="flex flex-col items-center">
+                <div className="relative">
+                  <div className="w-32 h-32 bg-purple-600/20 rounded-full animate-ping absolute inset-0"></div>
+                  <div className="w-32 h-32 bg-slate-800 rounded-full flex items-center justify-center relative z-10 border border-purple-500">
+                    <Planet size={64} className="text-purple-400 animate-pulse" />
+                  </div>
+                </div>
+                <h3 className="mt-10 text-xl font-medium text-purple-300">Sincronizando frequências...</h3>
+              </div>
+            )}
+
+            {meetStatus === 'matched' && (
+              <div className="w-full animate-in slide-in-from-bottom duration-500">
+                <div className="bg-[#1c1c27] p-8 rounded-[40px] border-2 border-purple-500 shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-4 opacity-10"><Planet size={100}/></div>
+                   <img src={match.avatar} className="w-28 h-28 rounded-full mx-auto border-4 border-purple-500 mb-4 shadow-lg" alt="match" />
+                   <h2 className="text-2xl font-black">{match.username}, {match.age}</h2>
+                   <span className="text-purple-400 text-sm font-bold uppercase tracking-widest">{match.gender}</span>
+                   <p className="mt-4 text-slate-300 italic">"{match.bio}"</p>
+                   
+                   <div className="flex gap-4 mt-8">
+                     <button onClick={() => setMeetStatus('idle')} className="flex-1 h-14 bg-slate-700 rounded-2xl flex items-center justify-center hover:bg-slate-600 transition">
+                       <X />
+                     </button>
+                     <button className="flex-1 h-14 bg-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-900/30 hover:bg-green-500 transition">
+                       <Check size={28} />
+                     </button>
+                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {view === 'profile' && (
+          <div className="p-8 flex flex-col items-center animate-in fade-in duration-500">
+            <div className="relative">
+               <img src={user.avatar} className="w-32 h-32 rounded-full border-4 border-purple-500 p-1 bg-[#0a0a0c]" alt="profile" />
+               <div className="absolute bottom-1 right-1 bg-green-500 w-6 h-6 rounded-full border-4 border-[#0a0a0c]"></div>
+            </div>
+            <h2 className="mt-6 text-3xl font-black">{user.username}</h2>
+            <p className="text-purple-400 font-medium uppercase tracking-tighter">{user.gender} • {user.age} ANOS</p>
+            
+            <div className="grid grid-cols-3 gap-8 mt-10 w-full text-center">
+               <div><p className="text-xl font-bold">0</p><p className="text-xs text-slate-500">Posts</p></div>
+               <div><p className="text-xl font-bold">128</p><p className="text-xs text-slate-500">Círculos</p></div>
+               <div><p className="text-xl font-bold">0</p><p className="text-xs text-slate-500">Seguidores</p></div>
+            </div>
+            
+            <button onClick={() => { sessionStorage.clear(); window.location.reload(); }} className="mt-12 text-red-500 text-sm font-bold border border-red-500/30 px-6 py-2 rounded-full">
+              Sair da Conta
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* NAVBAR INFERIOR */}
+      <nav className="fixed bottom-0 left-0 right-0 h-18 bg-[#111118]/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around px-2 z-50 max-w-lg mx-auto">
+        <button onClick={() => setView('feed')} className={`p-4 transition ${view === 'feed' ? 'text-purple-500' : 'text-slate-500'}`}>
+          <Home size={26} fill={view === 'feed' ? "currentColor" : "none"} />
+        </button>
+        <button className="p-4 text-slate-500"><Search size={26} /></button>
         
-        /* FEED */
-        .post { width: 100%; border-bottom: 0.1px solid #262626; padding-bottom: 15px; }
-        .post-header { padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .post-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; background: #121212; }
+        {/* BOTÃO PLANETA CENTRAL */}
+        <button 
+          onClick={() => { setView('meet'); setMeetStatus('idle'); }}
+          className={`relative -top-6 w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center border-4 border-[#0a0a0c] shadow-xl transition-all active:scale-90 ${view === 'meet' ? 'scale-110 shadow-purple-500/50' : 'grayscale-[40%]'}`}
+        >
+          <Planet size={30} color="white" />
+        </button>
 
-        /* NAV BOTTOM */
-        .nav-bottom { position: fixed; bottom: 0; width: 100%; height: 50px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 0.1px solid #262626; z-index: 1000; }
-        .nav-icon { color: #fff; cursor: pointer; width: 22px; }
-    </style>
-</head>
-<body>
-
-    <div id="loading-screen"><div class="logo-gradient">KChat</div></div>
-
-    <div id="login-screen" class="auth-container hidden">
-        <div class="logo-gradient" style="font-size: 45px; margin-bottom: 30px;">KChat</div>
-        <input type="email" id="l-email" placeholder="E-mail">
-        <input type="password" id="l-pass" placeholder="Senha">
-        <button class="btn-blue" onclick="authAction('login')">Entrar</button>
-        <button class="btn-link" onclick="toggleAuth('signup-screen')">Não tem conta? Cadastre-se</button>
+        <button className="p-4 text-slate-500"><PlusSquare size={26} /></button>
+        <button onClick={() => setView('profile')} className={`p-4 transition ${view === 'profile' ? 'text-purple-500' : 'text-slate-500'}`}>
+          <User size={26} fill={view === 'profile' ? "currentColor" : "none"} />
+        </button>
+      </nav>
     </div>
+  );
+};
 
-    <div id="signup-screen" class="auth-container hidden">
-        <div class="logo-gradient" style="font-size: 40px;">KChat</div>
-        <p style="color: #94a3b8; font-size: 13px;">Cadastre-se para ver fotos dos seus amigos.</p>
-        <input type="email" id="s-email" placeholder="E-mail">
-        <input type="password" id="s-pass" placeholder="Senha (min. 6 dígitos)">
-        <button class="btn-blue" onclick="authAction('signup')">Cadastrar</button>
-        <button class="btn-link" onclick="toggleAuth('login-screen')">Já tem conta? Entre</button>
-    </div>
-
-    <div id="setup-screen" class="auth-container hidden">
-        <h2 style="margin-bottom: 5px;">Criar Perfil</h2>
-        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Como os outros vão te ver no KChat</p>
-        <input type="text" id="p-name" placeholder="Nome de exibição">
-        <textarea id="p-bio" placeholder="Sua bio..."></textarea>
-        <input type="text" id="p-img" placeholder="URL da foto de perfil">
-        <button class="btn-blue" onclick="saveProfile()">Concluir</button>
-    </div>
-
-    <div id="app-screen" class="hidden">
-        <div class="header">
-            <span class="logo-gradient" style="font-size: 22px;">KChat</span>
-            <i data-lucide="log-out" class="nav-icon" onclick="auth.signOut()"></i>
-        </div>
-
-        <div id="home-page" class="page">
-            <div id="feed-list"></div>
-        </div>
-
-        <div id="chat-page" class="page hidden" style="padding: 10px;">
-            <div id="chat-box" style="height: 70vh; overflow-y: auto; padding-bottom: 20px;"></div>
-            <div style="position: fixed; bottom: 60px; left: 0; width: 100%; padding: 10px; display: flex; gap: 8px;">
-                <input type="text" id="msg-input" placeholder="Mensagem...">
-                <button onclick="sendMsg()" style="background:#0095f6; border:none; border-radius:8px; padding:0 15px; color:white;">OK</button>
-            </div>
-        </div>
-
-        <div id="post-page" class="page hidden">
-            <div class="auth-container" style="height: auto;">
-                <h3 style="margin-bottom: 20px;">Nova Publicação</h3>
-                <input type="text" id="post-url" placeholder="URL da Foto">
-                <textarea id="post-caption" placeholder="Escreva uma legenda..."></textarea>
-                <button class="btn-blue" onclick="createPost()">Compartilhar</button>
-            </div>
-        </div>
-
-        <nav class="nav-bottom">
-            <i data-lucide="home" class="nav-icon" onclick="showPage('home-page')"></i>
-            <i data-lucide="plus-square" class="nav-icon" onclick="showPage('post-page')"></i>
-            <i data-lucide="message-circle" class="nav-icon" onclick="showPage('chat-page')"></i>
-            <i data-lucide="user" class="nav-icon"></i>
-        </nav>
-    </div>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
-            authDomain: "kchat-1debf.firebaseapp.com",
-            databaseURL: "https://kchat-1debf-default-rtdb.firebaseio.com",
-            projectId: "kchat-1debf",
-            storageBucket: "kchat-1debf.firebasestorage.app",
-            messagingSenderId: "622333653477",
-            appId: "1:622333653477:web:2ac2e18023e8a07a983f0c"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
-        lucide.createIcons();
-
-        let currentUserData = null;
-
-        // SISTEMA DE BLOQUEIO E VERIFICAÇÃO
-        auth.onAuthStateChanged(async user => {
-            const loading = document.getElementById('loading-screen');
-            const app = document.getElementById('app-screen');
-            const login = document.getElementById('login-screen');
-            const setup = document.getElementById('setup-screen');
-
-            if (!user) {
-                app.classList.add('hidden');
-                setup.classList.add('hidden');
-                login.classList.remove('hidden');
-                loading.classList.add('hidden');
-            } else {
-                const snap = await db.ref('users/' + user.uid).once('value');
-                if (!snap.exists()) {
-                    login.classList.add('hidden');
-                    setup.classList.remove('hidden');
-                } else {
-                    currentUserData = snap.val();
-                    login.classList.add('hidden');
-                    setup.classList.add('hidden');
-                    app.classList.remove('hidden');
-                    loadFeed();
-                    loadChat();
-                }
-                loading.classList.add('hidden');
-            }
-        });
-
-        // AÇÕES DE AUTH
-        function toggleAuth(id) {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('signup-screen').classList.add('hidden');
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        async function authAction(type) {
-            const email = type === 'login' ? document.getElementById('l-email').value : document.getElementById('s-email').value;
-            const pass = type === 'login' ? document.getElementById('l-pass').value : document.getElementById('s-pass').value;
-            try {
-                if (type === 'login') await auth.signInWithEmailAndPassword(email, pass);
-                else await auth.createUserWithEmailAndPassword(email, pass);
-            } catch (e) { alert(e.message); }
-        }
-
-        function saveProfile() {
-            const name = document.getElementById('p-name').value;
-            const bio = document.getElementById('p-bio').value;
-            const img = document.getElementById('p-img').value || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + name;
-            if (!name) return alert("Dê um nome ao seu perfil!");
-            db.ref('users/' + auth.currentUser.uid).set({ name, bio, img }).then(() => location.reload());
-        }
-
-        // POSTS & FEED
-        function createPost() {
-            const url = document.getElementById('post-url').value;
-            const cap = document.getElementById('post-caption').value;
-            if (!url) return alert("Insira a URL da imagem!");
-            db.ref('posts').push({
-                uName: currentUserData.name,
-                uImg: currentUserData.img,
-                pImg: url,
-                pCap: cap,
-                time: Date.now()
-            }).then(() => {
-                showPage('home-page');
-                document.getElementById('post-url').value = "";
-                document.getElementById('post-caption').value = "";
-            });
-        }
-
-        function loadFeed() {
-            db.ref('posts').on('value', snap => {
-                const list = document.getElementById('feed-list');
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const p = d.val();
-                    list.innerHTML = `
-                        <div class="post">
-                            <div class="post-header">
-                                <img src="${p.uImg}" style="width:32px; height:32px; border-radius:50%">
-                                <span style="font-weight:bold; font-size:14px;">${p.uName}</span>
-                            </div>
-                            <img src="${p.pImg}" class="post-img">
-                            <div style="padding:10px; font-size:14px;"><strong>${p.uName}</strong> ${p.pCap}</div>
-                        </div>
-                    ` + list.innerHTML;
-                });
-            });
-        }
-
-        // CHAT
-        function sendMsg() {
-            const input = document.getElementById('msg-input');
-            if (!input.value) return;
-            db.ref('global_chat').push({ uName: currentUserData.name, text: input.value });
-            input.value = "";
-        }
-
-        function loadChat() {
-            db.ref('global_chat').limitToLast(20).on('value', snap => {
-                const box = document.getElementById('chat-box');
-                box.innerHTML = "";
-                snap.forEach(d => {
-                    const m = d.val();
-                    box.innerHTML += `<div style="background:#262626; padding:10px; border-radius:12px; margin-bottom:10px; width:fit-content; max-width:80%">
-                        <span style="font-size:10px; color:#0095f6">@${m.uName}</span><br>${m.text}
-                    </div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        }
-
-        function showPage(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+export default App;
