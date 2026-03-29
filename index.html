@@ -13,6 +13,7 @@
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         body::-webkit-scrollbar { display: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
         input[type="radio"] { accent-color: #a855f7; width: 18px; height: 18px; cursor: pointer; }
     </style>
 </head>
@@ -30,16 +31,21 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [selectedUser, setSelectedUser] = useState(null);
             const [selectedPost, setSelectedPost] = useState(null);
+            const [messages, setMessages] = useState(JSON.parse(localStorage.getItem('kchat_messages')) || []);
 
             // Banco de dados de usuários
             const dbUsers = useMemo(() => JSON.parse(localStorage.getItem('kchat_users_db')) || [], [user, authState]);
+
+            useEffect(() => {
+                localStorage.setItem('kchat_posts', JSON.stringify(posts));
+            }, [posts]);
 
             const handleLogin = (name, pass) => {
                 const found = dbUsers.find(u => u.name.toLowerCase() === name.toLowerCase() && u.pass === pass);
                 if (found) {
                     setUser(found);
                     sessionStorage.setItem('kchat_user', JSON.stringify(found));
-                } else alert("Dados incorretos!");
+                } else alert("Usuário ou senha incorretos!");
             };
 
             const handleRegister = (data) => {
@@ -47,6 +53,11 @@
                 localStorage.setItem('kchat_users_db', JSON.stringify(newDb));
                 setUser(data);
                 sessionStorage.setItem('kchat_user', JSON.stringify(data));
+            };
+
+            const handleLike = (postId) => {
+                const updated = posts.map(p => p.id === postId ? {...p, likes: (p.likes || 0) + 1} : p);
+                setPosts(updated);
             };
 
             if (!user) {
@@ -69,27 +80,62 @@
             return (
                 <div className="min-h-screen flex flex-col max-w-lg mx-auto bg-[#0a0a0c] relative shadow-2xl shadow-black">
                     <header className="h-16 flex items-center justify-between px-6 sticky top-0 bg-[#0a0a0c]/90 backdrop-blur-lg z-40 border-b border-white/5">
-                        <h2 className="text-2xl font-black italic text-purple-500 tracking-tighter">KChat</h2>
-                        <i className="bi bi-chat-dots text-xl text-slate-400"></i>
+                        <h2 className="text-2xl font-black italic text-purple-500 tracking-tighter cursor-pointer" onClick={() => setView('feed')}>KChat</h2>
+                        <button onClick={() => setView('chats')} className="relative">
+                            <i className="bi bi-chat-dots text-xl text-slate-400"></i>
+                        </button>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto pb-28">
+                    <main className="flex-1 overflow-y-auto pb-28 hide-scrollbar">
                         {view === 'feed' && (
                             <div className="p-4 space-y-6 fade-in">
+                                {posts.length === 0 && <p className="text-center text-slate-600 mt-20">Nenhuma publicação ainda...</p>}
                                 {posts.map(p => (
                                     <div key={p.id} className="bg-[#111118] rounded-[2.5rem] border border-white/5 overflow-hidden shadow-xl">
                                         <div className="p-4 flex items-center gap-3">
-                                            <img src={p.avatar} className="w-8 h-8 rounded-full" />
+                                            <img src={p.avatar} className="w-8 h-8 rounded-full object-cover" />
                                             <span className="font-bold text-[10px] uppercase tracking-widest">{p.user}</span>
                                         </div>
-                                        <img src={p.img} onClick={() => {setSelectedPost(p); setView('post_detail')}} className="w-full aspect-square object-cover" />
+                                        <img src={p.img} onClick={() => {setSelectedPost(p); setView('post_detail')}} className="w-full aspect-square object-cover cursor-pointer" />
                                         <div className="p-5 flex justify-between items-center">
-                                            <div className="flex gap-4"><i className="bi bi-heart-fill text-purple-500"></i><i className="bi bi-chat"></i></div>
+                                            <div className="flex gap-4">
+                                                <button onClick={() => handleLike(p.id)}><i className="bi bi-heart-fill text-purple-500"></i></button>
+                                                <i className="bi bi-chat" onClick={() => {setSelectedPost(p); setView('post_detail')}}></i>
+                                            </div>
                                             <span className="text-[10px] font-black text-slate-600 uppercase">{p.likes || 0} Curtidas</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        )}
+
+                        {view === 'post_detail' && selectedPost && (
+                            <div className="fade-in p-4">
+                                <button onClick={() => setView('feed')} className="mb-4 text-purple-400 font-bold uppercase text-xs"><i className="bi bi-arrow-left"></i> Voltar</button>
+                                <div className="bg-[#111118] rounded-[2.5rem] overflow-hidden border border-white/5">
+                                    <img src={selectedPost.img} className="w-full object-contain bg-black" />
+                                    <div className="p-6">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <img src={selectedPost.avatar} className="w-10 h-10 rounded-full" />
+                                            <p className="font-bold">@{selectedPost.user}</p>
+                                        </div>
+                                        <p className="text-slate-300 text-sm leading-relaxed mb-4">{selectedPost.text}</p>
+                                        <div className="text-[10px] text-slate-600 uppercase font-bold">{selectedPost.likes} Curtidas • Postado agora</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'chats' && <ChatList users={dbUsers} currentUser={user} onSelect={(u) => {setSelectedUser(u); setView('chat_room')}} />}
+                        
+                        {view === 'chat_room' && selectedUser && (
+                            <ChatRoom 
+                                partner={selectedUser} 
+                                me={user} 
+                                onBack={() => setView('chats')} 
+                                messages={messages} 
+                                setMessages={(m) => {setMessages(m); localStorage.setItem('kchat_messages', JSON.stringify(m))}}
+                            />
                         )}
 
                         {view === 'search' && (
@@ -102,7 +148,7 @@
                                 <div className="space-y-4">
                                     {dbUsers.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()) && u.id !== user.id).map(u => (
                                         <div key={u.id} onClick={() => {setSelectedUser(u); setView('other_profile')}} className="flex items-center gap-4 bg-[#111118] p-4 rounded-3xl border border-white/5 active:scale-95 transition cursor-pointer">
-                                            <img src={u.avatar} className="w-12 h-12 rounded-full border border-purple-500/30" />
+                                            <img src={u.avatar} className="w-12 h-12 rounded-full border border-purple-500/30 object-cover" />
                                             <div className="flex-1"><p className="font-bold text-sm">@{u.name}</p><p className="text-[10px] text-slate-500 uppercase">{u.gender}</p></div>
                                             <i className="bi bi-chevron-right text-slate-700"></i>
                                         </div>
@@ -114,7 +160,7 @@
                         {view === 'other_profile' && selectedUser && (
                             <div className="fade-in">
                                 <button onClick={() => setView('search')} className="p-4 text-purple-400 text-xs font-bold uppercase"><i className="bi bi-arrow-left"></i> Voltar</button>
-                                <ProfileCard profile={selectedUser} isMe={false} posts={posts} />
+                                <ProfileCard profile={selectedUser} isMe={false} posts={posts} onMessage={() => setView('chat_room')} />
                             </div>
                         )}
 
@@ -122,15 +168,14 @@
 
                         {view === 'post' && <CreatePost onDone={(p) => { 
                             const newPosts = [p, ...posts]; setPosts(newPosts);
-                            localStorage.setItem('kchat_posts', JSON.stringify(newPosts));
                             setView('feed');
                         }} user={user} />}
                     </main>
 
                     <nav className="fixed bottom-0 left-0 right-0 h-20 bg-[#0a0a0c]/95 backdrop-blur-xl border-t border-white/5 flex items-center justify-around z-50 max-w-lg mx-auto rounded-t-[2.5rem]">
                         <button onClick={() => setView('feed')} className={`p-4 ${view==='feed'?'text-purple-500':'text-slate-600'}`}><i className="bi bi-house-door-fill text-xl"></i></button>
-                        <button onClick={() => setView('post')} className={`p-4 ${view==='post'?'text-white':'text-slate-600'}`}><i className="bi bi-plus-square-fill text-xl"></i></button>
                         <button onClick={() => setView('search')} className={`p-4 ${view==='search'?'text-white':'text-slate-600'}`}><i className="bi bi-search text-xl"></i></button>
+                        <button onClick={() => setView('post')} className={`p-4 ${view==='post'?'text-white':'text-slate-600'}`}><i className="bi bi-plus-square-fill text-xl"></i></button>
                         <button onClick={() => setView('profile')} className={`p-4 ${view==='profile'?'text-purple-500':'text-slate-600'}`}><i className="bi bi-person-circle text-xl"></i></button>
                     </nav>
                 </div>
@@ -147,6 +192,16 @@
             const [gender, setGender] = useState('Masculino');
             const [avatar, setAvatar] = useState('https://api.dicebear.com/8.x/notionists/svg?seed=Izis');
 
+            const validateStep1 = () => {
+                if(!name || !pass) return alert("Preencha usuário e senha!");
+                setStep(2);
+            }
+
+            const validateFinal = () => {
+                if(!age) return alert("Por favor, informe sua idade.");
+                onRegister({id: Date.now(), name, pass, age, gender, avatar, bio: 'Novo no KChat'});
+            }
+
             if (mode === 'login') return (
                 <div className="space-y-4 fade-in">
                     <input placeholder="Usuário" className="w-full bg-slate-900 p-4 rounded-2xl outline-none" onChange={e => setName(e.target.value)} />
@@ -160,7 +215,7 @@
                 <div className="space-y-4 fade-in">
                     <input placeholder="Defina um Usuário" className="w-full bg-slate-900 p-4 rounded-2xl outline-none" onChange={e => setName(e.target.value)} />
                     <input type="password" placeholder="Defina uma Senha" className="w-full bg-slate-900 p-4 rounded-2xl outline-none" onChange={e => setPass(e.target.value)} />
-                    <button onClick={() => setStep(2)} className="w-full py-4 bg-purple-600 rounded-2xl font-bold">Próximo</button>
+                    <button onClick={validateStep1} className="w-full py-4 bg-purple-600 rounded-2xl font-bold">Próximo</button>
                     <button onClick={onBack} className="text-slate-500 text-xs uppercase">Cancelar</button>
                 </div>
             );
@@ -168,7 +223,7 @@
             return (
                 <div className="space-y-6 fade-in text-left">
                     <div className="flex flex-col items-center">
-                        <img src={avatar} className="w-20 h-20 rounded-full border-2 border-purple-500 mb-2" />
+                        <img src={avatar} className="w-20 h-20 rounded-full border-2 border-purple-500 mb-2 object-cover" />
                         <input type="file" className="hidden" id="reg-img" onChange={e => {
                             const r = new FileReader(); r.onload = () => setAvatar(r.result); r.readAsDataURL(e.target.files[0]);
                         }} />
@@ -183,27 +238,21 @@
                     <div className="space-y-4 bg-slate-900/50 p-4 rounded-3xl border border-white/5">
                         <label className="text-xs font-bold text-slate-500 uppercase block mb-2">Gênero</label>
                         <div className="flex justify-between items-center">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gen" value="Masculino" checked={gender === 'Masculino'} onChange={e => setGender(e.target.value)} />
-                                <span className="text-xl">♂</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gen" value="Feminino" checked={gender === 'Feminino'} onChange={e => setGender(e.target.value)} />
-                                <span className="text-xl">♀</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gen" value="Não-binário" checked={gender === 'Não-binário'} onChange={e => setGender(e.target.value)} />
-                                <span className="text-xl">⚧</span>
-                            </label>
+                            {['Masculino', 'Feminino', 'Não-binário'].map(g => (
+                                <label key={g} className="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="gen" value={g} checked={gender === g} onChange={e => setGender(e.target.value)} />
+                                    <span className="text-sm">{g === 'Masculino' ? '♂' : g === 'Feminino' ? '♀' : '⚧'}</span>
+                                </label>
+                            ))}
                         </div>
                     </div>
 
-                    <button onClick={() => onRegister({id: Date.now(), name, pass, age, gender, avatar, bio: 'Novo no KChat'})} className="w-full py-4 bg-purple-600 rounded-2xl font-bold uppercase tracking-widest text-xs">Concluir</button>
+                    <button onClick={validateFinal} className="w-full py-4 bg-purple-600 rounded-2xl font-bold uppercase tracking-widest text-xs">Concluir</button>
                 </div>
             );
         }
 
-        function ProfileCard({ profile, isMe, posts, onLogout }) {
+        function ProfileCard({ profile, isMe, posts, onLogout, onMessage }) {
             const myPosts = posts.filter(p => p.user === profile.name);
             return (
                 <div className="fade-in">
@@ -212,7 +261,12 @@
                         <h2 className="text-2xl font-black uppercase tracking-tighter italic">{profile.name}</h2>
                         <p className="text-purple-400 text-[10px] font-black uppercase tracking-widest mt-1 mb-4">{profile.gender} • {profile.age} anos</p>
                         <p className="text-slate-500 text-xs italic px-10 text-center">"{profile.bio}"</p>
-                        {!isMe && <button className="mt-6 px-12 py-3 bg-purple-600 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition">Seguir</button>}
+                        {!isMe && (
+                            <div className="flex gap-2 mt-6">
+                                <button className="px-8 py-3 bg-purple-600 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition">Seguir</button>
+                                <button onClick={onMessage} className="px-8 py-3 bg-slate-800 rounded-full font-black text-[10px] uppercase tracking-widest active:scale-95 transition">Mensagem</button>
+                            </div>
+                        )}
                         {isMe && <button onClick={onLogout} className="mt-6 text-red-500 text-[10px] font-bold uppercase border border-red-500/20 px-6 py-2 rounded-full">Sair da Conta</button>}
                     </div>
                     <div className="px-4">
@@ -229,9 +283,72 @@
             );
         }
 
+        function ChatList({ users, currentUser, onSelect }) {
+            return (
+                <div className="p-6 fade-in space-y-4">
+                    <h3 className="text-xl font-bold mb-6">Mensagens</h3>
+                    {users.filter(u => u.id !== currentUser.id).map(u => (
+                        <div key={u.id} onClick={() => onSelect(u)} className="flex items-center gap-4 p-4 bg-[#111118] rounded-3xl cursor-pointer">
+                            <img src={u.avatar} className="w-12 h-12 rounded-full object-cover" />
+                            <div>
+                                <p className="font-bold">@{u.name}</p>
+                                <p className="text-[10px] text-slate-500">Clique para conversar</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        function ChatRoom({ partner, me, onBack, messages, setMessages }) {
+            const [text, setText] = useState('');
+            const chatMsgs = messages.filter(m => (m.to === partner.id && m.from === me.id) || (m.from === partner.id && m.to === me.id));
+
+            const send = () => {
+                if(!text.trim()) return;
+                const newMsg = { id: Date.now(), from: me.id, to: partner.id, text, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+                setMessages([...messages, newMsg]);
+                setText('');
+            };
+
+            return (
+                <div className="flex flex-col h-[80vh] fade-in">
+                    <div className="p-4 border-b border-white/5 flex items-center gap-4">
+                        <button onClick={onBack}><i className="bi bi-arrow-left"></i></button>
+                        <img src={partner.avatar} className="w-8 h-8 rounded-full" />
+                        <p className="font-bold">@{partner.name}</p>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+                        {chatMsgs.map(m => (
+                            <div key={m.id} className={`flex ${m.from === me.id ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${m.from === me.id ? 'bg-purple-600 rounded-tr-none' : 'bg-slate-800 rounded-tl-none'}`}>
+                                    {m.text}
+                                    <p className="text-[8px] opacity-50 mt-1 text-right">{m.time}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-4 bg-[#0a0a0c] flex gap-2">
+                        <input value={text} onChange={e => setText(e.target.value)} placeholder="Mensagem..." className="flex-1 bg-slate-900 p-3 rounded-xl outline-none" onKeyPress={e => e.key === 'Enter' && send()} />
+                        <button onClick={send} className="bg-purple-600 w-12 h-12 rounded-xl"><i className="bi bi-send-fill"></i></button>
+                    </div>
+                </div>
+            );
+        }
+
         function CreatePost({ onDone, user }) {
             const [img, setImg] = useState(null);
             const [text, setText] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handlePublish = () => {
+                if(!img || !text) return alert("Adicione uma foto e uma legenda!");
+                setLoading(true);
+                setTimeout(() => {
+                    onDone({id: Date.now(), user: user.name, avatar: user.avatar, img, text, likes: 0});
+                }, 500);
+            };
+
             return (
                 <div className="p-6 space-y-6 fade-in">
                     <h2 className="text-xl font-black uppercase italic tracking-widest text-slate-500">Novo Momento</h2>
@@ -240,7 +357,9 @@
                         <input type="file" className="hidden" onChange={e => { const r = new FileReader(); r.onload = () => setImg(r.result); r.readAsDataURL(e.target.files[0]); }} />
                     </label>
                     <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Legenda..." className="w-full bg-transparent border-b border-white/10 p-4 outline-none h-24 text-sm resize-none" />
-                    <button onClick={() => img && onDone({id: Date.now(), user: user.name, avatar: user.avatar, img, text, likes: 0})} className="w-full py-5 bg-purple-600 rounded-2xl font-black uppercase text-xs tracking-widest">Publicar Agora</button>
+                    <button onClick={handlePublish} disabled={loading} className="w-full py-5 bg-purple-600 rounded-2xl font-black uppercase text-xs tracking-widest">
+                        {loading ? 'Publicando...' : 'Publicar Agora'}
+                    </button>
                 </div>
             );
         }
