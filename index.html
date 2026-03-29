@@ -3,194 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KChat PRO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --p: #8a2be2; --bg: #050508; --c: rgba(255,255,255,0.05); --b: rgba(255,255,255,0.1); }
-        * { box-sizing: border-box; font-family: sans-serif; transition: 0.2s; }
-        body { margin: 0; background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* AUTH */
-        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-        .card { background: var(--c); padding: 30px; border-radius: 30px; border: 1px solid var(--b); width: 100%; max-width: 350px; text-align: center; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; }
-        .tab { flex: 1; padding: 10px; cursor: pointer; border-radius: 10px; opacity: 0.5; font-weight: bold; }
-        .tab.active { background: white; color: black; opacity: 1; }
-        
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--b); background: rgba(255,255,255,0.05); color: white; outline: none; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--p); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn:hover { filter: brightness(1.2); }
-        
-        /* GENDER & PHOTO */
-        .step2 { display: none; margin-top: 10px; border-top: 1px solid var(--b); padding-top: 10px; }
-        .gen-box { display: flex; justify-content: center; gap: 15px; margin: 15px 0; }
-        .gi { font-size: 1.5rem; cursor: pointer; opacity: 0.3; padding: 10px; border: 1px solid var(--b); border-radius: 50%; }
-        .gi.sel { opacity: 1; color: var(--p); border-color: var(--p); }
-        #up-area { border: 2px dashed var(--b); padding: 10px; border-radius: 15px; cursor: pointer; margin-bottom: 10px; }
-        #pre-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; display: none; margin: 5px auto; }
-
-        /* APP */
-        #app { display: none; flex-direction: column; height: 100vh; }
-        header { padding: 15px; border-bottom: 1px solid var(--b); display: flex; justify-content: space-between; align-items: center; }
-        #feed { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; }
-        .post { background: var(--c); padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--b); }
-        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,15,20,0.9); padding: 10px 30px; border-radius: 25px; display: flex; gap: 40px; border: 1px solid var(--b); }
-        nav i { font-size: 1.5rem; cursor: pointer; opacity: 0.5; }
-        nav i.active { opacity: 1; color: var(--p); }
-    </style>
+    <title>K. App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="card">
-            <h2 id="title">KChat Login</h2>
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <h1 class="logo-k">K<span>.</span></h1>
             <div class="tabs">
-                <div class="tab active" id="t-login" onclick="toggleMode('login')">Entrar</div>
-                <div class="tab" id="t-reg" onclick="toggleMode('reg')">Registrar</div>
+                <button id="tab-login" class="active" onclick="switchAuth('login')">Login</button>
+                <button id="tab-register" onclick="switchAuth('register')">Registrar</button>
             </div>
-
-            <div id="box-1">
-                <input type="text" id="u-name" placeholder="Usuário">
-                <input type="password" id="u-pass" placeholder="Senha">
-            </div>
-
-            <div id="box-2" class="step2">
-                <p style="font-size: 0.8rem; color: #aaa;">Nome disponível! Complete seu perfil:</p>
-                <input type="number" id="u-age" placeholder="Idade">
-                <div class="gen-box">
-                    <i class="fas fa-mars gi" onclick="setG(this, 'M')"></i>
-                    <i class="fas fa-venus gi" onclick="setG(this, 'F')"></i>
-                </div>
-                <div id="up-area" onclick="document.getElementById('f-in').click()">
-                    <small>Clique para foto</small>
-                    <input type="file" id="f-in" hidden accept="image/*" onchange="hImg()">
-                    <img id="pre-img">
-                </div>
-            </div>
-
-            <button class="btn" id="main-btn" onclick="handle()">ENTRAR</button>
+            
+            <form id="auth-form">
+                <input type="text" id="username" placeholder="Nome de usuário" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit" id="auth-submit">Entrar</button>
+            </form>
+            <p id="auth-msg"></p>
         </div>
     </div>
 
-    <div id="app">
-        <header>
-            <b style="color:var(--p)">KCHAT</b>
-            <span id="user-display"></span>
-            <i class="fas fa-sign-out-alt" onclick="location.reload()" style="cursor:pointer"></i>
+    <div id="profile-screen" class="screen">
+        <div class="auth-container">
+            <h2>Complete seu Perfil</h2>
+            <div class="profile-upload">
+                <label for="pfp-input">Escolher Foto de Perfil</label>
+                <input type="file" id="pfp-input" accept="image/*">
+            </div>
+            <input type="number" id="age-input" placeholder="Sua idade">
+            
+            <div class="gender-selection">
+                <p>Gênero:</p>
+                <label><input type="radio" name="gender" value="masc"> ♂️</label>
+                <label><input type="radio" name="gender" value="fem"> ♀️</label>
+                <label><input type="radio" name="gender" value="outro"> ⚧️</label>
+            </div>
+            <button onclick="finishProfile()">Continuar</button>
+        </div>
+    </div>
+
+    <div id="main-screen" class="screen">
+        <header class="top-bar">
+            <span class="logo-small">K.</span>
+            <div class="search-container">
+                <i class="fa fa-search"></i>
+                <input type="text" placeholder="Teste">
+            </div>
         </header>
-        <div id="feed"></div>
-        <nav>
-            <i class="fas fa-home active"></i>
-            <i class="fas fa-plus-circle" onclick="addP()"></i>
-            <i class="fas fa-user" onclick="alert('Bio: ' + logado.bio)"></i>
+
+        <main class="content">
+            <div class="feed-header">
+                <h1>Global Feed</h1>
+                <i class="fa-solid fa-arrows-rotate refresh-icon"></i>
+            </div>
+            </main>
+
+        <nav class="bottom-nav">
+            <div class="nav-container">
+                <div class="nav-item active-nav"><i class="fa-solid fa-compass"></i></div>
+                <div class="plus-btn"><i class="fa-solid fa-plus"></i></div>
+                <div class="nav-item"><i class="fa-solid fa-robot"></i></div>
+            </div>
         </nav>
     </div>
 
-    <script>
-        let mode = 'login';
-        let gen = '';
-        let pic = '';
-        let logado = null;
-        let pendente = null;
-
-        // Inicializar Banco de Dados Limpo
-        let users = JSON.parse(localStorage.getItem('k_users')) || [];
-        let posts = JSON.parse(localStorage.getItem('k_posts')) || [];
-
-        function toggleMode(m) {
-            mode = m;
-            pendente = null;
-            document.getElementById('box-1').style.display = 'block';
-            document.getElementById('box-2').style.display = 'none';
-            document.getElementById('t-login').className = m === 'login' ? 'tab active' : 'tab';
-            document.getElementById('t-reg').className = m === 'reg' ? 'tab active' : 'tab';
-            document.getElementById('main-btn').innerText = m === 'login' ? 'ENTRAR' : 'VERIFICAR NOME';
-            document.getElementById('title').innerText = m === 'login' ? 'KChat Login' : 'KChat Registro';
-        }
-
-        function hImg() {
-            const file = document.getElementById('f-in').files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                pic = e.target.result;
-                const img = document.getElementById('pre-img');
-                img.src = pic; img.style.display = 'block';
-            };
-            if(file) reader.readAsDataURL(file);
-        }
-
-        function setG(el, g) {
-            gen = g;
-            document.querySelectorAll('.gi').forEach(i => i.classList.remove('sel'));
-            el.classList.add('sel');
-        }
-
-        function handle() {
-            const u = document.getElementById('u-name').value.trim();
-            const p = document.getElementById('u-pass').value.trim();
-
-            if(!u || !p) return alert("Preencha os campos!");
-
-            if(mode === 'login') {
-                // Lógica de Login Rigorosa
-                const f = users.find(x => x.u.toLowerCase() === u.toLowerCase());
-                if(!f) return alert("Este usuário não existe. Registre-se primeiro!");
-                if(f.p !== p) return alert("Senha incorreta!");
-                
-                logado = f;
-                start();
-            } else {
-                // Lógica de Registro em 2 Etapas
-                if(!pendente) {
-                    if(users.some(x => x.u.toLowerCase() === u.toLowerCase())) return alert("Nome já em uso!");
-                    pendente = { u, p };
-                    document.getElementById('box-1').style.display = 'none';
-                    document.getElementById('box-2').style.display = 'block';
-                    document.getElementById('main-btn').innerText = "CONCLUIR CONTA";
-                } else {
-                    const age = document.getElementById('u-age').value;
-                    if(!age || !gen) return alert("Preencha idade e gênero!");
-                    
-                    users.push({ 
-                        u: pendente.u, p: pendente.p, age, gen, 
-                        pic: pic || 'https://api.dicebear.com/7.x/avataaars/svg?seed='+pendente.u,
-                        bio: 'Explorando o chat!' 
-                    });
-                    localStorage.setItem('k_users', JSON.stringify(users));
-                    alert("Conta criada! Agora faça login.");
-                    toggleMode('login');
-                }
-            }
-        }
-
-        function start() {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            document.getElementById('user-display').innerText = "@" + logado.u;
-            render();
-        }
-
-        function addP() {
-            const t = prompt("O que deseja postar?");
-            if(t) {
-                posts.push({ u: logado.u, t: t, pic: logado.pic });
-                localStorage.setItem('k_posts', JSON.stringify(posts));
-                render();
-            }
-        }
-
-        function render() {
-            const div = document.getElementById('feed');
-            div.innerHTML = posts.slice().reverse().map(p => `
-                <div class="post">
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                        <img src="${p.pic}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
-                        <b>@${p.u}</b>
-                    </div>
-                    <p style="margin:0; opacity:0.8;">${p.t}</p>
-                </div>
-            `).join('');
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
