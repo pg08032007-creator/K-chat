@@ -23,7 +23,7 @@
         .tabs button.active { color: #fff; border-bottom: 2px solid var(--primary); }
         form { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 15px; }
 
-        /* --- TELA 2: COMPLETAR PERFIL (image_3.png) --- */
+        /* --- TELA 2: COMPLETAR PERFIL --- */
         .pfp-wrapper { position: relative; width: 120px; height: 120px; margin: 30px 0; }
         #pfp-preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); background: #222; }
         .pfp-label { position: absolute; bottom: 0; right: 0; background: var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -33,7 +33,7 @@
         .gender-option input { width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer; }
         .gender-option i { font-size: 1.8rem; margin-bottom: 5px; }
 
-        /* --- TELA 3: FEED GLOBAL (image_0.png) --- */
+        /* --- TELA 3: FEED GLOBAL --- */
         .top-bar { position: sticky; top: 0; background: var(--bg); display: flex; align-items: center; padding: 15px; gap: 15px; z-index: 10; border-bottom: 1px solid #111; }
         .top-bar-logo { color: var(--primary); font-weight: 800; font-size: 26px; }
         .search-container { background: #121212; flex: 1; display: flex; align-items: center; padding: 10px 15px; border-radius: 12px; border: 1px solid #1a1a1a; }
@@ -64,7 +64,7 @@
         .nav-item.active { color: #fff; text-shadow: 0 0 10px #fff; }
         .plus-btn { background: var(--accent); width: 65px; height: 65px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fff; margin-top: -15px; box-shadow: 0 8px 20px rgba(192, 38, 211, 0.4); cursor: pointer; }
 
-        /* --- MODAIS (NOVO POST / EDIÇÃO) --- */
+        /* --- MODAIS --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal.active { display: flex; }
         .modal-content { background: #111; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px; border: 1px solid #222; }
@@ -170,7 +170,6 @@
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, onSnapshot, doc, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // SUA CONFIGURAÇÃO DO FIREBASE (image_1.png)
         const firebaseConfig = {
             apiKey: "AIzaSyDPlWGrAgR6wvMilamQ1Z83nAhXJAaRHD0",
             authDomain: "kchat-1debf.firebaseapp.com",
@@ -201,7 +200,7 @@
         window.openModal = (id) => document.getElementById(id).classList.add('active');
         window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-        // --- LOGICA DE AUTH (LOGIN/REGISTRO) ---
+        // --- LOGICA DE AUTH ---
         window.switchAuth = (m) => {
             authMode = m;
             document.getElementById('tab-login').classList.toggle('active', m === 'login');
@@ -229,7 +228,7 @@
             }
         };
 
-        // --- LOGICA DE FOTO E PERFIL (image_3.png) ---
+        // --- LOGICA DE PERFIL (CORRIGIDA) ---
         document.getElementById('pfp-input').onchange = e => {
             const reader = new FileReader();
             reader.onload = () => document.getElementById('pfp-preview').src = reader.result;
@@ -248,17 +247,23 @@
             btn.disabled = true;
 
             try {
+                // CORREÇÃO: Faz o upload primeiro e espera a URL
                 if(file) {
-                    const sRef = ref(storage, `pfps/${currentUser.name}`);
-                    await uploadBytes(sRef, file);
-                    currentUser.pfp = await getDownloadURL(sRef);
+                    const fileName = `${Date.now()}_${currentUser.name}`;
+                    const sRef = ref(storage, `pfps/${fileName}`);
+                    const uploadTask = await uploadBytes(sRef, file);
+                    currentUser.pfp = await getDownloadURL(uploadTask.ref);
                 }
+                
                 currentUser.age = age;
                 currentUser.gender = gender;
+                
+                // Salva no Firestore após garantir a URL da imagem
                 await setDoc(doc(db, "users", currentUser.name), currentUser);
                 loginSuccess();
             } catch (e) {
-                alert("Erro ao salvar perfil. Verifique as regras do Firebase.");
+                console.error(e);
+                alert("Erro ao salvar perfil. Certifique-se de que as Regras do Storage no Firebase permitem escrita pública.");
                 btn.innerText = "Criar Conta";
                 btn.disabled = false;
             }
@@ -275,7 +280,7 @@
             document.getElementById('my-bio').innerText = currentUser.bio;
         }
 
-        // --- LOGICA DE POSTAGEM E FEED (image_0.png) ---
+        // --- LOGICA DE POSTAGEM E FEED ---
         window.openPostModal = () => openModal('modal-post');
 
         document.getElementById('btn-submit-post').onclick = async () => {
@@ -289,28 +294,33 @@
             btn.innerText = "Postando...";
             btn.disabled = true;
 
-            if(file) {
-                const sRef = ref(storage, `posts/${Date.now()}_${currentUser.name}`);
-                await uploadBytes(sRef, file);
-                mediaUrl = await getDownloadURL(sRef);
+            try {
+                if(file) {
+                    const sRef = ref(storage, `posts/${Date.now()}_${currentUser.name}`);
+                    const uploadRes = await uploadBytes(sRef, file);
+                    mediaUrl = await getDownloadURL(uploadRes.ref);
+                }
+
+                await addDoc(collection(db, "posts"), {
+                    user: currentUser.name,
+                    pfp: currentUser.pfp,
+                    text: text,
+                    media: mediaUrl,
+                    time: Date.now(),
+                    likes: 0
+                });
+
+                closeModal('modal-post');
+                document.getElementById('post-text').value = "";
+                document.getElementById('post-media').value = "";
+            } catch (e) {
+                alert("Erro ao postar.");
+            } finally {
+                btn.innerText = "Publicar";
+                btn.disabled = false;
             }
-
-            await addDoc(collection(db, "posts"), {
-                user: currentUser.name,
-                pfp: currentUser.pfp,
-                text: text,
-                media: mediaUrl,
-                time: Date.now(),
-                likes: 0
-            });
-
-            closeModal('modal-post');
-            document.getElementById('post-text').value = "";
-            btn.innerText = "Publicar";
-            btn.disabled = false;
         };
 
-        // SINCRONIZAÇÃO EM TEMPO REAL DO FEED
         function loadPosts() {
             isFeedLoaded = true;
             const q = query(collection(db, "posts"), orderBy("time", "desc"));
@@ -319,6 +329,7 @@
                 container.innerHTML = "";
                 snap.forEach(d => {
                     const p = d.data();
+                    const isVideo = p.media && p.media.includes('.mp4'); // Simples checagem
                     container.innerHTML += `
                         <div class="post-card">
                             <div class="post-user">
@@ -326,14 +337,13 @@
                                 <b>${p.user}</b>
                             </div>
                             ${p.text ? `<div class="post-content">${p.text}</div>` : ''}
-                            ${p.media ? (p.media.includes('video') ? `<video src="${p.media}" class="post-media" controls></video>` : `<img src="${p.media}" class="post-media">`) : ''}
+                            ${p.media ? (isVideo ? `<video src="${p.media}" class="post-media" controls></video>` : `<img src="${p.media}" class="post-media">`) : ''}
                         </div>
                     `;
                 });
             });
         }
 
-        // --- LOGICA DE EDIÇÃO DE PERFIL ---
         window.openEditProfile = () => {
             openModal('modal-edit');
             document.getElementById('edit-name').value = currentUser.name;
@@ -343,15 +353,8 @@
         document.getElementById('btn-save-edit').onclick = async () => {
             const newName = document.getElementById('edit-name').value.trim();
             const newBio = document.getElementById('edit-bio').value;
-
             if(!newName) return alert("O nome não pode ser vazio!");
-
-            // Atualiza no Firebase
-            await updateDoc(doc(db, "users", currentUser.name), {
-                name: newName,
-                bio: newBio
-            });
-
+            await updateDoc(doc(db, "users", currentUser.name), { name: newName, bio: newBio });
             currentUser.name = newName;
             currentUser.bio = newBio;
             loadMyProfile();
