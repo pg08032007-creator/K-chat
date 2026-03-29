@@ -3,171 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>k.chat - Versão Definitiva</title>
+    <title>k.chat - Premium Alpha</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --text-dim: #a1a1aa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+        
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
 
-        /* Inputs e Botões */
+        /* Estilos de Input e Botão Premium */
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 15px; border: 1px solid #1f1f23; display: flex; align-items: center; margin-bottom: 15px; }
         .custom-input-group input, .custom-input-group textarea { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; flex: 1; }
-        .btn-premium { width: 100%; padding: 16px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
+        .btn-premium { width: 100%; padding: 16px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; transition: 0.3s; }
 
         /* Avatares Carrossel */
-        .avatar-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; }
-        .avatar-opt { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; }
+        .avatar-carousel { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; }
+        .avatar-opt { width: 65px; height: 65px; border-radius: 50%; border: 3px solid transparent; flex-shrink: 0; cursor: pointer; transition: 0.2s; }
         .avatar-opt.selected { border-color: var(--accent-pink); transform: scale(1.1); }
 
-        /* Perfil Estilo Instagram */
-        .p-header { padding: 20px; position: relative; }
-        .edit-pen { position: absolute; top: 20px; right: 20px; font-size: 20px; color: #666; cursor: pointer; }
+        /* Perfil Estilo Insta */
+        .p-header { padding: 25px 20px; position: relative; }
+        .edit-pen { position: absolute; top: 25px; right: 25px; font-size: 18px; color: var(--text-dim); cursor: pointer; }
         .p-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
-        .p-stats { display: flex; gap: 15px; text-align: center; flex: 1; justify-content: center; }
+        .p-stats { display: flex; gap: 20px; text-align: center; flex: 1; justify-content: center; }
         .p-stats b { display: block; font-size: 18px; }
-        .p-stats span { font-size: 11px; color: #666; }
+        .p-stats span { font-size: 12px; color: var(--text-dim); }
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-        .grid-item { aspect-ratio: 1/1; background: #1a1a1e; overflow: hidden; }
-        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .grid-item { aspect-ratio: 1/1; background: #1a1a1e; overflow: hidden; position: relative; }
+        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Feed e Cards */
+        /* Chat Estilo Moderno */
+        .chat-tabs { display: flex; background: #111; margin: 10px; border-radius: 12px; padding: 5px; }
+        .chat-tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; color: #555; font-size: 14px; font-weight: 700; transition: 0.3s; }
+        .chat-tab.active { background: var(--bg-card); color: var(--accent-pink); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        #chat-render { height: calc(100vh - 250px); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 14px; position: relative; }
+        .msg.me { align-self: flex-end; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; border-bottom-right-radius: 4px; }
+        .msg.other { align-self: flex-start; background: #1f1f23; color: white; border-bottom-left-radius: 4px; }
+        .msg-info { font-size: 10px; opacity: 0.7; margin-bottom: 4px; display: block; }
+
+        /* Feed e Ações */
         .post-card { background: var(--bg-card); border-radius: 20px; margin: 15px; border: 1px solid #1f1f23; overflow: hidden; }
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .post-actions { padding: 12px; display: flex; gap: 20px; border-top: 1px solid #1a1a1e; }
-        .post-actions i { cursor: pointer; font-size: 20px; }
+        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; }
+        .post-actions { padding: 15px; display: flex; gap: 20px; font-size: 20px; border-top: 1px solid #1a1a1e; }
+        .post-actions span { font-size: 14px; margin-left: -15px; color: var(--text-dim); }
 
-        /* Chat */
-        .chat-tabs { display: flex; border-bottom: 1px solid #222; }
-        .chat-tab { flex: 1; text-align: center; padding: 15px; cursor: pointer; color: #555; font-weight: bold; }
-        .chat-tab.active { color: var(--accent-pink); border-bottom: 2px solid var(--accent-pink); }
+        /* Barra Navegação */
+        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; background: rgba(15, 15, 18, 0.95); border-radius: 30px; display: flex; justify-content: space-around; padding: 16px; backdrop-filter: blur(20px); border: 1px solid #222; z-index: 1000; }
+        nav i { font-size: 22px; color: #444; cursor: pointer; }
+        nav i.active { color: var(--accent-pink); }
 
         /* Modais */
         .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; align-items: center; justify-content: center; padding: 20px; }
         .modal-content { background: var(--bg-card); width: 100%; max-width: 400px; padding: 25px; border-radius: 25px; border: 1px solid #333; }
-        
-        nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.95); border-radius: 30px; display: flex; justify-content: space-around; padding: 15px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
-        nav i { font-size: 22px; color: #444; }
-        nav i.active { color: var(--accent-pink); }
     </style>
 </head>
 <body>
 
-    <!-- MODAL EDITAR PERFIL (LÁPIS) -->
+    <!-- MODAL EDITAR PERFIL -->
     <div id="modal-edit" class="modal-embed">
         <div class="modal-content">
             <h3>Editar Perfil</h3><br>
-            <div class="custom-input-group"><input type="text" id="edit-name" placeholder="Nome"></div>
-            <div class="custom-input-group"><textarea id="edit-bio" placeholder="Bio..."></textarea></div>
-            <button class="btn-premium" onclick="saveProfile()">Salvar</button>
-            <p onclick="closeModal('modal-edit')" style="text-align:center; margin-top:10px">Cancelar</p>
+            <div class="custom-input-group"><input type="text" id="edit-name" placeholder="Novo Nome de Exibição"></div>
+            <div class="custom-input-group"><textarea id="edit-bio" placeholder="Sua nova bio..."></textarea></div>
+            <button class="btn-premium" onclick="saveProfile()">Salvar Alterações</button>
+            <p onclick="closeModal('modal-edit')" style="text-align:center; margin-top:15px; color:#555">Cancelar</p>
         </div>
     </div>
 
-    <!-- MODAL NOVO POST -->
-    <div id="modal-post" class="modal-embed">
-        <div class="modal-content">
-            <h3>Novo Post</h3><br>
-            <div class="custom-input-group"><textarea id="post-text" placeholder="Legenda..."></textarea></div>
-            <div id="post-preview"></div>
-            <button class="btn-premium" style="background:#222; margin-bottom:10px" onclick="document.getElementById('post-file').click()">Mídia</button>
-            <input type="file" id="post-file" hidden onchange="previewMedia(this)">
-            <button class="btn-premium" onclick="sendPost()">Publicar</button>
-            <p onclick="closeModal('modal-post')" style="text-align:center; margin-top:10px">Fechar</p>
-        </div>
-    </div>
-
-    <!-- TELA DETALHE / COMENTÁRIOS -->
-    <div id="screen-detail" class="screen" style="position:fixed; top:0; width:100%; z-index:4000; background:#000; overflow-y:auto">
-        <div style="padding:15px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
-        <div id="det-media"></div>
-        <div id="det-info" style="padding:15px"></div>
-        <div style="padding:15px">
-            <div class="custom-input-group">
-                <input type="text" id="com-input" placeholder="Comentar...">
-                <i class="fas fa-paper-plane" onclick="sendComment()"></i>
-            </div>
-        </div>
-        <div id="det-comments"></div>
-    </div>
-
-    <!-- TELAS LOGIN / REGISTRO -->
+    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen">
-        <div style="padding:40px; text-align:center">
-            <h1 style="color:var(--accent-pink)">K.</h1><br>
-            <div class="custom-input-group"><input type="text" id="l-user" placeholder="Usuário"></div>
-            <div class="custom-input-group"><input type="password" id="l-pass" placeholder="Senha"></div>
+        <div style="padding:40px; text-align:center; margin-top:50px">
+            <h1 style="font-size:48px; background:linear-gradient(to right, #a855f7, #ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">k.chat</h1>
+            <p style="color:#555; margin-bottom:40px">Premium Social Experience</p>
+            <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="l-user" placeholder="Usuário"></div>
+            <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="l-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="login()">Entrar</button>
-            <p onclick="showScreen('register')" style="margin-top:20px">Registrar-se</p>
+            <p onclick="showScreen('register')" style="margin-top:25px; color:var(--text-dim)">Não tem conta? <span style="color:var(--accent-pink)">Registre-se</span></p>
         </div>
     </div>
 
+    <!-- TELA REGISTRO -->
     <div id="screen-register" class="screen">
-        <div style="padding:40px; text-align:center">
-            <h2>Cadastro</h2><br>
+        <div style="padding:30px; text-align:center">
+            <h2>Criar Conta</h2><br>
+            <div class="avatar-carousel" id="avatar-list">
+                <!-- Gerado via JS -->
+            </div>
             <div class="custom-input-group"><input type="text" id="r-user" placeholder="Usuário"></div>
             <div class="custom-input-group"><input type="password" id="r-pass" placeholder="Senha"></div>
-            <div class="avatar-carousel">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" class="avatar-opt" onclick="selAv(this)">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" class="avatar-opt" onclick="selAv(this)">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" class="avatar-opt" onclick="selAv(this)">
-            </div>
-            <select id="r-gen" class="btn-premium" style="background:#1a1a1e; margin-bottom:10px">
-                <option value="Ele">Gênero: Ele</option>
-                <option value="Ela">Gênero: Ela</option>
-                <option value="Outro">Gênero: Outro</option>
+            <select id="r-gen" class="btn-premium" style="background:#1a1a1e; margin-bottom:15px">
+                <option value="Ele">Ele</option><option value="Ela">Ela</option><option value="Outro">Outro</option>
             </select>
-            <button class="btn-premium" onclick="register()">Criar Conta</button>
+            <button class="btn-premium" onclick="register()">Finalizar Cadastro</button>
         </div>
     </div>
 
-    <!-- FEED -->
+    <!-- TELA FEED -->
     <div id="screen-feed" class="screen">
-        <div style="padding:15px; display:flex; align-items:center; justify-content:space-between">
-            <b style="font-size:24px">k.chat</b>
-            <i class="fas fa-comment-dots" onclick="showScreen('chat')"></i>
-        </div>
-        <div id="feed-list"></div>
+        <header style="padding:15px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:var(--bg-dark); z-index:100">
+            <b style="font-size:24px; letter-spacing:-1px">k.chat</b>
+            <i class="fas fa-paper-plane" onclick="showScreen('chat')" style="font-size:20px"></i>
+        </header>
+        <div id="feed-render"></div>
     </div>
 
-    <!-- CHAT -->
+    <!-- TELA CHAT -->
     <div id="screen-chat" class="screen">
-        <div style="padding:15px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i> <b>Chat</b></div>
+        <header style="padding:15px; border-bottom:1px solid #1a1a1e; display:flex; align-items:center; gap:15px">
+            <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
+            <b>Mensagens</b>
+        </header>
         <div class="chat-tabs">
-            <div class="chat-tab active" onclick="setTab('geral', this)">Geral</div>
-            <div class="chat-tab" onclick="setTab('grupos', this)">Grupos</div>
+            <div class="chat-tab active" onclick="switchChat('geral', this)">Geral</div>
+            <div class="chat-tab" onclick="switchChat('grupos', this)">Grupos</div>
         </div>
-        <div id="chat-content" style="padding:20px; color:#444; text-align:center">Inicie uma conversa.</div>
+        <div id="chat-render"></div>
+        <div style="position:fixed; bottom:100px; width:100%; padding:0 15px">
+            <div class="custom-input-group" style="margin:0; box-shadow:0 10px 30px rgba(0,0,0,0.5)">
+                <input type="text" id="chat-input" placeholder="Mensagem...">
+                <i class="fas fa-paper-plane" style="color:var(--accent-pink)" onclick="sendMessage()"></i>
+            </div>
+        </div>
     </div>
 
-    <!-- PERFIL -->
+    <!-- TELA PERFIL -->
     <div id="screen-profile" class="screen">
         <div class="p-header">
             <i class="fas fa-pencil-alt edit-pen" onclick="openEdit()"></i>
             <div class="p-top">
-                <img id="p-img" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover">
+                <img id="p-img" src="" style="width:85px; height:85px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-purple)">
                 <div class="p-stats">
-                    <div><b id="p-posts">0</b><span>Posts</span></div>
-                    <div><b>0</b><span>Seguidores</span></div>
-                    <div><b>0</b><span>Seguindo</span></div>
+                    <div><b id="p-count">0</b><span>Posts</span></div>
+                    <div><b>1.2k</b><span>Fãs</span></div>
+                    <div><b>450</b><span>Vips</span></div>
                 </div>
             </div>
-            <h3 id="p-name"></h3>
-            <p id="p-gen" style="color:var(--accent-pink); font-size:12px; font-weight:bold"></p>
-            <p id="p-bio" style="color:#aaa; font-size:14px"></p>
-            <button class="btn-premium" onclick="logout()" style="height:35px; background:#222; margin-top:10px">Sair</button>
+            <h3 id="p-name">@user</h3>
+            <p id="p-gen" style="color:var(--accent-pink); font-size:12px; margin:4px 0"></p>
+            <p id="p-bio" style="color:var(--text-dim); font-size:14px; line-height:1.4"></p>
+            <button class="btn-premium" onclick="logout()" style="height:35px; background:#222; margin-top:15px; font-size:12px">Sair da Conta</button>
         </div>
         <div id="p-grid" class="profile-grid"></div>
     </div>
 
+    <!-- BARRA DE NAVEGAÇÃO -->
     <nav id="main-nav" style="display:none">
-        <i class="fas fa-home" onclick="showScreen('feed')"></i>
-        <i class="fas fa-plus-square" onclick="openPost()"></i>
-        <i class="fas fa-user" onclick="showScreen('profile')"></i>
+        <i class="fas fa-home active" onclick="navTo('feed', this)"></i>
+        <i class="fas fa-search" onclick="alert('Busca em breve!')"></i>
+        <i class="fas fa-plus-square" onclick="openPostModal()"></i>
+        <i class="fas fa-heart" onclick="alert('Atividade em breve!')"></i>
+        <i class="fas fa-user" onclick="navTo('profile', this)"></i>
     </nav>
 
     <script>
@@ -183,31 +173,50 @@
         const db = firebase.firestore();
 
         let user = null;
+        let currentChat = 'geral';
         let selAvatar = "";
-        let postMedia = "";
-        let activePost = "";
 
+        // Inicialização e Avatares
         window.onload = () => {
-            const saved = localStorage.getItem('kchat_final');
-            if(saved) { user = JSON.parse(saved); enter(); } else { showScreen('login'); }
+            const list = document.getElementById('avatar-list');
+            for(let i=1; i<=10; i++){
+                const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`;
+                list.innerHTML += `<img src="${url}" class="avatar-opt" onclick="selectAv('${url}', this)">`;
+            }
+            const saved = localStorage.getItem('kchat_premium');
+            if(saved) { user = JSON.parse(saved); enterApp(); } else { showScreen('login'); }
         };
+
+        function selectAv(url, el) {
+            document.querySelectorAll('.avatar-opt').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected'); selAvatar = url;
+        }
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
-            if(id === 'feed') loadFeed();
-            if(id === 'profile') loadProfile(user.user);
+            if(id === 'feed') renderFeed();
+            if(id === 'chat') loadMessages();
+            if(id === 'profile') renderProfile(user.user);
         }
 
-        function enter() { document.getElementById('main-nav').style.display='flex'; showScreen('feed'); }
+        function navTo(screen, el) {
+            document.querySelectorAll('nav i').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            showScreen(screen);
+        }
 
+        // Auth
         async function register() {
             const u = document.getElementById('r-user').value.toLowerCase().trim();
             const p = document.getElementById('r-pass').value;
             const g = document.getElementById('r-gen').value;
-            const data = { user: u, pass: p, gen: g, pic: selAvatar || 'https://via.placeholder.com/150', bio: "Novo aqui!" };
-            await db.collection("usuarios").doc(u).set(data);
-            user = data; localStorage.setItem('kchat_final', JSON.stringify(user)); enter();
+            if(!u || !p || !selAvatar) return alert("Preencha tudo e escolha um avatar!");
+            
+            const userData = { user: u, pass: p, gen: g, pic: selAvatar, bio: "Explorando o k.chat ✨" };
+            await db.collection("usuarios").doc(u).set(userData);
+            user = userData; localStorage.setItem('kchat_premium', JSON.stringify(user));
+            enterApp();
         }
 
         async function login() {
@@ -215,66 +224,62 @@
             const p = document.getElementById('l-pass').value;
             const doc = await db.collection("usuarios").doc(u).get();
             if(doc.exists && doc.data().pass === p) {
-                user = doc.data(); localStorage.setItem('kchat_final', JSON.stringify(user)); enter();
-            }
+                user = doc.data(); localStorage.setItem('kchat_premium', JSON.stringify(user));
+                enterApp();
+            } else { alert("Dados incorretos!"); }
         }
 
-        function loadFeed() {
-            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
-                const list = document.getElementById('feed-list'); list.innerHTML = "";
+        function enterApp() { document.getElementById('main-nav').style.display='flex'; showScreen('feed'); }
+
+        // Chat Realtime
+        function switchChat(t, el) {
+            document.querySelectorAll('.chat-tab').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            currentChat = t; loadMessages();
+        }
+
+        function loadMessages() {
+            db.collection("chats").doc(currentChat).collection("mensagens").orderBy("time", "asc").onSnapshot(snap => {
+                const render = document.getElementById('chat-render');
+                render.innerHTML = "";
                 snap.forEach(doc => {
-                    const p = doc.data();
-                    list.innerHTML += `
-                    <div class="post-card">
-                        <div class="post-header" onclick="loadProfile('${p.author}')">
-                            <img src="${p.authorPic}" style="width:30px; height:30px; border-radius:50%"> <b>@${p.author}</b>
+                    const m = doc.data();
+                    const isMe = m.sender === user.user;
+                    render.innerHTML += `
+                        <div class="msg ${isMe ? 'me' : 'other'}">
+                            <span class="msg-info">@${m.sender}</span>
+                            ${m.text}
                         </div>
-                        <div onclick="openDet('${doc.id}')">${p.media ? `<img src="${p.media}" style="width:100%">` : `<p style="padding:15px">${p.text}</p>`}</div>
-                        <div class="post-actions">
-                            <i class="fas fa-heart" onclick="like('${doc.id}')"></i> <span>${p.likes || 0}</span>
-                            <i class="far fa-comment" onclick="openDet('${doc.id}')"></i>
-                        </div>
-                    </div>`;
+                    `;
                 });
+                render.scrollTop = render.scrollHeight;
             });
         }
 
-        async function openDet(id) {
-            activePost = id;
-            const doc = await db.collection("posts").doc(id).get();
-            const p = doc.data();
-            showScreen('detail');
-            document.getElementById('det-media').innerHTML = p.media ? `<img src="${p.media}" style="width:100%">` : '';
-            document.getElementById('det-info').innerHTML = `<b>@${p.author}</b> <p>${p.text}</p>`;
-            db.collection("posts").doc(id).collection("comentarios").orderBy("time","asc").onSnapshot(snap => {
-                const cL = document.getElementById('det-comments'); cL.innerHTML = "";
-                snap.forEach(c => cL.innerHTML += `<div style="padding:10px; font-size:14px"><b>@${c.data().user}:</b> ${c.data().text}</div>`);
+        async function sendMessage() {
+            const txt = document.getElementById('chat-input').value;
+            if(!txt) return;
+            await db.collection("chats").doc(currentChat).collection("mensagens").add({
+                sender: user.user, text: txt, time: Date.now()
             });
+            document.getElementById('chat-input').value = "";
         }
 
-        async function sendComment() {
-            const val = document.getElementById('com-input').value;
-            if(!val) return;
-            await db.collection("posts").doc(activePost).collection("comentarios").add({ user: user.user, text: val, time: Date.now() });
-            document.getElementById('com-input').value = "";
-        }
-
-        async function like(id) {
-            await db.collection("posts").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
-        }
-
-        async function loadProfile(username) {
+        // Perfil e Posts
+        async function renderProfile(username) {
             const doc = await db.collection("usuarios").doc(username).get();
             const d = doc.data();
-            showScreen('profile');
             document.getElementById('p-img').src = d.pic;
-            document.getElementById('p-name').innerText = "@"+d.user;
+            document.getElementById('p-name').innerText = "@" + d.user;
             document.getElementById('p-bio').innerText = d.bio;
-            document.getElementById('p-gen').innerText = d.gen;
+            document.getElementById('p-gen').innerText = "Gênero: " + d.gen;
+
             const posts = await db.collection("posts").where("author", "==", username).get();
-            document.getElementById('p-posts').innerText = posts.size;
+            document.getElementById('p-count').innerText = posts.size;
             const grid = document.getElementById('p-grid'); grid.innerHTML = "";
-            posts.forEach(p => grid.innerHTML += `<div class="grid-item" onclick="openDet('${p.id}')">${p.data().media ? `<img src="${p.data().media}">` : 'Txt'}</div>`);
+            posts.forEach(p => {
+                grid.innerHTML += `<div class="grid-item">${p.data().media ? `<img src="${p.data().media}">` : `<p style="padding:10px; font-size:10px">${p.data().text}</p>`}</div>`;
+            });
         }
 
         function openEdit() { document.getElementById('modal-edit').style.display='flex'; }
@@ -283,25 +288,39 @@
             const b = document.getElementById('edit-bio').value;
             const up = {}; if(n) up.user = n; if(b) up.bio = b;
             await db.collection("usuarios").doc(user.user).update(up);
-            user = {...user, ...up}; localStorage.setItem('kchat_final', JSON.stringify(user));
+            user = {...user, ...up}; localStorage.setItem('kchat_premium', JSON.stringify(user));
             location.reload();
         }
 
-        function previewMedia(i) {
-            const r = new FileReader(); r.onload = e => { postMedia = e.target.result; document.getElementById('post-preview').innerHTML = `<img src="${postMedia}" style="width:100px">`; };
-            r.readAsDataURL(i.files[0]);
+        function renderFeed() {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+                const list = document.getElementById('feed-render'); list.innerHTML = "";
+                snap.forEach(doc => {
+                    const p = doc.data();
+                    list.innerHTML += `
+                        <div class="post-card">
+                            <div class="post-header" onclick="renderProfile('${p.author}')">
+                                <img src="${p.authorPic}" style="width:32px; height:32px; border-radius:50%">
+                                <b>@${p.author}</b>
+                            </div>
+                            ${p.media ? `<img src="${p.media}" style="width:100%">` : `<p style="padding:20px">${p.text}</p>`}
+                            <div class="post-actions">
+                                <i class="fas fa-heart" onclick="like('${doc.id}')"></i> <span>${p.likes || 0}</span>
+                                <i class="far fa-comment" onclick="alert('Comentários em breve!')"></i>
+                            </div>
+                            <div style="padding:0 15px 15px; font-size:14px"><b>@${p.author}</b> ${p.text}</div>
+                        </div>
+                    `;
+                });
+            });
         }
 
-        async function sendPost() {
-            await db.collection("posts").add({ author: user.user, authorPic: user.pic, text: document.getElementById('post-text').value, media: postMedia, time: Date.now(), likes: 0 });
-            closeModal('modal-post');
+        async function like(id) {
+            await db.collection("posts").doc(id).update({ likes: firebase.firestore.FieldValue.increment(1) });
         }
 
-        function selAv(el) { document.querySelectorAll('.avatar-opt').forEach(i=>i.classList.remove('selected')); el.classList.add('selected'); selAvatar = el.src; }
-        function openPost() { document.getElementById('modal-post').style.display='flex'; }
-        function closeModal(id) { document.getElementById(id).style.display='none'; }
-        function setTab(t, el) { document.querySelectorAll('.chat-tab').forEach(i=>i.classList.remove('active')); el.classList.add('active'); document.getElementById('chat-content').innerText = "Aba "+t; }
         function logout() { localStorage.clear(); location.reload(); }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
     </script>
 </body>
 </html>
