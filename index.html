@@ -11,36 +11,42 @@
     <style>
         :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-main); }
+        body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
+        /* Modais / Embeds */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-content { background: var(--bg-card); width: 100%; max-width: 400px; border-radius: 25px; padding: 25px; border: 1px solid #222; position: relative; }
+        .close-modal { position: absolute; top: 15px; right: 15px; color: #555; cursor: pointer; }
+
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
-        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
+        .custom-input-group input, .custom-input-group textarea { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; font-size: 16px; }
         
-        .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
-        .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
-        .gender-option input { position: absolute; opacity: 0; }
-        .gender-option i { font-size: 24px; color: #444; }
-        .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
-        .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
-
         .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
         
-        /* Feed Header - Restaurado Exatamente */
+        /* Feed Header - Botão Chat e Busca */
         .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        /* Post Card com Status Dot */
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
+        .refresh-area { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #555; }
+
+        /* Post Cards */
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-card); position: absolute; bottom: 0; right: 0; }
-        
-        /* Nav Bar - Ícones Restaurados (Bússola e Astronauta) */
+        .post-media { width: 100%; border-radius: 15px; margin: 10px 0; max-height: 300px; object-fit: cover; }
+        .btn-follow { font-size: 12px; padding: 5px 12px; border-radius: 20px; background: #222; border: 1px solid #444; color: white; }
+
+        /* Profile Styles */
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 15px; }
+        .grid-item { aspect-ratio: 1/1; background: #222; border-radius: 8px; overflow: hidden; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        .edit-profile-btn { position: absolute; top: 20px; right: 20px; background: #222; padding: 10px; border-radius: 50%; color: white; }
+
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
         nav div { cursor: pointer; color: #555; font-size: 18px; }
         .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
@@ -48,6 +54,40 @@
 </head>
 <body>
 
+    <!-- Embed Editar Perfil -->
+    <div id="modal-edit" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="closeModals()"></i>
+            <h3 style="margin-bottom: 20px;">Editar Perfil</h3>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img id="edit-preview" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-purple)">
+                <p style="font-size: 12px; color: var(--accent-pink); margin-top:5px" onclick="document.getElementById('edit-file').click()">Alterar Foto</p>
+                <input type="file" id="edit-file" accept="image/*" style="display:none" onchange="previewEditImage(this)">
+            </div>
+            <div class="custom-input-group" style="margin-bottom: 10px;"><input type="text" id="edit-name" placeholder="Nome de exibição"></div>
+            <div class="custom-input-group" style="margin-bottom: 20px;"><textarea id="edit-bio" placeholder="Sua bio..."></textarea></div>
+            <button class="btn-premium" onclick="saveProfileChanges()">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <!-- Embed Novo Post -->
+    <div id="modal-post" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fas fa-times close-modal" onclick="closeModals()"></i>
+            <h3>Novo Post</h3>
+            <div style="margin: 15px 0;">
+                <div id="media-preview-box" style="width:100%; height:150px; background:#000; border-radius:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <span style="color:#444">Nenhuma mídia</span>
+                </div>
+                <button onclick="document.getElementById('post-file').click()" style="width:100%; margin-top:10px; background:#222; color:white; border:none; padding:10px; border-radius:10px;">Selecionar Galeria</button>
+                <input type="file" id="post-file" accept="image/*,video/*" style="display:none" onchange="previewPostMedia(this)">
+            </div>
+            <div class="custom-input-group"><textarea id="post-text" placeholder="No que está pensando?"></textarea></div>
+            <button class="btn-premium" onclick="handleNewPost()" style="margin-top:15px">Publicar</button>
+        </div>
+    </div>
+
+    <!-- Telas -->
     <div id="screen-login" class="screen active">
         <div class="auth-container">
             <div class="logo-k">K.</div>
@@ -61,27 +101,22 @@
     <div id="screen-register" class="screen">
         <div class="auth-container">
             <div class="logo-k">Cadastro</div>
-            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário"></div>
+            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário" onblur="checkUsernameAvailability(this.value)"></div>
+            <div id="user-warn" style="font-size:12px; color:var(--accent-pink); display:none">Este nome já está em uso!</div>
             <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
-            <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
+            <button class="btn-premium" onclick="goToOnboarding()">Continuar</button>
             <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
         </div>
     </div>
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h2 style="margin-bottom:10px">Seu Perfil</h2>
-            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); position:relative; overflow:hidden; margin:0 auto;" onclick="document.getElementById('file-input').click()">
+            <h2>Seu Perfil</h2>
+            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); overflow:hidden;" onclick="document.getElementById('file-input').click()">
                 <img id="img-preview" src="https://via.placeholder.com/110?text=+" style="width:100%; height:100%; object-fit:cover;">
                 <input type="file" id="file-input" accept="image/*" onchange="processImage(this)" style="display:none">
             </div>
-            <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
-            <div class="gender-selector">
-                <label class="gender-option"><input type="radio" name="gen" value="male" checked><i class="fas fa-mars"></i><span>Ele</span></label>
-                <label class="gender-option"><input type="radio" name="gen" value="female"><i class="fas fa-venus"></i><span>Ela</span></label>
-                <label class="gender-option"><input type="radio" name="gen" value="nb"><i class="fas fa-genderless"></i><span>Neutro</span></label>
-            </div>
             <button class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
     </div>
@@ -89,37 +124,52 @@
     <div id="screen-feed" class="screen">
         <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Buscar usuários..."></div>
-            <i class="fas fa-sync-alt" onclick="listenPosts()" style="color:var(--accent-purple)"></i>
+            <div class="search-bar">
+                <i class="fas fa-search" style="color:#444"></i>
+                <input type="text" id="main-search" placeholder="Buscar usuários ou posts..." oninput="handleSearch(this.value)">
+            </div>
+            <i class="fas fa-comment-dots" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:20px"></i>
         </header>
+        <div class="refresh-area">
+            <span>Explorar</span>
+            <i class="fas fa-sync-alt" onclick="listenPosts()"></i>
+        </div>
         <div id="feed-content"></div>
     </div>
 
     <div id="screen-chat" class="screen">
-        <div style="display:flex; justify-content:space-around; padding:15px; border-bottom:1px solid #222;">
-            <div style="color:var(--accent-pink); border-bottom:2px solid var(--accent-pink)">Geral</div>
-            <div style="color:#555">Grupos</div>
-            <div style="color:#555">Convites</div>
+        <div style="display:flex; justify-content:space-between; padding:20px; border-bottom:1px solid #222;">
+            <i class="fas fa-chevron-left" onclick="showScreen('feed')"></i>
+            <strong>Mensagens</strong>
+            <div></div>
         </div>
-        <div style="padding:50px; text-align:center; color:#555">Mensagens aparecem aqui.</div>
+        <div style="padding:50px; text-align:center; color:#555">Nenhuma conversa iniciada.</div>
     </div>
 
     <div id="screen-profile" class="screen">
-        <div class="auth-container">
-            <div style="position:relative">
-                <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
-                <div onclick="editProfile()" style="position:absolute; bottom:0; right:0; background:#222; padding:8px; border-radius:50%; border:1px solid #444"><i class="fas fa-pencil-alt" style="font-size:12px"></i></div>
-            </div>
+        <div class="auth-container" style="padding-bottom:10px; position:relative;">
+            <div class="edit-profile-btn" onclick="openEditModal()"><i class="fas fa-pencil-alt"></i></div>
+            <img id="my-pic" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
             <h2 id="my-name">@user</h2>
             <p id="my-status" style="color:#777"></p>
-            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:20px">Sair</button>
+            <div style="display:flex; gap:20px; margin-top:10px;">
+                <div style="text-align:center"><strong id="count-posts">0</strong><p style="font-size:12px; color:#555">Posts</p></div>
+                <div style="text-align:center"><strong id="count-following">0</strong><p style="font-size:12px; color:#555">Seguindo</p></div>
+            </div>
+            <button class="btn-premium" onclick="logout()" style="background:#222; height:40px; padding:0 20px; width:auto; margin-top:15px">Sair</button>
         </div>
+        <div class="profile-grid" id="my-posts-grid"></div>
+    </div>
+
+    <!-- Post Detalhado -->
+    <div id="screen-post-detail" class="screen">
+        <div style="padding:15px; border-bottom:1px solid #222" onclick="showScreen('feed')"><i class="fas fa-arrow-left"></i> Voltar</div>
+        <div id="detail-content"></div>
     </div>
 
     <nav id="main-nav" style="display:none">
         <div onclick="showScreen('feed')"><i class="fas fa-compass"></i></div>
-        <div class="plus-fab" onclick="newPost()"><i class="fas fa-plus"></i></div>
-        <div onclick="showScreen('chat')"><i class="fas fa-comment-dots"></i></div>
+        <div class="plus-fab" onclick="openPostModal()"><i class="fas fa-plus"></i></div>
         <div onclick="showScreen('profile')"><i class="fas fa-user-astronaut"></i></div>
     </nav>
 
@@ -137,29 +187,64 @@
         const db = firebase.firestore();
         let currentUser = null;
         let base64Avatar = "";
+        let base64PostMedia = "";
 
-        // FUNÇÃO DE COMPRESSÃO (A única "mudança" para o código não travar)
-        function processImage(input) {
+        // --- SISTEMA DE REGISTRO ---
+        async function checkUsernameAvailability(user) {
+            const u = user.toLowerCase().trim();
+            if(!u) return;
+            const doc = await db.collection("usuarios").doc(u).get();
+            document.getElementById('user-warn').style.display = doc.exists ? 'block' : 'none';
+            return doc.exists;
+        }
+
+        async function goToOnboarding() {
+            const user = document.getElementById('reg-user').value.toLowerCase().trim();
+            const exists = await checkUsernameAvailability(user);
+            if(exists) return alert("Escolha outro nome!");
+            showScreen('onboarding');
+        }
+
+        // --- MODAIS ---
+        function openEditModal() {
+            document.getElementById('edit-name').value = currentUser.user;
+            document.getElementById('edit-bio').value = currentUser.status;
+            document.getElementById('edit-preview').src = currentUser.pic || 'https://via.placeholder.com/80';
+            document.getElementById('modal-edit').style.display = 'flex';
+        }
+
+        function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+
+        // --- MÍDIA ---
+        function previewEditImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.src = e.target.result;
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300;
-                        const scale = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scale;
-                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                        base64Avatar = canvas.toDataURL('image/jpeg', 0.7);
-                        document.getElementById('img-preview').src = base64Avatar;
+                reader.onload = e => {
+                    base64Avatar = e.target.result;
+                    document.getElementById('edit-preview').src = base64Avatar;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function previewPostMedia(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    base64PostMedia = e.target.result;
+                    const box = document.getElementById('media-preview-box');
+                    if(input.files[0].type.includes('video')) {
+                        box.innerHTML = `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop></video>`;
+                    } else {
+                        box.innerHTML = `<img src="${base64PostMedia}" style="width:100%">`;
                     }
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
+        // --- CORE APP ---
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
@@ -169,38 +254,21 @@
         async function handleLogin() {
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
-            try {
-                const doc = await db.collection("usuarios").doc(user).get();
-                if (doc.exists && doc.data().pass === pass) {
-                    currentUser = doc.data();
-                    updateStatus(true);
-                    enterApp();
-                } else { alert("Dados incorretos!"); }
-            } catch(e) { alert("Erro de conexão."); }
+            const doc = await db.collection("usuarios").doc(user).get();
+            if (doc.exists && doc.data().pass === pass) {
+                currentUser = doc.data();
+                enterApp();
+            } else { alert("Dados incorretos!"); }
         }
 
         async function handleRegister() {
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
-            const date = document.getElementById('onb-date').value;
             const status = document.getElementById('onb-status').value || "Disponível";
-            const gen = document.querySelector('input[name="gen"]:checked').value;
-
-            if(!user || !pass || !date) return alert("Preencha todos os campos!");
-
-            try {
-                const check = await db.collection("usuarios").doc(user).get();
-                if(check.exists) return alert("Usuário já existe!");
-
-                const userData = { user, pass, date, status, gen, pic: base64Avatar || "", online: true };
-                await db.collection("usuarios").doc(user).set(userData);
-                currentUser = userData;
-                enterApp();
-            } catch(e) { alert("Erro no registro."); }
-        }
-
-        function updateStatus(isOnline) {
-            if(currentUser) db.collection("usuarios").doc(currentUser.user).update({ online: isOnline });
+            const userData = { user, pass, status, pic: base64Avatar || "", following: [], followers: 0 };
+            await db.collection("usuarios").doc(user).set(userData);
+            currentUser = userData;
+            enterApp();
         }
 
         function enterApp() {
@@ -209,26 +277,34 @@
             listenPosts();
         }
 
-        function listenPosts() {
+        // --- FEED E BUSCA ---
+        function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
                 container.innerHTML = "";
                 snapshot.forEach(doc => {
                     const post = doc.data();
+                    if(filter && !post.content.toLowerCase().includes(filter.toLowerCase()) && !post.author.toLowerCase().includes(filter.toLowerCase())) return;
+                    
                     const liked = post.likes_list && post.likes_list.includes(currentUser.user);
                     container.innerHTML += `
                         <div class="post-card">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
-                                <div style="position:relative">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px">
+                                <div style="display:flex; align-items:center; gap:10px">
                                     <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
-                                    <div class="status-dot" style="background:${post.isOnline ? '#22c55e' : '#444'}"></div>
+                                    <strong>@${post.author}</strong>
                                 </div>
-                                <strong>@${post.author}</strong>
+                                <button class="btn-follow" onclick="toggleFollow('${post.author}')">
+                                    ${currentUser.following.includes(post.author) ? 'Seguindo' : 'Seguir'}
+                                </button>
                             </div>
-                            <p>${post.content}</p>
+                            <div onclick="viewPostDetail('${doc.id}')">
+                                <p>${post.content}</p>
+                                ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" class="post-media" autoplay muted loop></video>` : `<img src="${post.media}" class="post-media">`) : ''}
+                            </div>
                             <div style="display:flex; gap:20px; color:#666; margin-top:10px; font-size:14px;">
                                 <span onclick="toggleLike('${doc.id}')" style="color:${liked ? 'var(--accent-pink)' : ''}"><i class="fas fa-heart"></i> ${post.likes || 0}</span>
-                                <span><i class="fas fa-comment"></i> ${post.comments || 0}</span>
+                                <span onclick="viewPostDetail('${doc.id}')"><i class="fas fa-comment"></i> ${post.comments || 0} Ver mais</span>
                             </div>
                         </div>
                     `;
@@ -236,45 +312,91 @@
             });
         }
 
+        function handleSearch(val) { listenPosts(val); }
+
+        async function toggleFollow(target) {
+            if(target === currentUser.user) return;
+            let list = currentUser.following || [];
+            if(list.includes(target)) { list = list.filter(u => u !== target); }
+            else { list.push(target); }
+            await db.collection("usuarios").doc(currentUser.user).update({ following: list });
+            currentUser.following = list;
+            listenPosts();
+        }
+
+        // --- POSTAGEM ---
+        async function handleNewPost() {
+            const content = document.getElementById('post-text').value;
+            if(!content && !base64PostMedia) return;
+            await db.collection("posts").add({
+                author: currentUser.user, authorPic: currentUser.pic || "",
+                content, media: base64PostMedia, time: Date.now(), likes: 0, likes_list: [], comments: 0
+            });
+            base64PostMedia = "";
+            document.getElementById('post-text').value = "";
+            closeModals();
+        }
+
+        async function viewPostDetail(id) {
+            const doc = await db.collection("posts").doc(id).get();
+            const post = doc.data();
+            showScreen('post-detail');
+            document.getElementById('detail-content').innerHTML = `
+                <div class="post-card">
+                    <strong>@${post.author}</strong>
+                    <p style="margin:10px 0">${post.content}</p>
+                    ${post.media ? `<img src="${post.media}" style="width:100%; border-radius:10px">` : ''}
+                    <hr style="margin:15px 0; border:0; border-top:1px solid #222">
+                    <p style="color:#555">Comentários e curtidas detalhadas aqui...</p>
+                    <div style="font-size:12px; margin-top:10px">Curtido por: ${post.likes_list.join(', ') || 'Ninguém ainda'}</div>
+                </div>
+            `;
+        }
+
+        // --- PERFIL ---
+        async function loadProfile() {
+            document.getElementById('my-pic').src = currentUser.pic || 'https://via.placeholder.com/110';
+            document.getElementById('my-name').innerText = "@" + currentUser.user;
+            document.getElementById('my-status').innerText = currentUser.status;
+            document.getElementById('count-following').innerText = currentUser.following.length;
+
+            const postsSnap = await db.collection("posts").where("author", "==", currentUser.user).get();
+            document.getElementById('count-posts').innerText = postsSnap.size;
+            const grid = document.getElementById('my-posts-grid');
+            grid.innerHTML = "";
+            postsSnap.forEach(doc => {
+                const p = doc.data();
+                grid.innerHTML += `
+                    <div class="grid-item" onclick="viewPostDetail('${doc.id}')">
+                        ${p.media ? (p.media.includes('video') ? `<video src="${p.media}"></video>` : `<img src="${p.media}">`) : `<div style="padding:5px; font-size:10px; color:#444">${p.content}</div>`}
+                    </div>
+                `;
+            });
+        }
+
+        async function saveProfileChanges() {
+            const newBio = document.getElementById('edit-bio').value;
+            const updateData = { status: newBio };
+            if(base64Avatar) updateData.pic = base64Avatar;
+            await db.collection("usuarios").doc(currentUser.user).update(updateData);
+            currentUser.status = newBio;
+            if(base64Avatar) currentUser.pic = base64Avatar;
+            closeModals();
+            loadProfile();
+        }
+
         async function toggleLike(id) {
             const ref = db.collection("posts").doc(id);
             const doc = await ref.get();
             let list = doc.data().likes_list || [];
             let count = doc.data().likes || 0;
-            if(list.includes(currentUser.user)) {
-                list = list.filter(u => u !== currentUser.user); count--;
-            } else {
-                list.push(currentUser.user); count++;
-            }
+            if(list.includes(currentUser.user)) { list = list.filter(u => u !== currentUser.user); count--; }
+            else { list.push(currentUser.user); count++; }
             await ref.update({ likes: count, likes_list: list });
         }
 
-        async function newPost() {
-            const text = prompt("O que quer postar?");
-            if(!text) return;
-            await db.collection("posts").add({
-                author: currentUser.user, authorPic: currentUser.pic || "",
-                content: text, time: Date.now(), likes: 0, likes_list: [], comments: 0, isOnline: true
-            });
-        }
-
-        function loadProfile() {
-            document.getElementById('my-pic').src = currentUser.pic || 'https://via.placeholder.com/110';
-            document.getElementById('my-name').innerText = "@" + currentUser.user;
-            document.getElementById('my-status').innerText = currentUser.status;
-        }
-
-        function editProfile() {
-            const n = prompt("Editar Bio/Status:", currentUser.status);
-            if(n) {
-                db.collection("usuarios").doc(currentUser.user).update({ status: n });
-                currentUser.status = n;
-                loadProfile();
-            }
-        }
-        
-        function logout() { updateStatus(false); location.reload(); }
-        window.onbeforeunload = () => updateStatus(false);
+        function logout() { location.reload(); }
+        function processImage(input) { previewEditImage(input); }
     </script>
 </body>
 </html>
