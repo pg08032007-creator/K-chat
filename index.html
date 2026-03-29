@@ -3,211 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>k.chat</title>
+    <title>k.chat - Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --bg-dark: #000000;
-            --bg-card: #0f0f0f;
+            --bg-dark: #0a0a0c;
+            --bg-card: #141417;
             --accent-purple: #a855f7;
             --accent-pink: #ec4899;
             --text-main: #ffffff;
             --text-dim: #a1a1aa;
+            --input-inner-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -1px -1px 3px rgba(255, 255, 255, 0.03);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
 
-        /* --- Telas --- */
-        .screen { display: none; min-height: 100vh; padding-bottom: 80px; }
+        /* --- Estrutura de Telas --- */
+        .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
 
-        /* --- Login & Registro --- */
-        .auth-container { padding: 40px 20px; text-align: center; }
-        .logo { font-size: 32px; font-weight: bold; color: var(--accent-purple); margin-bottom: 30px; }
-        input, select { 
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; 
-            border: 1px solid #333; background: #1a1a1a; color: white; 
+        /* --- Auth & Onboarding Style --- */
+        .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        
+        .custom-input-group {
+            width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px;
+            border: 1px solid #1f1f23; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--input-inner-shadow);
         }
-        .btn-primary { 
-            background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
-            border: none; padding: 15px; width: 100%; border-radius: 12px; color: white; font-weight: bold; cursor: pointer;
+        .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; font-size: 16px; }
+
+        /* --- Avatar Upload --- */
+        .avatar-upload { position: relative; width: 110px; height: 110px; margin-bottom: 10px; }
+        #img-preview { 
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; 
+            background: #1a1a1d; border: 3px solid transparent;
+            background-image: linear-gradient(#1a1a1d, #1a1a1d), linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
+            background-origin: border-box; background-clip: content-box, border-box;
+        }
+        .upload-icon { 
+            position: absolute; bottom: 0; right: 0; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
+            width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            border: 3px solid var(--bg-dark); cursor: pointer; color: white;
         }
 
-        /* --- Header Estilo Imagem --- */
-        header { padding: 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--bg-dark); z-index: 10; }
-        .search-bar { flex: 1; background: #1a1a1a; border-radius: 20px; padding: 8px 15px; margin: 0 15px; display: flex; align-items: center; }
-        .search-bar input { background: transparent; border: none; padding: 5px; margin: 0; }
-        .refresh-btn { color: var(--accent-purple); cursor: pointer; }
+        /* --- Gender Selector --- */
+        .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 12px; margin: 10px 0; }
+        .gender-option { flex: 1; position: relative; text-align: center; }
+        .gender-option input { appearance: none; -webkit-appearance: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; cursor: pointer; background: var(--bg-card); border-radius: 15px; border: 1px solid #1f1f23; transition: 0.3s; }
+        .gender-option input:checked { background: #0d0d0f; box-shadow: var(--input-inner-shadow); border-color: var(--accent-pink); }
+        .gender-content { position: relative; padding: 15px 0; pointer-events: none; color: #666; transition: 0.3s; }
+        .gender-option input:checked + .gender-content { color: var(--accent-pink); transform: scale(1.05); }
 
-        /* --- Feed & Posts --- */
-        .feed-item { background: var(--bg-card); margin: 15px; border-radius: 15px; padding: 15px; }
-        .post-header { display: flex; align-items: center; margin-bottom: 10px; }
-        .user-pic { width: 40px; height: 40px; border-radius: 50%; background: #333; margin-right: 10px; position: relative; }
-        .status-dot { width: 12px; height: 12px; background: #22c55e; border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-card); }
-        .post-img { width: 100%; border-radius: 10px; margin: 10px 0; }
-        .post-actions { display: flex; gap: 20px; color: var(--text-dim); }
+        /* --- Botões --- */
+        .btn-premium { 
+            width: 100%; padding: 20px; border-radius: 20px; border: none; 
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            color: white; font-weight: 800; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3); margin-top: 10px;
+        }
 
-        /* --- Nav de Baixo --- */
+        /* --- App Layout (Feed) --- */
+        header { padding: 20px; display: flex; align-items: center; justify-content: space-between; sticky top: 0; background: var(--bg-dark); z-index: 100; }
+        .search-bar { flex: 1; background: var(--bg-card); border-radius: 20px; padding: 10px 15px; margin: 0 15px; display: flex; align-items: center; box-shadow: var(--input-inner-shadow); }
+        .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
+        
+        .feed-container { padding: 0 15px; }
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #1f1f23; }
+        .post-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .user-thumb { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; position: relative; }
+        .online-dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-card); }
+        .post-media { width: 100%; border-radius: 15px; margin-top: 10px; max-height: 400px; object-fit: cover; }
+
+        /* --- Navigation --- */
         nav { 
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; background: rgba(20, 20, 20, 0.95); border-radius: 30px;
-            display: flex; justify-content: space-around; align-items: center; padding: 15px;
-            backdrop-filter: blur(10px); border: 1px solid #333;
+            width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px;
+            display: flex; justify-content: space-around; align-items: center; padding: 12px;
+            backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000;
         }
-        .nav-btn { font-size: 20px; color: var(--text-dim); cursor: pointer; }
-        .nav-btn.active { color: white; }
-        .plus-btn { 
+        .nav-btn { font-size: 22px; color: #555; cursor: pointer; }
+        .nav-btn.active { color: var(--accent-purple); }
+        .plus-fab { 
             background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink));
-            width: 55px; height: 55px; border-radius: 20px; display: flex; 
-            align-items: center; justify-content: center; color: white; margin-top: -30px;
-            box-shadow: 0 5px 15px rgba(168, 85, 247, 0.4);
+            width: 60px; height: 60px; border-radius: 22px; display: flex; 
+            align-items: center; justify-content: center; color: white; margin-top: -40px;
+            box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
         }
 
-        /* --- Modais --- */
-        .modal { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 100; padding: 20px;
-        }
+        /* --- Modal --- */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--bg-card); border-radius: 25px; padding: 25px; margin-top: 50px; }
     </style>
 </head>
 <body>
 
     <div id="screen-login" class="screen active">
         <div class="auth-container">
-            <div class="logo">K.</div>
-            <input type="text" id="login-user" placeholder="Nome de usuário">
-            <input type="password" id="login-pass" placeholder="Senha">
-            <button class="btn-primary" onclick="handleLogin()">Entrar</button>
-            <p style="margin-top: 15px; color: var(--text-dim)" onclick="toggleAuth('reg')">Criar nova conta</p>
+            <div class="logo-k">K.</div>
+            <div class="custom-input-group"><input type="text" id="login-user" placeholder="Usuário"></div>
+            <div class="custom-input-group"><input type="password" id="login-pass" placeholder="Senha"></div>
+            <button class="btn-premium" onclick="handleLogin()">Entrar</button>
+            <p style="color: var(--text-dim)" onclick="showScreen('register')">Não tem conta? <span style="color: var(--accent-pink)">Cadastre-se</span></p>
         </div>
     </div>
 
     <div id="screen-register" class="screen">
         <div class="auth-container">
-            <div class="logo">Criar Conta</div>
-            <input type="text" id="reg-user" placeholder="Usuário único">
-            <input type="password" id="reg-pass" placeholder="Sua senha">
-            <button class="btn-primary" onclick="handleRegister()">Continuar</button>
-            <p style="margin-top: 15px; color: var(--text-dim)" onclick="toggleAuth('login')">Já tenho conta</p>
+            <div class="logo-k">K.</div>
+            <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Escolha um usuário"></div>
+            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Crie uma senha"></div>
+            <button class="btn-premium" onclick="handleRegister()">Continuar</button>
+            <p style="color: var(--text-dim)" onclick="showScreen('login')">Voltar ao login</p>
         </div>
     </div>
 
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h3>Complete seu perfil</h3>
-            <input type="date" id="onb-date">
-            <input type="text" id="onb-pic" placeholder="URL da foto de perfil">
-            <div style="display: flex; justify-content: space-around; margin: 20px 0;">
-                <label><input type="radio" name="gen" value="male"><br><i class="fas fa-mars"></i></label>
-                <label><input type="radio" name="gen" value="female"><br><i class="fas fa-venus"></i></label>
-                <label><input type="radio" name="gen" value="non-binary"><br><i class="fas fa-genderless"></i></label>
+            <h2 class="logo-k" style="font-size: 24px;">Complete seu perfil</h2>
+            
+            <div class="avatar-upload">
+                <img id="img-preview" src="https://via.placeholder.com/110?text=%20" alt="Avatar">
+                <div class="upload-icon" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <input type="file" id="file-input" accept="image/*" onchange="previewImage(this)" style="display:none">
             </div>
-            <button class="btn-primary" onclick="finishOnboarding()">Finalizar</button>
+
+            <div class="custom-input-group">
+                <span style="color: #555; font-size: 14px;">Nascimento:</span>
+                <input type="date" id="onb-date" style="text-align: right;">
+            </div>
+
+            <div class="gender-selector">
+                <label class="gender-option">
+                    <input type="radio" name="gen" value="male" checked>
+                    <div class="gender-content"><i class="fas fa-mars"></i><br><span>Ele</span></div>
+                </label>
+                <label class="gender-option">
+                    <input type="radio" name="gen" value="female">
+                    <div class="gender-content"><i class="fas fa-venus"></i><br><span>Ela</span></div>
+                </label>
+                <label class="gender-option">
+                    <input type="radio" name="gen" value="non-binary">
+                    <div class="gender-content"><i class="fas fa-genderless"></i><br><span>Neutro</span></div>
+                </label>
+            </div>
+
+            <button class="btn-premium" onclick="finishOnboarding()">Finalizar</button>
         </div>
     </div>
 
     <div id="screen-feed" class="screen">
         <header>
-            <div style="color: var(--accent-purple); font-weight: bold; font-size: 20px;">K.</div>
+            <div class="logo-k" style="font-size: 24px; margin: 0;">K.</div>
             <div class="search-bar">
-                <i class="fas fa-search" style="color: #555;"></i>
+                <i class="fas fa-search" style="color: #444;"></i>
                 <input type="text" placeholder="Buscar usuários...">
             </div>
-            <div class="refresh-btn" onclick="location.reload()">
-                <i class="fas fa-sync-alt"></i>
-            </div>
+            <i class="fas fa-sync-alt" style="color: var(--accent-purple)" onclick="renderFeed()"></i>
         </header>
-        <h2 style="padding: 0 20px;">Global Feed</h2>
-        <div id="feed-content">
-            </div>
-    </div>
-
-    <div id="screen-chat" class="screen">
-        <div style="padding: 20px;">
-            <h2>Chats</h2>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button style="flex:1; padding: 8px; border-radius: 8px; border:none; background: #333; color: white;">Geral</button>
-                <button style="flex:1; padding: 8px; border-radius: 8px; border:none; background: #1a1a1a; color: white;">Grupos</button>
-                <button style="flex:1; padding: 8px; border-radius: 8px; border:none; background: #1a1a1a; color: white;">Convites</button>
-            </div>
-            <div style="margin-top: 30px; text-align: center; color: var(--text-dim);">
-                Nenhuma conversa ainda.
-            </div>
-        </div>
+        <div class="feed-container" id="feed-content"></div>
     </div>
 
     <div id="screen-profile" class="screen">
-        <div style="padding: 20px; text-align: center;">
-            <div id="profile-header">
-                <div style="width: 100px; height: 100px; border-radius: 50%; background: #333; margin: 0 auto; position: relative;">
-                    <img id="p-img" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                    <div class="status-dot"></div>
-                </div>
-                <h2 id="p-name" style="margin-top: 10px;">@Usuário</h2>
-                <p id="p-bio" style="color: var(--text-dim);">Sua bio aqui...</p>
-                <button onclick="editProfile()" style="margin-top: 10px; border: none; background: transparent; color: var(--accent-purple);"><i class="fas fa-pencil"></i> Editar Perfil</button>
+        <div class="auth-container">
+            <div class="avatar-upload">
+                <img id="p-img" src="" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <div class="online-dot" style="width: 20px; height: 20px; bottom: 5px; right: 5px;"></div>
             </div>
+            <h2 id="p-name">@User</h2>
+            <p id="p-bio" style="color: var(--text-dim)">Sua bio...</p>
+            <button class="btn-premium" style="width: auto; padding: 10px 30px;" onclick="editProfile()"><i class="fas fa-pencil"></i> Editar</button>
         </div>
     </div>
 
     <div id="modal-post" class="modal">
-        <h3 style="margin-bottom: 15px;">Novo Post</h3>
-        <textarea id="post-text" style="width:100%; height: 100px; background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px; border-radius: 10px;"></textarea>
-        <input type="text" id="post-media" placeholder="URL da Imagem/Vídeo">
-        <button class="btn-primary" style="margin-top: 10px;" onclick="savePost()">Postar</button>
-        <button class="btn-primary" style="margin-top: 10px; background: #333;" onclick="closeModal()">Cancelar</button>
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">Novo Post</h3>
+            <textarea id="post-text" placeholder="O que está acontecendo?" style="width:100%; height:120px; background:#000; border:1px solid #222; color:white; padding:15px; border-radius:15px; outline:none;"></textarea>
+            <div class="custom-input-group" style="margin-top:10px;" onclick="document.getElementById('post-file').click()">
+                <span id="post-file-label" style="color:#555">Adicionar foto da galeria</span>
+                <input type="file" id="post-file" accept="image/*" style="display:none" onchange="document.getElementById('post-file-label').innerText = 'Foto pronta!'">
+            </div>
+            <button class="btn-premium" onclick="savePost()">Postar</button>
+            <button class="btn-premium" style="background:#222; box-shadow:none" onclick="closeModal()">Cancelar</button>
+        </div>
     </div>
 
     <nav id="main-nav" style="display: none;">
         <div class="nav-btn active" onclick="showScreen('feed')"><i class="fas fa-compass"></i></div>
-        <div class="plus-btn" onclick="openModal()"><i class="fas fa-plus"></i></div>
-        <div class="nav-btn" onclick="showScreen('chat')"><i class="fas fa-comment-dots"></i></div>
+        <div class="plus-fab" onclick="openModal()"><i class="fas fa-plus"></i></div>
         <div class="nav-btn" onclick="showScreen('profile')"><i class="fas fa-user-astronaut"></i></div>
     </nav>
 
     <script>
-        // LOGICA DE BANCO DE DADOS LOCAL
         let db = JSON.parse(localStorage.getItem('kchat_db')) || { users: [], posts: [] };
         let currentUser = JSON.parse(sessionStorage.getItem('k_user')) || null;
+        let base64Avatar = "";
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
             if(id === 'feed') renderFeed();
             if(id === 'profile') loadProfile();
+            
+            // Atualizar ícones da nav
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            if(id === 'feed') document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            if(id === 'profile') document.querySelectorAll('.nav-btn')[1].classList.add('active');
         }
 
-        // AUTH
+        // --- AUTH LOGIC ---
         function handleRegister() {
             const user = document.getElementById('reg-user').value;
             const pass = document.getElementById('reg-pass').value;
+            if(!user || !pass) return alert("Preencha tudo!");
+            if(db.users.find(u => u.user === user)) return alert("Usuário já existe!");
 
-            if(db.users.find(u => u.user === user)) {
-                alert("Usuário já existe!");
-                return;
-            }
-
-            let newUser = { user, pass, profile: {} };
-            db.users.push(newUser);
-            localStorage.setItem('kchat_db', JSON.stringify(db));
-            currentUser = newUser;
+            currentUser = { user, pass, profile: {} };
             showScreen('onboarding');
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    base64Avatar = e.target.result;
+                    document.getElementById('img-preview').src = base64Avatar;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
         function finishOnboarding() {
             const date = document.getElementById('onb-date').value;
-            const pic = document.getElementById('onb-pic').value;
-            const gen = document.querySelector('input[name="gen"]:checked')?.value;
+            const gen = document.querySelector('input[name="gen"]:checked').value;
+            if(!date) return alert("Insira sua data de nascimento");
 
-            currentUser.profile = { date, pic, gen, bio: "Olá, estou no k.chat!", status: "Ativo" };
+            currentUser.profile = { 
+                date, 
+                pic: base64Avatar || 'https://via.placeholder.com/150', 
+                gen, 
+                bio: "Fazendo testes no k.chat!", 
+                status: "Ativo" 
+            };
             
-            // Atualizar banco
-            let idx = db.users.findIndex(u => u.user === currentUser.user);
-            db.users[idx] = currentUser;
-            localStorage.setItem('kchat_db', JSON.stringify(db));
-            sessionStorage.setItem('k_user', JSON.stringify(currentUser));
-            
+            db.users.push(currentUser);
+            updateStorage();
             enterApp();
         }
 
@@ -215,57 +259,58 @@
             const user = document.getElementById('login-user').value;
             const pass = document.getElementById('login-pass').value;
             const found = db.users.find(u => u.user === user && u.pass === pass);
-
-            if(found) {
-                currentUser = found;
-                sessionStorage.setItem('k_user', JSON.stringify(currentUser));
-                enterApp();
-            } else {
-                alert("Dados incorretos");
-            }
+            if(found) { currentUser = found; enterApp(); } else { alert("Erro de login!"); }
         }
 
         function enterApp() {
+            sessionStorage.setItem('k_user', JSON.stringify(currentUser));
             document.getElementById('main-nav').style.display = 'flex';
             showScreen('feed');
         }
 
-        // FEED & POSTS
+        // --- FEED LOGIC ---
         function openModal() { document.getElementById('modal-post').style.display = 'block'; }
         function closeModal() { document.getElementById('modal-post').style.display = 'none'; }
 
         function savePost() {
             const text = document.getElementById('post-text').value;
-            const img = document.getElementById('post-media').value;
+            const fileInput = document.getElementById('post-file');
             
-            db.posts.unshift({
-                author: currentUser.user,
-                authorPic: currentUser.profile.pic,
-                content: text,
-                media: img,
-                likes: 0,
-                comments: 0
-            });
-            
-            localStorage.setItem('kchat_db', JSON.stringify(db));
-            closeModal();
-            renderFeed();
+            const processPost = (imgData = "") => {
+                db.posts.unshift({
+                    author: currentUser.user,
+                    authorPic: currentUser.profile.pic,
+                    content: text,
+                    media: imgData,
+                    likes: Math.floor(Math.random() * 10),
+                    comments: 0
+                });
+                updateStorage();
+                closeModal();
+                renderFeed();
+            };
+
+            if (fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => processPost(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            } else { processPost(); }
         }
 
         function renderFeed() {
             const container = document.getElementById('feed-content');
             container.innerHTML = db.posts.map(post => `
-                <div class="feed-item">
-                    <div class="post-header">
-                        <div class="user-pic">
-                            <img src="${post.authorPic || ''}" style="width:100%; height:100%; border-radius:50%">
-                            <div class="status-dot"></div>
+                <div class="post-card">
+                    <div class="post-user">
+                        <div class="user-thumb">
+                            <img src="${post.authorPic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                            <div class="online-dot"></div>
                         </div>
                         <strong>@${post.author}</strong>
                     </div>
                     <p>${post.content}</p>
-                    ${post.media ? `<img src="${post.media}" class="post-img">` : ''}
-                    <div class="post-actions">
+                    ${post.media ? `<img src="${post.media}" class="post-media">` : ''}
+                    <div style="margin-top:15px; color:#555; display:flex; gap:20px;">
                         <span><i class="far fa-heart"></i> ${post.likes}</span>
                         <span><i class="far fa-comment"></i> ${post.comments}</span>
                     </div>
@@ -275,7 +320,7 @@
 
         function loadProfile() {
             document.getElementById('p-name').innerText = '@' + currentUser.user;
-            document.getElementById('p-img').src = currentUser.profile.pic || '';
+            document.getElementById('p-img').src = currentUser.profile.pic;
             document.getElementById('p-bio').innerText = currentUser.profile.bio;
         }
 
@@ -285,18 +330,17 @@
                 currentUser.profile.bio = newBio;
                 let idx = db.users.findIndex(u => u.user === currentUser.user);
                 db.users[idx] = currentUser;
-                localStorage.setItem('kchat_db', JSON.stringify(db));
+                updateStorage();
                 loadProfile();
             }
         }
 
-        function toggleAuth(mode) {
-            showScreen(mode === 'reg' ? 'register' : 'login');
+        function updateStorage() {
+            localStorage.setItem('kchat_db', JSON.stringify(db));
+            sessionStorage.setItem('k_user', JSON.stringify(currentUser));
         }
 
-        // Verificar se já está logado ao abrir
         if(currentUser) enterApp();
-
     </script>
 </body>
 </html>
