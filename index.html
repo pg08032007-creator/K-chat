@@ -15,7 +15,6 @@
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* Design Original de Inputs e Auth */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
@@ -31,34 +30,28 @@
 
         .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
         
-        /* Header e Feed */
         .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         
-        /* Navigation Original */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
         nav div { cursor: pointer; color: #555; font-size: 18px; }
         .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
 
-        /* Modais */
         .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-body { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #333; }
         
-        /* Grid de Perfil */
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
         .grid-item { aspect-ratio: 1/1; background: #222; border-radius: 5px; overflow: hidden; }
         .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Carousel de Avatares */
         .avatar-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; }
         .avatar-opt { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; }
         .avatar-opt.selected { border-color: var(--accent-pink); }
 
-        /* Estilo das Mensagens do Chat */
         #chat-content { height: 70vh; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         .bubble { padding: 12px; border-radius: 15px; max-width: 80%; font-size: 14px; position: relative; }
         .bubble-me { align-self: flex-end; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border-bottom-right-radius: 2px; }
@@ -67,7 +60,6 @@
 </head>
 <body>
 
-    <!-- MODAL EDITAR PERFIL -->
     <div id="modal-edit" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
             <h3>Editar Perfil</h3><br>
@@ -81,7 +73,6 @@
         </div>
     </div>
 
-    <!-- MODAL NOVO POST -->
     <div id="modal-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
             <h3>Criar Post</h3><br>
@@ -93,7 +84,6 @@
         </div>
     </div>
 
-    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="auth-container">
             <div class="logo-k">K.</div>
@@ -104,7 +94,6 @@
         </div>
     </div>
 
-    <!-- TELA CADASTRO -->
     <div id="screen-register" class="screen">
         <div class="auth-container">
             <div class="logo-k">Cadastro</div>
@@ -116,7 +105,6 @@
         </div>
     </div>
 
-    <!-- TELA ONBOARDING -->
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
             <h2>Seu Perfil</h2>
@@ -142,7 +130,6 @@
         </div>
     </div>
 
-    <!-- TELA FEED -->
     <div id="screen-feed" class="screen">
         <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
@@ -152,7 +139,6 @@
         <div id="feed-content"></div>
     </div>
 
-    <!-- TELA CHAT -->
     <div id="screen-chat" class="screen">
         <header class="app-header">
             <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
@@ -160,12 +146,11 @@
         </header>
         <div id="chat-content"></div>
         <div style="position: fixed; bottom: 90px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark);">
-            <input type="text" id="chat-input" placeholder="Conversar..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 20px; padding: 12px; color: white; outline: none;">
+            <input type="text" id="chat-input" placeholder="Conversar..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 20px; padding: 12px; color: white; outline: none;" onkeypress="if(event.key === 'Enter') sendMessage()">
             <button onclick="sendMessage()" style="background: var(--accent-purple); border: none; width: 45px; height: 45px; border-radius: 50%; color: white;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <!-- TELA PERFIL PRÓPRIO -->
     <div id="screen-profile" class="screen">
         <div class="auth-container">
             <div style="width:100%; display:flex; justify-content:flex-end; padding-right:20px">
@@ -181,7 +166,6 @@
         <div id="my-posts-grid" class="profile-grid"></div>
     </div>
 
-    <!-- TELA VER PERFIL DE OUTROS -->
     <div id="screen-view-profile" class="screen">
         <div style="padding:20px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
         <div class="auth-container" id="view-profile-header"></div>
@@ -210,7 +194,6 @@
         let base64Avatar = "";
         let base64PostMedia = "";
 
-        // PERSISTÊNCIA: Autologin
         window.onload = () => {
             const saved = localStorage.getItem('kchat_user');
             if(saved) {
@@ -279,48 +262,14 @@
         }
 
         async function handleRegister() {
-            try {
-                const user = document.getElementById('reg-user').value.toLowerCase().trim();
-                const pass = document.getElementById('reg-pass').value;
-                const genElement = document.querySelector('input[name="gen"]:checked');
-                const gen = genElement ? genElement.value : "Neutro";
-                const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
-
-                if(user.length < 3) {
-                    alert("O nome de usuário deve ter pelo menos 3 caracteres.");
-                    return;
-                }
-                if(pass.length < 4) {
-                    alert("A senha deve ter pelo menos 4 caracteres.");
-                    return;
-                }
-
-                // Linha crítica: Verifica no banco de dados
-                const doc = await db.collection("usuarios").doc(user).get();
-                
-                if (doc.exists) {
-                    alert("Este nome de usuário já existe! Escolha outro.");
-                    return;
-                }
-
-               const birthDate = document.getElementById('onb-date').value;
-const userData = { 
-    user: user, 
-    pass: pass, 
-    status: status, 
-    gen: gen, 
-    birth: birthDate || "",
-    pic: base64Avatar || "", 
-    joined: Date.now() 
-};
-
-                await db.collection("usuarios").doc(user).set(userData);
-                currentUser = userData; 
-                enterApp();
-            } catch (error) {
-                console.error("Erro ao registrar:", error);
-                alert("Erro de conexão com o banco de dados.");
-            }
+            const user = document.getElementById('reg-user').value.toLowerCase().trim();
+            const pass = document.getElementById('reg-pass').value;
+            const gen = document.querySelector('input[name="gen"]:checked').value;
+            const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
+            const userData = { user, pass, status, gen, pic: base64Avatar || "", joined: Date.now() };
+            await db.collection("usuarios").doc(user).set(userData);
+            currentUser = userData; 
+            enterApp();
         }
 
         function enterApp() { 
@@ -330,7 +279,6 @@ const userData = {
             listenPosts(); 
         }
 
-        // FEED E LIKES
         function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
@@ -339,20 +287,32 @@ const userData = {
                     const post = doc.data();
                     const postId = doc.id;
                     if(filter && !post.content.toLowerCase().includes(filter) && !post.author.toLowerCase().includes(filter)) return;
-                    
                     const isLiked = post.likes_list && post.likes_list.includes(currentUser.user);
 
                     container.innerHTML += `
                         <div class="post-card">
-                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="openUserProfile('${post.author}')">
-                                <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
-                                            <strong>@${post.author}</strong>
-        </div>
-        <div style="float: right; margin-top: -40px;">
-            ${post.author === currentUser.user ? `<i class="fas fa-trash" style="color:#444; padding:10px" onclick="deletePost('${postId}')"></i>` : ''}
-        </div>
-
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+                                <div style="display:flex; align-items:center; gap:10px" onclick="openUserProfile('${post.author}')">
+                                    <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
+                                    <strong>@${post.author}</strong>
+                                </div>
+                                ${post.author === currentUser.user ? `<i class="fas fa-trash" style="color:#444; font-size:14px" onclick="deletePost('${postId}')"></i>` : ''}
+                            </div>
+                            <p>${post.content}</p>
+                            ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
+                            <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}" onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])})"></i>
+                                <span style="font-size:14px; color:#666">${post.likes || 0}</span>
+                            </div>
+                        </div>`;
+                });
             });
+        }
+
+        async function deletePost(postId) {
+            if(confirm("Deseja apagar esta publicação?")) {
+                await db.collection("posts").doc(postId).delete();
+            }
         }
 
         async function toggleLike(postId, likesList) {
@@ -364,7 +324,6 @@ const userData = {
             }
         }
 
-        // CHAT
         async function sendMessage() {
             const text = document.getElementById('chat-input').value;
             if(!text.trim()) return;
@@ -387,7 +346,6 @@ const userData = {
             });
         }
 
-        // PERFIL
         function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
         
         async function submitPost() {
