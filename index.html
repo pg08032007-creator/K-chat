@@ -279,22 +279,47 @@
         }
 
         async function handleRegister() {
-    const user = document.getElementById('reg-user').value.toLowerCase().trim();
-    const pass = document.getElementById('reg-pass').value;
-    const gen = document.querySelector('input[name="gen"]:checked') ? document.querySelector('input[name="gen"]:checked').value : "Neutro";
-    const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
+            try {
+                const user = document.getElementById('reg-user').value.toLowerCase().trim();
+                const pass = document.getElementById('reg-pass').value;
+                const genElement = document.querySelector('input[name="gen"]:checked');
+                const gen = genElement ? genElement.value : "Neutro";
+                const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
 
-    if(user.length < 3) return alert("O nome de usuário deve ter pelo menos 3 caracteres.");
-    if(pass.length < 4) return alert("A senha deve ter pelo menos 4 caracteres.");
+                if(user.length < 3) {
+                    alert("O nome de usuário deve ter pelo menos 3 caracteres.");
+                    return;
+                }
+                if(pass.length < 4) {
+                    alert("A senha deve ter pelo menos 4 caracteres.");
+                    return;
+                }
 
-    const doc = await db.collection("usuarios").doc(user).get();
-    if (doc.exists) return alert("Este nome de usuário já existe!");
+                // Linha crítica: Verifica no banco de dados
+                const doc = await db.collection("usuarios").doc(user).get();
+                
+                if (doc.exists) {
+                    alert("Este nome de usuário já existe! Escolha outro.");
+                    return;
+                }
 
-    const userData = { user, pass, status, gen, pic: base64Avatar || "", joined: Date.now() };
-    await db.collection("usuarios").doc(user).set(userData);
-    currentUser = userData; 
-    enterApp();
-}
+                const userData = { 
+                    user: user, 
+                    pass: pass, 
+                    status: status, 
+                    gen: gen, 
+                    pic: base64Avatar || "", 
+                    joined: Date.now() 
+                };
+
+                await db.collection("usuarios").doc(user).set(userData);
+                currentUser = userData; 
+                enterApp();
+            } catch (error) {
+                console.error("Erro ao registrar:", error);
+                alert("Erro de conexão com o banco de dados.");
+            }
+        }
 
         function enterApp() { 
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
