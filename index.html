@@ -9,74 +9,60 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        :root { 
-            --bg-dark: #0a0a0c; 
-            --bg-card: #141417; 
-            --accent-purple: #a855f7; 
-            --accent-pink: #ec4899; 
-            --text-main: #ffffff; 
-            --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); 
-            --text-dim: #a1a1aa; 
-        }
-        
-        /* Temas Adicionais */
-        body.theme-midnight { --bg-dark: #020617; --bg-card: #0f172a; --accent-purple: #3b82f6; --accent-pink: #2dd4bf; }
-        body.theme-oled { --bg-dark: #000000; --bg-card: #090909; --accent-purple: #ffffff; --accent-pink: #555555; }
-
+        :root { --bg-dark: #0a0a0c; --bg-card: #141417; --accent-purple: #a855f7; --accent-pink: #ec4899; --text-main: #ffffff; --input-inner: inset 2px 2px 5px rgba(0,0,0,0.3); --text-dim: #a1a1aa; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-dark); color: var(--text-main); transition: 0.3s; }
+        body { background-color: var(--bg-dark); color: var(--text-main); }
         .screen { display: none; min-height: 100vh; padding-bottom: 90px; }
         .screen.active { display: block; }
         
-        /* Design Original Preservado */
+        /* Design Original de Inputs e Auth */
         .auth-container { padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .logo-k { font-size: 42px; font-weight: 900; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .custom-input-group { width: 100%; background: var(--bg-card); border-radius: 18px; padding: 18px; border: 1px solid #1f1f23; display: flex; align-items: center; box-shadow: var(--input-inner); }
         .custom-input-group input { background: transparent; border: none; width: 100%; color: white; outline: none; margin-left: 10px; }
         
-        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .btn-premium:disabled { opacity: 0.7; }
+        .gender-selector { display: flex; justify-content: space-between; width: 100%; gap: 10px; margin: 10px 0; }
+        .gender-option { flex: 1; position: relative; text-align: center; background: var(--bg-card); border-radius: 15px; padding: 15px; border: 1px solid #1f1f23; cursor: pointer; }
+        .gender-option input { position: absolute; opacity: 0; }
+        .gender-option i { font-size: 24px; color: #444; }
+        .gender-option input:checked ~ i { color: var(--accent-pink); transform: scale(1.1); }
+        .gender-option span { display: block; font-size: 10px; text-transform: uppercase; margin-top: 5px; color: #555; }
 
-        /* Status Online Real-time */
-        .avatar-container { position: relative; display: inline-block; }
-        .online-dot { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; border: 2px solid var(--bg-card); display: none; }
-        .is-online .online-dot { display: block; }
-
-        /* Reações Flutuantes */
-        .reaction-overlay { display: none; position: absolute; background: #1f1f23; padding: 8px 12px; border-radius: 30px; bottom: 40px; left: 0; gap: 15px; border: 1px solid #333; z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .reaction-overlay span { font-size: 20px; cursor: pointer; transition: 0.2s; }
-        .reaction-overlay span:hover { transform: scale(1.3); }
-
+        .btn-premium { width: 100%; padding: 20px; border-radius: 20px; border: none; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); color: white; font-weight: 800; cursor: pointer; }
+        
         /* Header e Feed */
         .app-header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; position: sticky; top: 0; background: var(--bg-dark); z-index: 100; border-bottom: 1px solid #1a1a1e; }
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 12px; display: flex; align-items: center; padding: 8px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; }
 
-        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
-        .post-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         
         /* Navigation Original */
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
         nav div { cursor: pointer; color: #555; font-size: 18px; }
-        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
 
-        /* Chat DM */
-        #private-chat-content { height: 65vh; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { padding: 12px; border-radius: 15px; max-width: 80%; font-size: 14px; position: relative; }
-        .bubble-me { align-self: flex-end; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border-bottom-right-radius: 2px; color: white; }
-        .bubble-other { align-self: flex-start; background: #27272a; border-bottom-left-radius: 2px; }
-
-        /* Grid e Outros */
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
-        .grid-item { aspect-ratio: 1/1; background: #222; border-radius: 5px; overflow: hidden; position: relative; }
-        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+        /* Modais */
         .modal-embed { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
         .modal-body { background: var(--bg-card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid #333; }
         
-        .spinner { border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid #fff; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: none; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Grid de Perfil */
+        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 10px; }
+        .grid-item { aspect-ratio: 1/1; background: #222; border-radius: 5px; overflow: hidden; }
+        .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Carousel de Avatares */
+        .avatar-carousel { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; }
+        .avatar-opt { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; flex-shrink: 0; cursor: pointer; }
+        .avatar-opt.selected { border-color: var(--accent-pink); }
+
+        /* Estilo das Mensagens do Chat */
+        #chat-content { height: 70vh; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 12px; border-radius: 15px; max-width: 80%; font-size: 14px; position: relative; }
+        .bubble-me { align-self: flex-end; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border-bottom-right-radius: 2px; }
+        .bubble-other { align-self: flex-start; background: #27272a; border-bottom-left-radius: 2px; }
     </style>
 </head>
 <body>
@@ -84,71 +70,75 @@
     <!-- MODAL EDITAR PERFIL -->
     <div id="modal-edit" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
-            <h3>Configurações de Perfil</h3><br>
+            <h3>Editar Perfil</h3><br>
             <div style="text-align:center">
                 <img id="edit-img-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-pink)"><br>
                 <button onclick="document.getElementById('edit-file-input').click()" style="background:none; border:none; color:var(--accent-pink); font-size:12px; margin:10px 0;">Trocar Foto</button>
                 <input type="file" id="edit-file-input" hidden onchange="processImage(this, 'edit')">
             </div>
             <div class="custom-input-group"><input type="text" id="edit-status-input" placeholder="Nova Bio"></div><br>
-            <p style="font-size:12px; margin-bottom:5px; color:#555">Tema do App:</p>
-            <select id="theme-select" onchange="changeTheme(this.value)" style="width:100%; background:var(--bg-dark); color:white; border:1px solid #333; padding:10px; border-radius:10px;">
-                <option value="default">Padrão (Roxo/Rosa)</option>
-                <option value="midnight">Midnight (Azul/Preto)</option>
-                <option value="oled">OLED (Preto Puro)</option>
-            </select><br><br>
-            <button class="btn-premium" onclick="saveFullEdit()">
-                <div class="spinner" id="spin-edit"></div><span>Salvar</span>
-            </button>
+            <button class="btn-premium" onclick="saveFullEdit()">Salvar Alterações</button>
         </div>
     </div>
 
     <!-- MODAL NOVO POST -->
     <div id="modal-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
-            <h3>Novo Post Premium</h3><br>
+            <h3>Criar Post</h3><br>
             <div class="custom-input-group"><input type="text" id="post-text-input" placeholder="No que está pensando?"></div><br>
             <div id="post-media-preview" style="width:100%; max-height:150px; overflow:hidden; border-radius:10px; margin-bottom:10px;"></div>
-            <button onclick="document.getElementById('post-file-input').click()" style="width:100%; padding:10px; border-radius:10px; background:#222; border:1px solid #444; color:white;"><i class="fas fa-image"></i> Adicionar Mídia</button>
+            <button onclick="document.getElementById('post-file-input').click()" style="width:100%; padding:10px; border-radius:10px; background:#222; border:1px solid #444; color:white;"><i class="fas fa-image"></i> Adicionar Foto/Vídeo</button>
             <input type="file" id="post-file-input" hidden accept="image/*,video/*" onchange="previewMedia(this)"><br><br>
-            <button class="btn-premium" onclick="submitPost()">
-                <div class="spinner" id="spin-post"></div><span>Publicar</span>
-            </button>
+            <button class="btn-premium" onclick="submitPost()">Publicar</button>
         </div>
     </div>
 
-    <!-- TELAS -->
+    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active">
         <div class="auth-container">
             <div class="logo-k">K.</div>
             <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="login-user" placeholder="Usuário"></div>
             <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="login-pass" placeholder="Senha"></div>
-            <button class="btn-premium" onclick="handleLogin()">
-                <div class="spinner" id="spin-login"></div><span>Entrar</span>
-            </button>
-            <p onclick="showScreen('register')" style="color:#666">Novo por aqui? <span style="color:var(--accent-pink)">Criar conta</span></p>
+            <button class="btn-premium" onclick="handleLogin()">Entrar</button>
+            <p onclick="showScreen('register')" style="color:#666">Não tem conta? <span style="color:var(--accent-pink)">Cadastre-se</span></p>
         </div>
     </div>
 
+    <!-- TELA CADASTRO -->
     <div id="screen-register" class="screen">
         <div class="auth-container">
             <div class="logo-k">Cadastro</div>
             <div class="custom-input-group"><input type="text" id="reg-user" placeholder="Nome de usuário" onblur="checkUserExists(this.value)"></div>
-            <div id="reg-warn" style="color:var(--accent-pink); font-size:12px; display:none">Indisponível!</div>
-            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Crie uma senha"></div>
+            <div id="reg-warn" style="color:var(--accent-pink); font-size:12px; display:none">Este nome já existe!</div>
+            <div class="custom-input-group"><input type="password" id="reg-pass" placeholder="Senha"></div>
             <button class="btn-premium" onclick="showScreen('onboarding')">Continuar</button>
+            <p onclick="showScreen('login')" style="color:#666">Já tenho conta</p>
         </div>
     </div>
 
+    <!-- TELA ONBOARDING -->
     <div id="screen-onboarding" class="screen">
         <div class="auth-container">
-            <h2>Personalize</h2>
-            <div class="avatar-container" onclick="document.getElementById('file-input').click()" style="cursor:pointer">
-                <img id="img-preview" src="https://via.placeholder.com/110" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); object-fit:cover;">
+            <h2>Seu Perfil</h2>
+            <div style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-purple); overflow:hidden; margin:0 auto;" onclick="document.getElementById('file-input').click()">
+                <img id="img-preview" src="https://via.placeholder.com/110?text=+" style="width:100%; height:100%; object-fit:cover;">
                 <input type="file" id="file-input" accept="image/*" onchange="processImage(this, 'reg')" hidden>
             </div>
-            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Bio/Status"></div>
-            <button class="btn-premium" onclick="handleRegister()">Finalizar</button>
+            <p style="font-size:12px; color:#555">Ou escolha um avatar:</p>
+            <div class="avatar-carousel" id="avatar-list">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-opt" onclick="selectAvatar(this.src, this)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-opt" onclick="selectAvatar(this.src, this)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="avatar-opt" onclick="selectAvatar(this.src, this)">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mimi" class="avatar-opt" onclick="selectAvatar(this.src, this)">
+            </div>
+            <div class="custom-input-group"><i class="fas fa-calendar-alt" style="color:#555"></i><input type="date" id="onb-date"></div>
+            <div class="custom-input-group"><input type="text" id="onb-status" placeholder="Sua Bio/Status"></div>
+            <div class="gender-selector">
+                <label class="gender-option"><input type="radio" name="gen" value="Ele" checked><i class="fas fa-mars"></i><span>Ele</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Ela"><i class="fas fa-venus"></i><span>Ela</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Neutro"><i class="fas fa-genderless"></i><span>Neutro</span></label>
+            </div>
+            <button class="btn-premium" onclick="handleRegister()">Finalizar Registro</button>
         </div>
     </div>
 
@@ -156,47 +146,42 @@
     <div id="screen-feed" class="screen">
         <header class="app-header">
             <div class="logo-k" style="font-size:24px">K.</div>
-            <div class="search-bar"><i class="fas fa-search"></i><input type="text" placeholder="Buscar conteúdo..." oninput="searchContent(this.value)"></div>
-            <i class="fas fa-envelope" onclick="showScreen('messages-list')" style="color:var(--accent-purple); font-size:20px"></i>
+            <div class="search-bar"><i class="fas fa-search" style="color:#444"></i><input type="text" placeholder="Buscar..." oninput="searchContent(this.value)"></div>
+            <i class="fas fa-comment-dots" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:20px"></i>
         </header>
         <div id="feed-content"></div>
     </div>
 
-    <!-- TELA LISTA DE DMS -->
-    <div id="screen-messages-list" class="screen">
+    <!-- TELA CHAT -->
+    <div id="screen-chat" class="screen">
         <header class="app-header">
             <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
-            <h3>Mensagens</h3>
+            <h3 style="flex:1; text-align:center">Chat Geral</h3>
         </header>
-        <div id="dm-list-container"></div>
-    </div>
-
-    <!-- TELA CHAT PRIVADO -->
-    <div id="screen-private-chat" class="screen">
-        <header class="app-header">
-            <i class="fas fa-arrow-left" onclick="showScreen('messages-list')"></i>
-            <div id="chat-user-header" style="display:flex; align-items:center; gap:10px"></div>
-        </header>
-        <div id="private-chat-content"></div>
-        <div style="position: fixed; bottom: 0; width: 100%; padding: 15px; background: var(--bg-dark); display: flex; gap: 10px;">
-            <input type="text" id="private-msg-input" placeholder="Mensagem..." style="flex:1; background:#1a1a1e; border:1px solid #333; border-radius:20px; padding:12px; color:white; outline:none;">
-            <button onclick="sendPrivateMessage()" style="background:var(--accent-purple); border:none; width:45px; height:45px; border-radius:50%; color:white;"><i class="fas fa-paper-plane"></i></button>
+        <div id="chat-content"></div>
+        <div style="position: fixed; bottom: 90px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark);">
+            <input type="text" id="chat-input" placeholder="Conversar..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 20px; padding: 12px; color: white; outline: none;">
+            <button onclick="sendMessage()" style="background: var(--accent-purple); border: none; width: 45px; height: 45px; border-radius: 50%; color: white;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <!-- PERFIL -->
+    <!-- TELA PERFIL PRÓPRIO -->
     <div id="screen-profile" class="screen">
         <div class="auth-container">
-            <div style="width:100%; display:flex; justify-content:flex-end;"><i class="fas fa-cog" onclick="openEditModal()" style="color:#555; font-size:20px"></i></div>
+            <div style="width:100%; display:flex; justify-content:flex-end; padding-right:20px">
+                <i class="fas fa-pencil-alt" onclick="openEditModal()" style="color:#555; font-size:20px"></i>
+            </div>
             <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
             <h2 id="my-name">@user</h2>
+            <p id="my-gender" style="font-size:12px; color:var(--accent-pink); margin-top:-10px"></p>
             <p id="my-status" style="color:#777"></p>
-            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:10px; height:40px; width:auto; padding:0 20px">Sair</button>
+            <p style="font-size:12px; color:#444; margin-top:5px"><b id="my-post-count">0</b> publicações</p>
+            <button class="btn-premium" onclick="logout()" style="background:#222; margin-top:10px; height:40px; padding:0 20px; width:auto">Sair</button>
         </div>
         <div id="my-posts-grid" class="profile-grid"></div>
     </div>
 
-    <!-- PERFIL DE TERCEIROS -->
+    <!-- TELA VER PERFIL DE OUTROS -->
     <div id="screen-view-profile" class="screen">
         <div style="padding:20px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
         <div class="auth-container" id="view-profile-header"></div>
@@ -204,9 +189,9 @@
     </div>
 
     <nav id="main-nav" style="display:none">
-        <div onclick="showScreen('feed')"><i class="fas fa-home"></i></div>
+        <div onclick="showScreen('feed')"><i class="fas fa-compass"></i></div>
         <div class="plus-fab" onclick="openPostModal()"><i class="fas fa-plus"></i></div>
-        <div onclick="showScreen('profile')"><i class="fas fa-user"></i></div>
+        <div onclick="showScreen('profile')"><i class="fas fa-user-astronaut"></i></div>
     </nav>
 
     <script>
@@ -224,219 +209,222 @@
         let currentUser = null;
         let base64Avatar = "";
         let base64PostMedia = "";
-        let currentChatTarget = null;
 
-        // Auto-Login e Status Online
+        // PERSISTÊNCIA: Autologin
         window.onload = () => {
             const saved = localStorage.getItem('kchat_user');
             if(saved) {
                 currentUser = JSON.parse(saved);
                 enterApp();
             }
-            setInterval(updatePresence, 20000);
-        };
+        }
 
-        function updatePresence() {
-            if(currentUser) {
-                db.collection("usuarios").doc(currentUser.user).update({ lastOnline: Date.now() });
+        function selectAvatar(url, el) {
+            base64Avatar = url;
+            document.getElementById('img-preview').src = url;
+            document.querySelectorAll('.avatar-opt').forEach(img => img.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function processImage(input, mode) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if(mode === 'reg') { 
+                        base64Avatar = e.target.result; 
+                        document.getElementById('img-preview').src = base64Avatar; 
+                    } else { 
+                        base64Avatar = e.target.result; 
+                        document.getElementById('edit-img-preview').src = base64Avatar; 
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function previewMedia(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64PostMedia = e.target.result;
+                    const container = document.getElementById('post-media-preview');
+                    container.innerHTML = input.files[0].type.includes('video') 
+                        ? `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop></video>` 
+                        : `<img src="${base64PostMedia}" style="width:100%">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function checkUserExists(user) {
+            const doc = await db.collection("usuarios").doc(user.toLowerCase().trim()).get();
+            document.getElementById('reg-warn').style.display = doc.exists ? 'block' : 'none';
         }
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
             if(id === 'profile') loadProfile();
-            if(id === 'messages-list') loadDMList();
-        }
-
-        function changeTheme(theme) {
-            document.body.className = theme === 'default' ? '' : 'theme-' + theme;
-        }
-
-        function toggleLoading(id, show) {
-            const btn = document.getElementById('spin-' + id);
-            if(btn) btn.style.display = show ? 'block' : 'none';
+            if(id === 'chat') listenMessages();
         }
 
         async function handleLogin() {
-            toggleLoading('login', true);
             const user = document.getElementById('login-user').value.toLowerCase().trim();
             const pass = document.getElementById('login-pass').value;
             const doc = await db.collection("usuarios").doc(user).get();
             if (doc.exists && doc.data().pass === pass) { 
-                currentUser = doc.data(); enterApp(); 
-            } else { alert("Erro de login"); }
-            toggleLoading('login', false);
+                currentUser = doc.data(); 
+                enterApp(); 
+            } else { alert("Usuário ou senha incorretos!"); }
         }
 
         async function handleRegister() {
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
-            const status = document.getElementById('onb-status').value || "Membro Premium";
-            const userData = { user, pass, status, pic: base64Avatar, joined: Date.now(), lastOnline: Date.now() };
+            const gen = document.querySelector('input[name="gen"]:checked').value;
+            const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
+            const userData = { user, pass, status, gen, pic: base64Avatar || "", joined: Date.now() };
             await db.collection("usuarios").doc(user).set(userData);
             currentUser = userData; 
             enterApp();
         }
 
-        function enterApp() {
+        function enterApp() { 
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
-            document.getElementById('main-nav').style.display = 'flex';
-            showScreen('feed');
-            listenPosts();
+            document.getElementById('main-nav').style.display = 'flex'; 
+            showScreen('feed'); 
+            listenPosts(); 
         }
 
-        // FEED E REAÇÕES
+        // FEED E LIKES
         function listenPosts(filter = "") {
-            db.collection("posts").orderBy("time", "desc").onSnapshot(snap => {
+            db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
                 container.innerHTML = "";
-                snap.forEach(doc => {
+                snapshot.forEach(doc => {
                     const post = doc.data();
-                    const pId = doc.id;
+                    const postId = doc.id;
                     if(filter && !post.content.toLowerCase().includes(filter) && !post.author.toLowerCase().includes(filter)) return;
                     
-                    const timeLabel = formatTime(post.time);
-                    const isOwner = post.author === currentUser.user;
+                    const isLiked = post.likes_list && post.likes_list.includes(currentUser.user);
 
                     container.innerHTML += `
                         <div class="post-card">
-                            <div class="post-meta">
-                                <div style="display:flex; align-items:center; gap:10px" onclick="openUserProfile('${post.author}')">
-                                    <img src="${post.authorPic}" class="user-avatar">
-                                    <strong>@${post.author}</strong>
-                                    <span style="font-size:10px; color:#555">${timeLabel}</span>
-                                </div>
-                                ${isOwner ? `<i class="fas fa-trash" style="color:#333" onclick="deletePost('${pId}')"></i>` : ''}
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="openUserProfile('${post.author}')">
+                                <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
+                                <strong>@${post.author}</strong>
                             </div>
                             <p>${post.content}</p>
-                            ${post.media ? `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">` : ''}
-                            <div style="margin-top:15px; position:relative">
-                                <i class="fas fa-heart" style="color:#444" onclick="toggleReactions('${pId}')"></i>
-                                <div class="reaction-overlay" id="react-${pId}">
-                                    <span onclick="react('${pId}', '❤️')">❤️</span>
-                                    <span onclick="react('${pId}', '🔥')">🔥</span>
-                                    <span onclick="react('${pId}', '😂')">😂</span>
-                                </div>
-                                <span style="font-size:12px; color:#555; margin-left:10px">${getTotalReactions(post.reactions)}</span>
+                            ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
+                            <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
+                                <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}" onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])})"></i>
+                                <span style="font-size:14px; color:#666">${post.likes || 0}</span>
                             </div>
                         </div>`;
                 });
             });
         }
 
-        function toggleReactions(id) {
-            const el = document.getElementById('react-' + id);
-            el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+        async function toggleLike(postId, likesList) {
+            const ref = db.collection("posts").doc(postId);
+            if(likesList.includes(currentUser.user)) {
+                await ref.update({ likes: firebase.firestore.FieldValue.increment(-1), likes_list: firebase.firestore.FieldValue.arrayRemove(currentUser.user) });
+            } else {
+                await ref.update({ likes: firebase.firestore.FieldValue.increment(1), likes_list: firebase.firestore.FieldValue.arrayUnion(currentUser.user) });
+            }
         }
 
-        async function react(pId, emoji) {
-            const ref = db.collection("posts").doc(pId);
-            const update = {}; update[`reactions.${emoji}`] = firebase.firestore.FieldValue.increment(1);
-            await ref.update(update);
-            toggleReactions(pId);
-        }
-
-        function getTotalReactions(r) {
-            if(!r) return 0;
-            return Object.values(r).reduce((a, b) => a + b, 0);
-        }
-
-        // CHAT PRIVADO
-        async function openPrivateChat(target) {
-            currentChatTarget = target;
-            const chatId = [currentUser.user, target].sort().join("_");
-            showScreen('private-chat');
-            
-            const doc = await db.collection("usuarios").doc(target).get();
-            const data = doc.data();
-            const isOnline = (Date.now() - data.lastOnline) < 60000;
-
-            document.getElementById('chat-user-header').innerHTML = `
-                <div class="avatar-container ${isOnline ? 'is-online' : ''}">
-                    <img src="${data.pic}" class="user-avatar">
-                    <div class="online-dot"></div>
-                </div>
-                <strong>@${data.user}</strong>
-            `;
-
-            db.collection("chats").doc(chatId).collection("messages").orderBy("time", "asc").onSnapshot(snap => {
-                const cont = document.getElementById('private-chat-content');
-                cont.innerHTML = "";
-                snap.forEach(mDoc => {
-                    const m = mDoc.data();
-                    const isMe = m.sender === currentUser.user;
-                    cont.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">${m.text}</div>`;
-                });
-                cont.scrollTop = cont.scrollHeight;
-            });
-        }
-
-        async function sendPrivateMessage() {
-            const text = document.getElementById('private-msg-input').value;
+        // CHAT
+        async function sendMessage() {
+            const text = document.getElementById('chat-input').value;
             if(!text.trim()) return;
-            const chatId = [currentUser.user, currentChatTarget].sort().join("_");
-            await db.collection("chats").doc(chatId).collection("messages").add({
-                sender: currentUser.user, text, time: Date.now()
+            await db.collection("mensagens").add({ sender: currentUser.user, text, time: Date.now() });
+            document.getElementById('chat-input').value = "";
+        }
+
+        function listenMessages() {
+            db.collection("mensagens").orderBy("time", "asc").onSnapshot(snap => {
+                const container = document.getElementById('chat-content');
+                container.innerHTML = "";
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const isMe = m.sender === currentUser.user;
+                    container.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">
+                        <small style="font-size:9px; opacity:0.6">${m.sender}</small><br>${m.text}
+                    </div>`;
+                });
+                container.scrollTop = container.scrollHeight;
             });
-            document.getElementById('private-msg-input').value = "";
         }
 
-        // AUXILIARES
-        function formatTime(ts) {
-            const diff = (Date.now() - ts) / 1000;
-            if(diff < 60) return "agora";
-            if(diff < 3600) return Math.floor(diff/60) + "m";
-            return new Date(ts).getHours() + ":" + new Date(ts).getMinutes();
-        }
-
+        // PERFIL
+        function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
+        
         async function submitPost() {
-            toggleLoading('post', true);
+            const text = document.getElementById('post-text-input').value;
             await db.collection("posts").add({
-                author: currentUser.user, authorPic: currentUser.pic,
-                content: document.getElementById('post-text-input').value,
-                media: base64PostMedia, time: Date.now(), reactions: {}
+                author: currentUser.user, authorPic: currentUser.pic || "",
+                content: text, media: base64PostMedia, time: Date.now(), likes: 0, likes_list: []
             });
             document.getElementById('modal-post').style.display = 'none';
-            toggleLoading('post', false);
+            base64PostMedia = ""; document.getElementById('post-media-preview').innerHTML = "";
+            document.getElementById('post-text-input').value = "";
+        }
+
+        function openEditModal() {
+            document.getElementById('edit-status-input').value = currentUser.status;
+            document.getElementById('edit-img-preview').src = currentUser.pic;
+            document.getElementById('modal-edit').style.display = 'flex';
+        }
+
+        async function saveFullEdit() {
+            const newStatus = document.getElementById('edit-status-input').value;
+            const update = { status: newStatus, pic: base64Avatar || currentUser.pic };
+            await db.collection("usuarios").doc(currentUser.user).update(update);
+            currentUser = {...currentUser, ...update};
+            localStorage.setItem('kchat_user', JSON.stringify(currentUser));
+            loadProfile(); 
+            document.getElementById('modal-edit').style.display = 'none';
+        }
+
+        async function loadProfile() {
+            document.getElementById('my-pic').src = currentUser.pic;
+            document.getElementById('my-name').innerText = "@" + currentUser.user;
+            document.getElementById('my-status').innerText = currentUser.status;
+            document.getElementById('my-gender').innerText = currentUser.gen;
+            
+            const snap = await db.collection("posts").where("author", "==", currentUser.user).get();
+            document.getElementById('my-post-count').innerText = snap.size;
+            const grid = document.getElementById('my-posts-grid');
+            grid.innerHTML = "";
+            snap.forEach(doc => {
+                const data = doc.data();
+                grid.innerHTML += `<div class="grid-item">${data.media ? (data.media.includes('video') ? `<video src="${data.media}"></video>` : `<img src="${data.media}">`) : '<div style="font-size:8px; padding:5px">'+data.content+'</div>'}</div>`;
+            });
         }
 
         async function openUserProfile(username) {
-            if(username === currentUser.user) return showScreen('profile');
+            if(username === currentUser.user) { showScreen('profile'); return; }
             const userDoc = await db.collection("usuarios").doc(username).get();
             const userData = userDoc.data();
             showScreen('view-profile');
             document.getElementById('view-profile-header').innerHTML = `
                 <img src="${userData.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink); object-fit:cover">
                 <h2>@${userData.user}</h2>
-                <p style="color:#777">${userData.status}</p><br>
-                <button class="btn-premium" onclick="openPrivateChat('${username}')">Enviar Mensagem</button>
+                <p style="color:var(--accent-pink); font-size:12px; margin-top:-10px">${userData.gen}</p>
+                <p style="color:#777">${userData.status}</p>
             `;
-            // Grid de posts...
-        }
-
-        function processImage(input, mode) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                base64Avatar = e.target.result;
-                document.getElementById(mode === 'reg' ? 'img-preview' : 'edit-img-preview').src = base64Avatar;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-
-        function previewMedia(input) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                base64PostMedia = e.target.result;
-                document.getElementById('post-media-preview').innerHTML = `<img src="${base64PostMedia}" style="width:100%">`;
-            };
-            reader.readAsDataURL(input.files[0]);
+            const postSnap = await db.collection("posts").where("author", "==", username).get();
+            const grid = document.getElementById('view-posts-grid');
+            grid.innerHTML = "";
+            postSnap.forEach(p => {
+                const data = p.data();
+                grid.innerHTML += `<div class="grid-item">${data.media ? (data.media.includes('video') ? `<video src="${data.media}"></video>` : `<img src="${data.media}">`) : '<div style="font-size:8px; padding:5px">'+data.content+'</div>'}</div>`;
+            });
         }
 
         function searchContent(val) { listenPosts(val.toLowerCase()); }
-        function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
         function logout() { localStorage.clear(); location.reload(); }
-        async function deletePost(id) { if(confirm("Excluir?")) await db.collection("posts").doc(id).delete(); }
     </script>
 </body>
 </html>
