@@ -57,7 +57,6 @@
         .bubble-me { align-self: flex-end; background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border-bottom-right-radius: 2px; }
         .bubble-other { align-self: flex-start; background: #27272a; border-bottom-left-radius: 2px; }
 
-        /* NOVOS ESTILOS ADICIONADOS */
         .post-time { font-size: 10px; color: #555; display: block; }
         .nav-badge { position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; display: none; }
         .notif-item { padding: 15px; border-bottom: 1px solid #1a1a1e; font-size: 14px; }
@@ -66,6 +65,11 @@
         .stat-row div { text-align: center; }
         .stat-row b { display: block; font-size: 16px; color: var(--accent-pink); }
         .stat-row span { font-size: 10px; color: #555; }
+
+        /* ADIÇÃO DE CAPA NO PERFIL - ESTILO MANTENDO A IDENTIDADE */
+        .banner-container { width: 100%; height: 130px; background: #1a1a1e; position: relative; border-radius: 20px 20px 0 0; overflow: hidden; }
+        #my-banner-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .comment-item { padding: 8px; border-bottom: 1px solid #1a1a1e; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -74,12 +78,27 @@
         <div class="modal-body">
             <h3>Editar Perfil</h3><br>
             <div style="text-align:center">
+                <p style="font-size:10px; color:#555">Toque na capa para mudar</p>
+                <img id="edit-banner-preview" src="https://via.placeholder.com/400x130" style="width:100%; height:80px; border-radius:10px; object-fit:cover; margin-bottom:10px" onclick="document.getElementById('banner-input').click()">
+                <input type="file" id="banner-input" hidden onchange="processBanner(this)">
+                
                 <img id="edit-img-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-pink)"><br>
                 <button onclick="document.getElementById('edit-file-input').click()" style="background:none; border:none; color:var(--accent-pink); font-size:12px; margin:10px 0;">Trocar Foto</button>
                 <input type="file" id="edit-file-input" hidden onchange="processImage(this, 'edit')">
             </div>
             <div class="custom-input-group"><input type="text" id="edit-status-input" placeholder="Nova Bio"></div><br>
             <button class="btn-premium" onclick="saveFullEdit()">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <div id="modal-comments" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
+        <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+            <h4 id="comment-post-title">Comentários</h4><br>
+            <div id="comments-list" style="margin-bottom:20px"></div>
+            <div class="custom-input-group">
+                <input type="text" id="new-comment-input" placeholder="Escreva algo...">
+                <i class="fas fa-paper-plane" onclick="sendComment()" style="color:var(--accent-purple)"></i>
+            </div>
         </div>
     </div>
 
@@ -174,11 +193,14 @@
     </div>
 
     <div id="screen-profile" class="screen">
-        <div class="auth-container">
+        <div class="banner-container">
+            <img id="my-banner-img" src="">
+        </div>
+        <div class="auth-container" style="margin-top:-70px; position:relative; z-index:2">
             <div style="width:100%; display:flex; justify-content:flex-end; padding-right:20px">
-                <i class="fas fa-pencil-alt" onclick="openEditModal()" style="color:#555; font-size:20px"></i>
+                <i class="fas fa-pencil-alt" onclick="openEditModal()" style="color:#fff; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; font-size:16px"></i>
             </div>
-            <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover;">
+            <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover; background:var(--bg-dark)">
             <h2 id="my-name">@user</h2>
             <p id="my-gender" style="font-size:12px; color:var(--accent-pink); margin-top:-10px"></p>
             <div class="stat-row">
@@ -205,7 +227,6 @@
     </nav>
 
     <script>
-        // FIREBASE MANTIDO
         const firebaseConfig = {
             apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
             authDomain: "kchat-web-8415c.firebaseapp.com",
@@ -219,9 +240,10 @@
 
         let currentUser = null;
         let base64Avatar = "";
+        let base64Banner = ""; // NOVA VARIAVEL
         let base64PostMedia = "";
+        let currentPostId = null; // PARA COMENTARIOS
 
-        // FUNÇÃO DE TEMPO ADICIONADA
         function timeAgo(timestamp) {
             const diff = Date.now() - timestamp;
             const seconds = Math.floor(diff / 1000);
@@ -259,6 +281,18 @@
                         base64Avatar = e.target.result; 
                         document.getElementById('edit-img-preview').src = base64Avatar; 
                     }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // FUNÇÃO NOVA PARA CAPA
+        function processBanner(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64Banner = e.target.result;
+                    document.getElementById('edit-banner-preview').src = base64Banner;
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -306,7 +340,7 @@
             const pass = document.getElementById('reg-pass').value;
             const gen = document.querySelector('input[name="gen"]:checked').value;
             const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
-            const userData = { user, pass, status, gen, pic: base64Avatar || "", followers: [], following: [], joined: Date.now() };
+            const userData = { user, pass, status, gen, pic: base64Avatar || "", banner: "", followers: [], following: [], joined: Date.now() };
             await db.collection("usuarios").doc(user).set(userData);
             currentUser = userData; 
             enterApp();
@@ -344,16 +378,45 @@
                             </div>
                             <p>${post.content}</p>
                             ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
-                            <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
-                                <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}" onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])}, '${post.author}')"></i>
-                                <span style="font-size:14px; color:#666">${post.likes || 0}</span>
+                            <div style="margin-top:10px; display:flex; gap:15px; align-items:center">
+                                <div onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])}, '${post.author}')" style="cursor:pointer">
+                                    <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}"></i>
+                                    <span style="font-size:14px; color:#666">${post.likes || 0}</span>
+                                </div>
+                                <div onclick="openComments('${postId}')" style="cursor:pointer">
+                                    <i class="far fa-comment" style="color:#444"></i>
+                                </div>
                             </div>
                         </div>`;
                 });
             });
         }
 
-        // LOGICA DE NOTIFICAÇÃO E SEGUIR ADICIONADA
+        // LÓGICA DE COMENTÁRIOS
+        function openComments(id) {
+            currentPostId = id;
+            document.getElementById('modal-comments').style.display = 'flex';
+            db.collection("posts").doc(id).collection("comentarios").orderBy("time", "asc").onSnapshot(snap => {
+                const list = document.getElementById('comments-list');
+                list.innerHTML = "";
+                snap.forEach(c => {
+                    const data = c.data();
+                    list.innerHTML += `<div class="comment-item"><b>@${data.user}</b> ${data.text}</div>`;
+                });
+            });
+        }
+
+        async function sendComment() {
+            const input = document.getElementById('new-comment-input');
+            if(!input.value.trim()) return;
+            await db.collection("posts").doc(currentPostId).collection("comentarios").add({
+                user: currentUser.user,
+                text: input.value,
+                time: Date.now()
+            });
+            input.value = "";
+        }
+
         async function sendNotification(toUser, text) {
             if(toUser === currentUser.user) return;
             await db.collection("notificacoes").add({ to: toUser, from: currentUser.user, text, time: Date.now(), seen: false });
@@ -455,12 +518,13 @@
         function openEditModal() {
             document.getElementById('edit-status-input').value = currentUser.status;
             document.getElementById('edit-img-preview').src = currentUser.pic;
+            document.getElementById('edit-banner-preview').src = currentUser.banner || "https://via.placeholder.com/400x130";
             document.getElementById('modal-edit').style.display = 'flex';
         }
 
         async function saveFullEdit() {
             const newStatus = document.getElementById('edit-status-input').value;
-            const update = { status: newStatus, pic: base64Avatar || currentUser.pic };
+            const update = { status: newStatus, pic: base64Avatar || currentUser.pic, banner: base64Banner || currentUser.banner || "" };
             await db.collection("usuarios").doc(currentUser.user).update(update);
             currentUser = {...currentUser, ...update};
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
@@ -472,6 +536,7 @@
             const doc = await db.collection("usuarios").doc(currentUser.user).get();
             const data = doc.data();
             document.getElementById('my-pic').src = data.pic;
+            document.getElementById('my-banner-img').src = data.banner || "https://via.placeholder.com/400x130?text=K.Chat+Premium";
             document.getElementById('my-name').innerText = "@" + data.user;
             document.getElementById('my-status').innerText = data.status;
             document.getElementById('my-gender').innerText = data.gen;
@@ -496,17 +561,20 @@
 
             showScreen('view-profile');
             document.getElementById('view-profile-header').innerHTML = `
-                <img src="${userData.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink); object-fit:cover">
-                <h2>@${userData.user}</h2>
-                <div class="stat-row">
-                    <div><b>${(userData.followers || []).length}</b><span>Seguidores</span></div>
-                    <div><b>${(userData.following || []).length}</b><span>Seguindo</span></div>
+                <div class="banner-container"><img src="${userData.banner || 'https://via.placeholder.com/400x130'}" style="width:100%; height:100%; object-fit:cover"></div>
+                <div style="margin-top:-60px; position:relative">
+                    <img src="${userData.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink); object-fit:cover; background:var(--bg-dark)">
+                    <h2>@${userData.user}</h2>
+                    <div class="stat-row">
+                        <div><b>${(userData.followers || []).length}</b><span>Seguidores</span></div>
+                        <div><b>${(userData.following || []).length}</b><span>Seguindo</span></div>
+                    </div>
+                    <button class="btn-premium" onclick="toggleFollow('${username}')" style="width:auto; padding:10px 20px; background:${isFollowing ? '#222' : ''}">
+                        ${isFollowing ? 'Seguindo' : 'Seguir'}
+                    </button>
+                    <p style="color:var(--accent-pink); font-size:12px; margin-top:5px">${userData.gen}</p>
+                    <p style="color:#777">${userData.status}</p>
                 </div>
-                <button class="btn-premium" onclick="toggleFollow('${username}')" style="width:auto; padding:10px 20px; background:${isFollowing ? '#222' : ''}">
-                    ${isFollowing ? 'Seguindo' : 'Seguir'}
-                </button>
-                <p style="color:var(--accent-pink); font-size:12px; margin-top:5px">${userData.gen}</p>
-                <p style="color:#777">${userData.status}</p>
             `;
             const postSnap = await db.collection("posts").where("author", "==", username).get();
             const grid = document.getElementById('view-posts-grid');
