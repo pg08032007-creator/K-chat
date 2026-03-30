@@ -25,7 +25,6 @@
         
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
         
-        /* Scrollbar Custom */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 10px; }
 
@@ -72,7 +71,6 @@
         .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 10px; }
         .grid-item { aspect-ratio: 1/1; background: #1a1a1e; border-radius: 8px; overflow: hidden; border: 1px solid #222; position: relative; cursor: pointer; }
         .grid-item img, .grid-item video { width: 100%; height: 100%; object-fit: cover; }
-        .grid-item i { position: absolute; top: 8px; right: 8px; color: white; text-shadow: 0 0 8px black; font-size: 12px; }
 
         .avatar-carousel { display: flex; gap: 12px; overflow-x: auto; padding: 10px; width: 100%; scroll-snap-type: x mandatory; }
         .avatar-opt { width: 70px; height: 70px; border-radius: 50%; border: 3px solid transparent; flex-shrink: 0; cursor: pointer; scroll-snap-align: center; }
@@ -197,7 +195,6 @@
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" class="avatar-opt" onclick="selectAvatar(this.src, this)">
             </div>
 
-            <div class="custom-input-group"><i class="fas fa-calendar-day"></i><input type="date" id="onb-date"></div>
             <div class="custom-input-group"><i class="fas fa-pen-nib"></i><input type="text" id="onb-status" placeholder="Bio: No que você é bom?"></div>
             
             <div class="gender-selector">
@@ -395,7 +392,6 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
             
-            // LÓGICA DE OCULTAR NAV
             const nav = document.getElementById('main-nav');
             if(['notifications', 'chat-list', 'chat'].includes(id)) {
                 nav.style.display = 'none';
@@ -459,12 +455,12 @@
                     const post = doc.data();
                     const postId = doc.id;
                     
-                    // LÓGICA DE PESQUISA POR POST E PERFIL
                     const matchPost = post.content.toLowerCase().includes(filter);
                     const matchUser = post.author.toLowerCase().includes(filter);
                     if(filter && !matchPost && !matchUser) return;
                     
-                    const isLiked = post.likes_list && post.likes_list.includes(currentUser.user);
+                    const list = Array.isArray(post.likes_list) ? post.likes_list : [];
+                    const isLiked = list.includes(currentUser.user);
                     const isVideo = post.media && post.media.includes("data:video");
 
                     container.innerHTML += `
@@ -485,7 +481,7 @@
                                     ${isVideo ? `<video src="${post.media}" autoplay muted loop playsinline></video>` : `<img src="${post.media}">`}
                                 </div>` : ''}
                             <div style="margin-top:15px; display:flex; gap:25px; align-items:center">
-                                <div onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])}, '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
+                                <div onclick="toggleLike('${postId}', ${JSON.stringify(list)}, '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
                                     <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#666'}; font-size:18px"></i>
                                     <span style="font-size:13px; color:#999; font-weight:600">${post.likes || 0}</span>
                                 </div>
@@ -560,8 +556,9 @@
 
         async function toggleLike(postId, likesList, author) {
             const ref = db.collection("posts").doc(postId);
-            // LÓGICA DE REMOVER CURTIDA
-            if(likesList.includes(currentUser.user)) {
+            const list = Array.isArray(likesList) ? likesList : [];
+
+            if(list.includes(currentUser.user)) {
                 await ref.update({ 
                     likes: firebase.firestore.FieldValue.increment(-1), 
                     likes_list: firebase.firestore.FieldValue.arrayRemove(currentUser.user) 
@@ -632,9 +629,19 @@
             const text = input.value.trim();
             if(!text) return;
             input.value = "";
-            // GRAVAÇÃO DA MENSAGEM NO PRIVADO
-            await db.collection("chats_privados").doc(chatId).collection("mensagens").add({ sender: currentUser.user, text, time: Date.now() });
-            await db.collection("chats_privados").doc(chatId).set({ lastMsg: text, lastTime: Date.now(), participants: [currentUser.user, targetUser] });
+
+            const batch = db.batch();
+            const chatRef = db.collection("chats_privados").doc(chatId);
+            const msgRef = chatRef.collection("mensagens").doc();
+
+            batch.set(msgRef, { sender: currentUser.user, text, time: Date.now() });
+            batch.set(chatRef, { 
+                lastMsg: text, 
+                lastTime: Date.now(), 
+                participants: [currentUser.user, targetUser] 
+            }, { merge: true });
+
+            await batch.commit();
             sendNotification(targetUser, "te enviou um segredo no chat");
         }
 
@@ -672,7 +679,7 @@
             snap.forEach(doc => {
                 const p = doc.data();
                 const isVid = p.media && p.media.includes("data:video");
-                grid.innerHTML += `<div class="grid-item" onclick="openComments('${doc.id}')">${p.media ? (isVid ? `<video src="${p.media}"></video><i class="fas fa-play"></i>` : `<img src="${p.media}">`) : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">${p.content.substring(0,30)}...</div>`}</div>`;
+                grid.innerHTML += `<div class="grid-item" onclick="openComments('${doc.id}')">${p.media ? (isVid ? `<video src="${p.media}"></video>` : `<img src="${p.media}">`) : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">${p.content.substring(0,30)}...</div>`}</div>`;
             });
         }
 
@@ -705,7 +712,7 @@
             postSnap.forEach(p => {
                 const data = p.data();
                 const isVid = data.media && data.media.includes("data:video");
-                grid.innerHTML += `<div class="grid-item" onclick="openComments('${p.id}')">${data.media ? (isVid ? `<video src="${data.media}"></video><i class="fas fa-play"></i>` : `<img src="${data.media}">`) : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">${data.content.substring(0,30)}...</div>`}</div>`;
+                grid.innerHTML += `<div class="grid-item" onclick="openComments('${p.id}')">${data.media ? (isVid ? `<video src="${data.media}"></video>` : `<img src="${data.media}">`) : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">${data.content.substring(0,30)}...</div>`}</div>`;
             });
         }
 
