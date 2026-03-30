@@ -37,7 +37,6 @@
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         
-        /* AJUSTE DE MÍDIA NO FEED */
         .post-media-wrapper { width: 100%; margin-top: 12px; border-radius: 15px; overflow: hidden; border: 1px solid #27272a; background: #000; display: flex; justify-content: center; align-items: center; }
         .post-media-wrapper img, .post-media-wrapper video { width: 100%; max-height: 450px; object-fit: contain; display: block; }
 
@@ -70,9 +69,11 @@
         .stat-row b { display: block; font-size: 16px; color: var(--accent-pink); }
         .stat-row span { font-size: 10px; color: #555; }
 
-        .banner-container { width: 100%; height: 130px; background: #1a1a1e; position: relative; border-radius: 20px 20px 0 0; overflow: hidden; }
-        #my-banner-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        /* AJUSTE DO BANNER AMPLIADO E PADRÃO */
+        .banner-container { width: 100%; height: 200px; background: #1a1a1e; position: relative; border-radius: 0 0 20px 20px; overflow: hidden; }
+        #my-banner-img, .view-banner-img { width: 100%; height: 100%; object-fit: cover; }
         .comment-item { padding: 8px; border-bottom: 1px solid #1a1a1e; font-size: 12px; }
+        .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-bottom: 1px solid #1a1a1e; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -82,7 +83,7 @@
             <h3>Editar Perfil</h3><br>
             <div style="text-align:center">
                 <p style="font-size:10px; color:#555">Toque na capa para mudar</p>
-                <img id="edit-banner-preview" src="https://via.placeholder.com/400x130" style="width:100%; height:80px; border-radius:10px; object-fit:cover; margin-bottom:10px" onclick="document.getElementById('banner-input').click()">
+                <img id="edit-banner-preview" src="https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000" style="width:100%; height:80px; border-radius:10px; object-fit:cover; margin-bottom:10px" onclick="document.getElementById('banner-input').click()">
                 <input type="file" id="banner-input" hidden onchange="processBanner(this)">
                 
                 <img id="edit-img-preview" src="" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-pink)"><br>
@@ -170,7 +171,7 @@
                 <i class="fas fa-bell" style="color:var(--accent-purple); font-size:20px"></i>
                 <div id="notif-badge" class="nav-badge"></div>
             </div>
-            <i class="fas fa-comment-dots" onclick="showScreen('chat')" style="color:var(--accent-purple); font-size:20px"></i>
+            <i class="fas fa-comment-dots" onclick="showScreen('chat-list')" style="color:var(--accent-purple); font-size:20px"></i>
         </header>
         <div id="feed-content"></div>
     </div>
@@ -183,15 +184,23 @@
         <div id="notif-content"></div>
     </div>
 
-    <div id="screen-chat" class="screen">
+    <div id="screen-chat-list" class="screen">
         <header class="app-header">
             <i class="fas fa-arrow-left" onclick="showScreen('feed')"></i>
-            <h3 style="flex:1; text-align:center">Chat Geral</h3>
+            <h3 style="flex:1; text-align:center">Mensagens</h3>
+        </header>
+        <div id="chat-list-content"></div>
+    </div>
+
+    <div id="screen-chat" class="screen">
+        <header class="app-header">
+            <i class="fas fa-arrow-left" onclick="showScreen('chat-list')"></i>
+            <h3 id="chat-target-name" style="flex:1; text-align:center">Chat</h3>
         </header>
         <div id="chat-content"></div>
         <div style="position: fixed; bottom: 90px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark);">
-            <input type="text" id="chat-input" placeholder="Conversar..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 20px; padding: 12px; color: white; outline: none;" onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button onclick="sendMessage()" style="background: var(--accent-purple); border: none; width: 45px; height: 45px; border-radius: 50%; color: white;"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" id="chat-input" placeholder="Conversar..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 20px; padding: 12px; color: white; outline: none;">
+            <button id="btn-send-msg" style="background: var(--accent-purple); border: none; width: 45px; height: 45px; border-radius: 50%; color: white;"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
@@ -199,11 +208,11 @@
         <div class="banner-container">
             <img id="my-banner-img" src="">
         </div>
-        <div class="auth-container" style="margin-top:-70px; position:relative; z-index:2">
+        <div class="auth-container" style="margin-top:-90px; position:relative; z-index:2">
             <div style="width:100%; display:flex; justify-content:flex-end; padding-right:20px">
                 <i class="fas fa-pencil-alt" onclick="openEditModal()" style="color:#fff; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%; font-size:16px"></i>
             </div>
-            <img id="my-pic" src="" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent-pink); object-fit:cover; background:var(--bg-dark)">
+            <img id="my-pic" src="" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--bg-dark); object-fit:cover; background:var(--bg-dark)">
             <h2 id="my-name">@user</h2>
             <p id="my-gender" style="font-size:12px; color:var(--accent-pink); margin-top:-10px"></p>
             <div class="stat-row">
@@ -218,8 +227,7 @@
     </div>
 
     <div id="screen-view-profile" class="screen">
-        <div style="padding:20px"><i class="fas fa-arrow-left" onclick="showScreen('feed')"></i></div>
-        <div class="auth-container" id="view-profile-header"></div>
+        <div id="view-profile-header"></div>
         <div id="view-posts-grid" class="profile-grid"></div>
     </div>
 
@@ -246,8 +254,13 @@
         let base64Banner = ""; 
         let base64PostMedia = "";
         let currentPostId = null; 
+        let activeChatTarget = null;
+        let chatUnsubscribe = null;
+
+        const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000";
 
         function timeAgo(timestamp) {
+            if(!timestamp) return "...";
             const diff = Date.now() - timestamp;
             const seconds = Math.floor(diff / 1000);
             if (seconds < 60) return "agora";
@@ -323,7 +336,7 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
             if(id === 'profile') loadProfile();
-            if(id === 'chat') listenMessages();
+            if(id === 'chat-list') loadChatList();
             if(id === 'notifications') markNotificationsAsSeen();
         }
 
@@ -342,7 +355,12 @@
             const pass = document.getElementById('reg-pass').value;
             const gen = document.querySelector('input[name="gen"]:checked').value;
             const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
-            const userData = { user, pass, status, gen, pic: base64Avatar || "", banner: "", followers: [], following: [], joined: Date.now() };
+            const userData = { 
+                user, pass, status, gen, 
+                pic: base64Avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed="+user, 
+                banner: DEFAULT_BANNER, 
+                followers: [], following: [], joined: Date.now() 
+            };
             await db.collection("usuarios").doc(user).set(userData);
             currentUser = userData; 
             enterApp();
@@ -397,7 +415,7 @@
             });
         }
 
-        function openComments(id) {
+        async function openComments(id) {
             currentPostId = id;
             document.getElementById('modal-comments').style.display = 'flex';
             db.collection("posts").doc(id).collection("comentarios").orderBy("time", "asc").onSnapshot(snap => {
@@ -413,12 +431,13 @@
         async function sendComment() {
             const input = document.getElementById('new-comment-input');
             if(!input.value.trim()) return;
-            await db.collection("posts").doc(currentPostId).collection("comentarios").add({
-                user: currentUser.user,
-                text: input.value,
-                time: Date.now()
-            });
+            const text = input.value;
             input.value = "";
+            await db.collection("posts").doc(currentPostId).collection("comentarios").add({
+                user: currentUser.user, text: text, time: Date.now()
+            });
+            const post = await db.collection("posts").doc(currentPostId).get();
+            sendNotification(post.data().author, `comentou no seu post: "${text.substring(0,20)}..."`);
         }
 
         async function sendNotification(toUser, text) {
@@ -484,26 +503,56 @@
             }
         }
 
-        async function sendMessage() {
-            const text = document.getElementById('chat-input').value;
-            if(!text.trim()) return;
-            await db.collection("mensagens").add({ sender: currentUser.user, text, time: Date.now() });
-            document.getElementById('chat-input').value = "";
+        async function openPrivateChat(targetUser) {
+            activeChatTarget = targetUser;
+            document.getElementById('chat-target-name').innerText = "@" + targetUser;
+            showScreen('chat');
+            const chatId = [currentUser.user, targetUser].sort().join("_");
+            if(chatUnsubscribe) chatUnsubscribe();
+            chatUnsubscribe = db.collection("chats_privados").doc(chatId).collection("mensagens")
+                .orderBy("time", "asc").onSnapshot(snap => {
+                    const container = document.getElementById('chat-content');
+                    container.innerHTML = "";
+                    snap.forEach(doc => {
+                        const m = doc.data();
+                        const isMe = m.sender === currentUser.user;
+                        container.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">${m.text}</div>`;
+                    });
+                    container.scrollTop = container.scrollHeight;
+                });
+            document.getElementById('btn-send-msg').onclick = () => sendPrivateMsg(chatId, targetUser);
         }
 
-        function listenMessages() {
-            db.collection("mensagens").orderBy("time", "asc").onSnapshot(snap => {
-                const container = document.getElementById('chat-content');
-                container.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isMe = m.sender === currentUser.user;
-                    container.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">
-                        <small style="font-size:9px; opacity:0.6">${m.sender}</small><br>${m.text}
-                    </div>`;
-                });
-                container.scrollTop = container.scrollHeight;
+        async function sendPrivateMsg(chatId, targetUser) {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+            input.value = "";
+            await db.collection("chats_privados").doc(chatId).collection("mensagens").add({
+                sender: currentUser.user, text, time: Date.now()
             });
+            await db.collection("chats_privados").doc(chatId).set({
+                lastMsg: text, lastTime: Date.now(), participants: [currentUser.user, targetUser]
+            });
+            sendNotification(targetUser, "te enviou uma mensagem");
+        }
+
+        async function loadChatList() {
+            db.collection("chats_privados").where("participants", "array-contains", currentUser.user)
+                .orderBy("lastTime", "desc").onSnapshot(snap => {
+                    const container = document.getElementById('chat-list-content');
+                    container.innerHTML = "";
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const other = data.participants.find(p => p !== currentUser.user);
+                        container.innerHTML += `
+                            <div class="chat-list-item" onclick="openPrivateChat('${other}')">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${other}" class="user-avatar">
+                                <div style="flex:1"><b>@${other}</b><br><small style="color:#666">${data.lastMsg}</small></div>
+                                <span style="font-size:10px; color:#444">${timeAgo(data.lastTime)}</span>
+                            </div>`;
+                    });
+                });
         }
 
         function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
@@ -522,13 +571,13 @@
         function openEditModal() {
             document.getElementById('edit-status-input').value = currentUser.status;
             document.getElementById('edit-img-preview').src = currentUser.pic;
-            document.getElementById('edit-banner-preview').src = currentUser.banner || "https://via.placeholder.com/400x130";
+            document.getElementById('edit-banner-preview').src = currentUser.banner || DEFAULT_BANNER;
             document.getElementById('modal-edit').style.display = 'flex';
         }
 
         async function saveFullEdit() {
             const newStatus = document.getElementById('edit-status-input').value;
-            const update = { status: newStatus, pic: base64Avatar || currentUser.pic, banner: base64Banner || currentUser.banner || "" };
+            const update = { status: newStatus, pic: base64Avatar || currentUser.pic, banner: base64Banner || currentUser.banner || DEFAULT_BANNER };
             await db.collection("usuarios").doc(currentUser.user).update(update);
             currentUser = {...currentUser, ...update};
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
@@ -540,7 +589,7 @@
             const doc = await db.collection("usuarios").doc(currentUser.user).get();
             const data = doc.data();
             document.getElementById('my-pic').src = data.pic;
-            document.getElementById('my-banner-img').src = data.banner || "https://via.placeholder.com/400x130?text=K.Chat+Premium";
+            document.getElementById('my-banner-img').src = data.banner || DEFAULT_BANNER;
             document.getElementById('my-name').innerText = "@" + data.user;
             document.getElementById('my-status').innerText = data.status;
             document.getElementById('my-gender').innerText = data.gen;
@@ -565,21 +614,24 @@
 
             showScreen('view-profile');
             document.getElementById('view-profile-header').innerHTML = `
-                <div class="banner-container"><img src="${userData.banner || 'https://via.placeholder.com/400x130'}" style="width:100%; height:100%; object-fit:cover"></div>
-                <div style="margin-top:-60px; position:relative">
-                    <img src="${userData.pic}" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--accent-pink); object-fit:cover; background:var(--bg-dark)">
+                <div class="banner-container">
+                    <i class="fas fa-arrow-left" onclick="showScreen('feed')" style="position:absolute; top:20px; left:20px; z-index:10; background:rgba(0,0,0,0.5); padding:10px; border-radius:50%"></i>
+                    <img src="${userData.banner || DEFAULT_BANNER}" class="view-banner-img">
+                </div>
+                <div class="auth-container" style="margin-top:-90px; position:relative; z-index:2">
+                    <img src="${userData.pic}" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--bg-dark); object-fit:cover; background:var(--bg-dark)">
                     <h2>@${userData.user}</h2>
                     <div class="stat-row">
                         <div><b>${(userData.followers || []).length}</b><span>Seguidores</span></div>
                         <div><b>${(userData.following || []).length}</b><span>Seguindo</span></div>
                     </div>
-                    <button class="btn-premium" onclick="toggleFollow('${username}')" style="width:auto; padding:10px 20px; background:${isFollowing ? '#222' : ''}">
-                        ${isFollowing ? 'Seguindo' : 'Seguir'}
-                    </button>
+                    <div style="display:flex; gap:10px; width:100%">
+                        <button class="btn-premium" onclick="toggleFollow('${username}')" style="flex:1; background:${isFollowing ? '#222' : ''}">${isFollowing ? 'Seguindo' : 'Seguir'}</button>
+                        <button class="btn-premium" onclick="openPrivateChat('${username}')" style="width:60px; background:#1a1a1e; border:1px solid #333"><i class="fas fa-comment"></i></button>
+                    </div>
                     <p style="color:var(--accent-pink); font-size:12px; margin-top:5px">${userData.gen}</p>
                     <p style="color:#777">${userData.status}</p>
-                </div>
-            `;
+                </div>`;
             const postSnap = await db.collection("posts").where("author", "==", username).get();
             const grid = document.getElementById('view-posts-grid');
             grid.innerHTML = "";
