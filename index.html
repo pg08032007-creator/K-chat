@@ -54,7 +54,7 @@
         .search-bar { flex: 1; background: #1a1a1e; border-radius: 15px; display: flex; align-items: center; padding: 10px 15px; border: 1px solid #27272a; }
         .search-bar input { background: transparent; border: none; color: white; margin-left: 10px; width: 100%; outline: none; font-size: 14px; }
 
-        .post-card { background: var(--bg-card); border-radius: 25px; padding: 18px; margin: 15px; border: 1px solid #1f1f23; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); cursor:pointer; }
+        .post-card { background: var(--bg-card); border-radius: 25px; padding: 18px; margin: 15px; border: 1px solid #1f1f23; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); cursor: pointer; }
         .user-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #222; }
         
         .post-media-wrapper { width: 100%; margin-top: 15px; border-radius: 20px; overflow: hidden; border: 1px solid #27272a; background: #000; display: flex; justify-content: center; align-items: center; cursor: pointer; }
@@ -79,7 +79,7 @@
         .avatar-opt.selected { border-color: var(--accent-pink); transform: scale(1.1); }
 
         #chat-content { height: 72vh; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        .bubble { padding: 14px 18px; border-radius: 22px; max-width: 80%; font-size: 14px; line-height: 1.4; position: relative; color: white; box-shadow: 0 3px 10px rgba(0,0,0,0.1); word-break: break-word; }
+        .bubble { padding: 14px 18px; border-radius: 22px; max-width: 80%; font-size: 14px; line-height: 1.4; position: relative; color: white; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
         .bubble-me { align-self: flex-end; background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)); border-bottom-right-radius: 4px; }
         .bubble-other { align-self: flex-start; background: #27272a; border-bottom-left-radius: 4px; }
 
@@ -135,19 +135,7 @@
         </div>
     </div>
 
-    <!-- MODAL COMMENTS -->
-    <div id="modal-comments" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
-        <div class="modal-body" style="height: 80vh; display: flex; flex-direction: column;">
-            <h4 id="comment-post-title" style="text-align: center; padding-bottom: 15px; border-bottom: 1px solid #222;">Comentários</h4>
-            <div id="comments-list" style="flex: 1; overflow-y: auto; padding: 15px 0;"></div>
-            <div class="custom-input-group">
-                <input type="text" id="new-comment-input" placeholder="Diga algo legal...">
-                <i class="fas fa-paper-plane" onclick="sendComment()" style="color:var(--accent-purple); cursor:pointer; padding: 10px;"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL POST CREATE -->
+    <!-- MODAL POST -->
     <div id="modal-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body">
             <h3>Nova Publicação</h3><br>
@@ -159,10 +147,17 @@
         </div>
     </div>
 
-    <!-- MODAL POST DETAILS (NOVO - NÃO REMOVE NADA) -->
+    <!-- MODAL POST DETAILS + COMMENTS (EMBED ÚNICA) -->
     <div id="modal-view-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
-        <div class="modal-body" style="max-height:90vh; overflow-y:auto;">
-            <div id="view-post-content"></div>
+        <div class="modal-body" style="height: 85vh; display:flex; flex-direction:column;">
+            <div id="view-post-content" style="flex:1; overflow-y:auto;"></div>
+
+            <div style="border-top:1px solid #222; padding-top:12px; margin-top:10px;">
+                <div class="custom-input-group">
+                    <input type="text" id="new-comment-input" placeholder="Diga algo legal...">
+                    <i class="fas fa-paper-plane" onclick="sendComment()" style="color:var(--accent-purple); cursor:pointer; padding: 10px;"></i>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -185,7 +180,7 @@
             <div class="custom-input-group"><i class="fas fa-user"></i><input type="text" id="reg-user" placeholder="Como quer ser chamado?" onblur="checkUserExists(this.value)"></div>
             <div id="reg-warn" style="color:var(--accent-pink); font-size:11px; display:none; width: 100%; text-align: left; padding-left: 10px;">Indisponível! Tente outro nome.</div>
             <div class="custom-input-group"><i class="fas fa-lock"></i><input type="password" id="reg-pass" placeholder="Crie uma senha forte"></div>
-            <button class="btn-premium" onclick="showScreen('onboarding')">Próximo Passo</button>
+            <button class="btn-premium" onclick="goToOnboarding()">Próximo Passo</button>
             <p onclick="showScreen('login')" style="color:#666">Já tenho uma conta</p>
         </div>
     </div>
@@ -332,10 +327,11 @@
         let currentPostId = null; 
         let activeChatTarget = null;
         let chatUnsubscribe = null;
+        let postDetailsUnsub = null;
 
         const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000";
 
-        // LÓGICA DE TEMPO RESTAURADA
+        // LÓGICA DE TEMPO
         function timeAgo(timestamp) {
             if(!timestamp) return "...";
             const diff = Date.now() - timestamp;
@@ -356,7 +352,7 @@
             }
         }
 
-        // LÓGICAS DE MEDIA RESTAURADAS COM TODOS OS DETALHES
+        // MEDIA
         function selectAvatar(url, el) {
             base64Avatar = url;
             document.getElementById('img-preview').src = url;
@@ -399,7 +395,7 @@
                     base64PostMedia = e.target.result;
                     const container = document.getElementById('post-media-preview');
                     if(file.type.includes('video')) {
-                        container.innerHTML = `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop playsinline></video>`;
+                        container.innerHTML = `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop></video>`;
                     } else {
                         container.innerHTML = `<img src="${base64PostMedia}" style="width:100%">`;
                     }
@@ -408,11 +404,19 @@
             }
         }
 
-        // AUTH COMPLETA
+        // AUTH
         async function checkUserExists(user) {
             if(!user) return;
             const doc = await db.collection("usuarios").doc(user.toLowerCase().trim()).get();
             document.getElementById('reg-warn').style.display = doc.exists ? 'block' : 'none';
+        }
+
+        function goToOnboarding() {
+            const user = document.getElementById('reg-user').value.toLowerCase().trim();
+            const pass = document.getElementById('reg-pass').value;
+
+            if(!user || !pass) return alert("Preencha usuário e senha primeiro.");
+            showScreen('onboarding');
         }
 
         function showScreen(id) {
@@ -437,15 +441,18 @@
 
             const doc = await db.collection("usuarios").doc(user).get();
 
-            if (doc.exists && doc.data().pass === pass) { 
-                currentUser = {
-                    ...doc.data(),
-                    user: doc.data().user || user
-                };
-                enterApp(); 
-            } else { 
-                alert("Acesso negado: Usuário ou senha inválidos."); 
-            }
+            if (!doc.exists) return alert("Usuário não encontrado.");
+
+            const data = doc.data();
+
+            if(data.pass !== pass) return alert("Senha incorreta.");
+
+            currentUser = {
+                ...data,
+                user: data.user || user
+            };
+
+            enterApp();
         }
 
         async function handleRegister() {
@@ -486,11 +493,12 @@
             listenNotifications();
         }
 
-        // FEED E POSTS (COM TODAS AS INTERAÇÕES RESTAURADAS)
+        // FEED
         function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
                 container.innerHTML = "";
+
                 snapshot.forEach(doc => {
                     const post = doc.data();
                     const postId = doc.id;
@@ -512,17 +520,21 @@
                                 </div>
                                 ${post.author === currentUser.user ? `<i class="fas fa-trash-alt" style="color:#ff4444; font-size:14px; cursor:pointer; opacity:0.5" onclick="event.stopPropagation(); deletePost('${postId}')"></i>` : ''}
                             </div>
+
                             <p style="font-size:14px; line-height:1.5; margin-bottom:5px; color:#efeff1">${post.content}</p>
+
                             ${post.media ? `
                                 <div class="post-media-wrapper" onclick="event.stopPropagation(); openPostDetails('${postId}')">
                                     ${isVideo ? `<video src="${post.media}" autoplay muted loop playsinline></video>` : `<img src="${post.media}">`}
                                 </div>` : ''}
+
                             <div style="margin-top:15px; display:flex; gap:25px; align-items:center">
-                                <div onclick="event.stopPropagation(); toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])}, '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
+                                <div onclick="event.stopPropagation(); toggleLike('${postId}', '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
                                     <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#666'}; font-size:18px"></i>
                                     <span style="font-size:13px; color:#999; font-weight:600">${post.likes || 0}</span>
                                 </div>
-                                <div onclick="event.stopPropagation(); openComments('${postId}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
+
+                                <div onclick="event.stopPropagation(); openPostDetails('${postId}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
                                     <i class="far fa-comment" style="color:#666; font-size:18px"></i>
                                     <span style="font-size:13px; color:#999; font-weight:600">Ver mais</span>
                                 </div>
@@ -532,44 +544,8 @@
             });
         }
 
-        // POST DETAILS (NOVO)
-        async function openPostDetails(postId) {
-            const ref = await db.collection("posts").doc(postId).get();
-            if(!ref.exists) return;
-
-            const post = ref.data();
-            const isVideo = post.media && post.media.includes("data:video");
-
-            document.getElementById("modal-view-post").style.display = "flex";
-
-            document.getElementById("view-post-content").innerHTML = `
-                <div style="display:flex; gap:12px; align-items:center; margin-bottom:15px">
-                    <img src="${post.authorPic || 'https://via.placeholder.com/42'}" class="user-avatar">
-                    <div>
-                        <b style="font-size:14px">@${post.author}</b><br>
-                        <span class="post-time">${timeAgo(post.time)}</span>
-                    </div>
-                </div>
-
-                <p style="font-size:15px; color:#eee; line-height:1.5">${post.content}</p>
-
-                ${post.media ? `
-                    <div class="post-media-wrapper" style="margin-top:15px">
-                        ${isVideo ? `<video src="${post.media}" controls playsinline></video>` : `<img src="${post.media}">`}
-                    </div>
-                ` : ""}
-
-                <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center">
-                    <button class="btn-premium" style="background:#1a1a1e; border:1px solid #333; height:45px; padding:0 15px" onclick="openComments('${postId}')">
-                        Ver Comentários
-                    </button>
-                    <span style="color:#777; font-size:13px">${post.likes || 0} curtidas</span>
-                </div>
-            `;
-        }
-
         async function submitPost() {
-            const text = document.getElementById('post-text-input').value.trim();
+            const text = document.getElementById('post-text-input').value;
             if(!text && !base64PostMedia) return;
 
             const btn = document.getElementById('btn-submit-post');
@@ -600,46 +576,15 @@
             }
         }
 
-        // COMENTÁRIOS E NOTIFICAÇÕES (RECUPERADAS AS MENSAGENS COMPLETAS)
-        async function openComments(id) {
-            currentPostId = id;
-            document.getElementById('modal-comments').style.display = 'flex';
-
-            db.collection("posts").doc(id).collection("comentarios").orderBy("time", "asc").onSnapshot(snap => {
-                const list = document.getElementById('comments-list');
-                list.innerHTML = snap.empty ? "<p style='color:#555; font-size:13px; text-align:center; margin-top:20px'>Nenhum comentário por aqui ainda.</p>" : "";
-                snap.forEach(c => {
-                    const data = c.data();
-                    list.innerHTML += `<div class="comment-item">
-                        <img src="${data.userPic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user}`}" style="width:25px; border-radius:50%">
-                        <div><b>@${data.user}</b><p style="color:#ccc; margin-top:2px">${data.text}</p><small style="color:#444; font-size:9px">${timeAgo(data.time)}</small></div>
-                    </div>`;
-                });
-            });
-        }
-
-        async function sendComment() {
-            const input = document.getElementById('new-comment-input');
-            if(!input.value.trim()) return;
-
-            const text = input.value.trim();
-            input.value = "";
-
-            await db.collection("posts").doc(currentPostId).collection("comentarios").add({
-                user: currentUser.user,
-                userPic: currentUser.pic,
-                text: text,
-                time: Date.now()
-            });
-
-            const post = await db.collection("posts").doc(currentPostId).get();
-            if(post.exists) {
-                sendNotification(post.data().author, `comentou: "${text.substring(0,15)}..."`);
-            }
-        }
-
-        async function toggleLike(postId, likesList, author) {
+        // LIKE (CORRIGIDO DEFINITIVO)
+        async function toggleLike(postId, author) {
             const ref = db.collection("posts").doc(postId);
+            const doc = await ref.get();
+            if(!doc.exists) return;
+
+            const data = doc.data();
+            const likesList = data.likes_list || [];
+
             if(likesList.includes(currentUser.user)) {
                 await ref.update({ 
                     likes: firebase.firestore.FieldValue.increment(-1), 
@@ -654,13 +599,24 @@
             }
         }
 
+        // NOTIFICAÇÕES
         async function sendNotification(toUser, text) {
             if(toUser === currentUser.user) return;
-            await db.collection("notificacoes").add({ to: toUser, from: currentUser.user, text, time: Date.now(), seen: false });
+            await db.collection("notificacoes").add({ 
+                to: toUser, 
+                from: currentUser.user, 
+                text, 
+                time: Date.now(), 
+                seen: false 
+            });
         }
 
         function listenNotifications() {
-            db.collection("notificacoes").where("to", "==", currentUser.user).orderBy("time", "desc").onSnapshot(snap => {
+            db.collection("notificacoes")
+            .where("to", "==", currentUser.user)
+            .orderBy("time", "desc")
+            .onSnapshot(snap => {
+
                 const badge = document.getElementById('notif-badge');
                 const unseen = snap.docs.filter(d => !d.data().seen).length;
                 badge.innerText = unseen > 99 ? "99+" : unseen;
@@ -671,24 +627,132 @@
                     container.innerHTML = snap.empty ? "<p style='padding:40px; color:#555; text-align:center'>Tudo calmo por aqui.</p>" : "";
                     snap.forEach(doc => {
                         const n = doc.data();
-                        container.innerHTML += `<div class="notif-item ${!n.seen ? 'notif-unseen' : ''}">
-                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${n.from}" style="width:35px; border-radius:50%">
-                            <div style="flex:1"><b style="color:var(--accent-pink)">@${n.from}</b> <span style="color:#999">${n.text}</span></div>
-                            <span class="post-time">${timeAgo(n.time)}</span>
-                        </div>`;
+                        container.innerHTML += `
+                            <div class="notif-item ${!n.seen ? 'notif-unseen' : ''}">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${n.from}" style="width:35px; border-radius:50%">
+                                <div style="flex:1">
+                                    <b style="color:var(--accent-pink)">@${n.from}</b> 
+                                    <span style="color:#999">${n.text}</span>
+                                </div>
+                                <span class="post-time">${timeAgo(n.time)}</span>
+                            </div>`;
                     });
                 }
             });
         }
 
         async function markNotificationsAsSeen() {
-            const snap = await db.collection("notificacoes").where("to", "==", currentUser.user).where("seen", "==", false).get();
+            const snap = await db.collection("notificacoes")
+            .where("to", "==", currentUser.user)
+            .where("seen", "==", false)
+            .get();
+
             const batch = db.batch();
             snap.forEach(doc => batch.update(doc.ref, { seen: true }));
             await batch.commit();
         }
 
-        // CHAT PRIVADO COMPLETO (CORRIGIDO COM MERGE TRUE)
+        // POST DETAILS + COMMENTS (EMBED ÚNICA)
+        async function openPostDetails(postId) {
+            currentPostId = postId;
+
+            document.getElementById("modal-view-post").style.display = "flex";
+
+            if(postDetailsUnsub) postDetailsUnsub();
+
+            const postDoc = await db.collection("posts").doc(postId).get();
+            if(!postDoc.exists) return;
+
+            const post = postDoc.data();
+            const isVideo = post.media && post.media.includes("data:video");
+
+            document.getElementById("view-post-content").innerHTML = `
+                <div style="display:flex; gap:12px; align-items:center; margin-bottom:15px">
+                    <img src="${post.authorPic || 'https://via.placeholder.com/42'}" class="user-avatar">
+                    <div>
+                        <b style="font-size:14px">@${post.author}</b><br>
+                        <span class="post-time">${timeAgo(post.time)}</span>
+                    </div>
+                </div>
+
+                <p style="font-size:15px; color:#eee; line-height:1.5">${post.content}</p>
+
+                ${post.media ? `
+                    <div class="post-media-wrapper" style="margin-top:15px">
+                        ${isVideo ? `<video src="${post.media}" controls playsinline></video>` : `<img src="${post.media}">`}
+                    </div>
+                ` : ""}
+
+                <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center">
+                    <div onclick="toggleLike('${postId}', '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
+                        <i class="far fa-heart" style="color:#666; font-size:18px"></i>
+                        <span style="font-size:13px; color:#999; font-weight:600" id="post-like-count">0</span>
+                    </div>
+                </div>
+
+                <h4 style="margin-top:18px; margin-bottom:10px; font-size:14px; color:#aaa">Comentários</h4>
+                <div id="comments-list"></div>
+            `;
+
+            db.collection("posts").doc(postId).onSnapshot(doc => {
+                if(!doc.exists) return;
+                const d = doc.data();
+                const likeEl = document.getElementById("post-like-count");
+                if(likeEl) likeEl.innerText = d.likes || 0;
+            });
+
+            postDetailsUnsub = db.collection("posts")
+                .doc(postId)
+                .collection("comentarios")
+                .orderBy("time", "asc")
+                .onSnapshot(snap => {
+
+                const list = document.getElementById("comments-list");
+
+                list.innerHTML = snap.empty 
+                    ? "<p style='color:#555; font-size:13px; text-align:center; margin-top:20px'>Nenhum comentário por aqui ainda.</p>"
+                    : "";
+
+                snap.forEach(c => {
+                    const data = c.data();
+                    list.innerHTML += `
+                        <div class="comment-item">
+                            <img src="${data.userPic || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user}`}" style="width:25px; border-radius:50%">
+                            <div>
+                                <b>@${data.user}</b>
+                                <p style="color:#ccc; margin-top:2px">${data.text}</p>
+                                <small style="color:#444; font-size:9px">${timeAgo(data.time)}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function sendComment() {
+            const input = document.getElementById('new-comment-input');
+            if(!input.value.trim()) return;
+
+            const text = input.value.trim();
+            input.value = "";
+
+            await db.collection("posts")
+                .doc(currentPostId)
+                .collection("comentarios")
+                .add({
+                    user: currentUser.user,
+                    userPic: currentUser.pic,
+                    text: text,
+                    time: Date.now()
+                });
+
+            const post = await db.collection("posts").doc(currentPostId).get();
+            if(post.exists) {
+                sendNotification(post.data().author, `comentou: "${text.substring(0,15)}..."`);
+            }
+        }
+
+        // CHAT PRIVADO
         async function openPrivateChat(targetUser) {
             activeChatTarget = targetUser;
             document.getElementById('chat-target-name').innerText = "@" + targetUser;
@@ -698,14 +762,28 @@
 
             if(chatUnsubscribe) chatUnsubscribe();
 
-            chatUnsubscribe = db.collection("chats_privados").doc(chatId).collection("mensagens").orderBy("time", "asc").onSnapshot(snap => {
+            chatUnsubscribe = db.collection("chats_privados")
+                .doc(chatId)
+                .collection("mensagens")
+                .orderBy("time", "asc")
+                .onSnapshot(snap => {
+
                 const container = document.getElementById('chat-content');
                 container.innerHTML = "";
+
                 snap.forEach(doc => {
                     const m = doc.data();
                     const isMe = m.sender === currentUser.user;
-                    container.innerHTML += `<div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">${m.text}<span style="display:block; font-size:8px; opacity:0.5; margin-top:4px">${new Date(m.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+
+                    container.innerHTML += `
+                        <div class="bubble ${isMe ? 'bubble-me' : 'bubble-other'}">
+                            ${m.text}
+                            <span style="display:block; font-size:8px; opacity:0.5; margin-top:4px">
+                                ${new Date(m.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </span>
+                        </div>`;
                 });
+
                 container.scrollTop = container.scrollHeight;
             });
 
@@ -715,37 +793,41 @@
         async function sendPrivateMsg(chatId, targetUser) {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
+
             if(!text) return;
 
             input.value = "";
 
-            await db.collection("chats_privados").doc(chatId).collection("mensagens").add({ 
-                sender: currentUser.user, 
-                text, 
-                time: Date.now() 
-            });
+            await db.collection("chats_privados")
+                .doc(chatId)
+                .collection("mensagens")
+                .add({ 
+                    sender: currentUser.user, 
+                    text, 
+                    time: Date.now() 
+                });
 
-            await db.collection("chats_privados").doc(chatId).set({ 
-                lastMsg: text, 
-                lastTime: Date.now(), 
-                participants: [currentUser.user, targetUser] 
+            await db.collection("chats_privados").doc(chatId).set({
+                lastMsg: text,
+                lastTime: Date.now(),
+                participants: [currentUser.user, targetUser]
             }, { merge: true });
 
-            sendNotification(targetUser, "te enviou um segredo no chat");
+            sendNotification(targetUser, "te enviou uma mensagem no chat");
         }
 
         async function loadChatList() {
             db.collection("chats_privados")
-                .where("participants", "array-contains", currentUser.user)
-                .orderBy("lastTime", "desc")
-                .onSnapshot(snap => {
+            .where("participants", "array-contains", currentUser.user)
+            .orderBy("lastTime", "desc")
+            .onSnapshot(snap => {
 
                 const container = document.getElementById('chat-list-content');
                 container.innerHTML = snap.empty ? "<p style='padding:40px; color:#555; text-align:center'>Ninguém te chamou ainda.</p>" : "";
 
                 snap.forEach(doc => {
                     const data = doc.data();
-                    const other = data.participants.find(p => p !== currentUser.user);
+                    const other = (data.participants || []).find(p => p !== currentUser.user);
 
                     container.innerHTML += `
                         <div class="chat-list-item" onclick="openPrivateChat('${other}')">
@@ -760,9 +842,11 @@
             });
         }
 
-        // PERFIL E GRIDS RESTAURADAS
+        // PERFIL
         async function loadProfile() {
             const doc = await db.collection("usuarios").doc(currentUser.user).get();
+            if(!doc.exists) return;
+
             const data = doc.data();
 
             document.getElementById('my-pic').src = data.pic;
@@ -774,7 +858,11 @@
             document.getElementById('my-followers-count').innerText = (data.followers || []).length;
             document.getElementById('my-following-count').innerText = (data.following || []).length;
 
-            const snap = await db.collection("posts").where("author", "==", currentUser.user).orderBy("time", "desc").get();
+            const snap = await db.collection("posts")
+                .where("author", "==", currentUser.user)
+                .orderBy("time", "desc")
+                .get();
+
             document.getElementById('my-post-count').innerText = snap.size;
 
             const grid = document.getElementById('my-posts-grid');
@@ -784,12 +872,27 @@
                 const p = doc.data();
                 const isVid = p.media && p.media.includes("data:video");
 
-                grid.innerHTML += `<div class="grid-item" onclick="openPostDetails('${doc.id}')">${p.media ? (isVid ? `<video src="${p.media}"></video><i class="fas fa-play"></i>` : `<img src="${p.media}">`) : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">${(p.content || "").substring(0,30)}...</div>`}</div>`;
+                grid.innerHTML += `
+                    <div class="grid-item" onclick="openPostDetails('${doc.id}')">
+                        ${
+                            p.media 
+                            ? (isVid 
+                                ? `<video src="${p.media}"></video><i class="fas fa-play"></i>` 
+                                : `<img src="${p.media}">`
+                            )
+                            : `<div style="font-size:9px; padding:10px; color:#444; height:100%; display:flex; align-items:center; text-align:center;">
+                                ${(p.content || "").substring(0,30)}...
+                               </div>`
+                        }
+                    </div>`;
             });
         }
 
         async function openUserProfile(username) {
-            if(username === currentUser.user) { showScreen('profile'); return; }
+            if(username === currentUser.user) { 
+                showScreen('profile'); 
+                return; 
+            }
 
             const userDoc = await db.collection("usuarios").doc(username).get();
             if(!userDoc.exists) return;
@@ -804,19 +907,35 @@
                     <i class="fas fa-chevron-left" onclick="showScreen('feed')" style="position:absolute; top:20px; left:20px; z-index:10; background:rgba(0,0,0,0.5); padding:12px; border-radius:50%; cursor:pointer; backdrop-filter:blur(5px)"></i>
                     <img src="${userData.banner || DEFAULT_BANNER}" class="view-banner-img">
                 </div>
+
                 <div class="auth-container" style="margin-top:-95px; position:relative; z-index:2">
                     <img src="${userData.pic}" style="width:120px; height:120px; border-radius:50%; border:4px solid var(--bg-dark); object-fit:cover; background:var(--bg-dark)">
                     <h2>@${userData.user}</h2>
-                    <div class="stat-row"><div><b>${(userData.followers || []).length}</b><span>Seguidores</span></div><div><b>${(userData.following || []).length}</b><span>Seguindo</span></div></div>
-                    <div style="display:flex; gap:12px; width:100%">
-                        <button class="btn-premium" onclick="toggleFollow('${username}')" style="flex:1; background:${isFollowing ? '#1a1a1e' : ''}">${isFollowing ? 'Seguindo' : 'Seguir'}</button>
-                        <button class="btn-premium" onclick="openPrivateChat('${username}')" style="width:65px; background:#1a1a1e; border:1px solid #333"><i class="far fa-comment-dots" style="font-size:20px"></i></button>
-                    </div>
-                    <p style="color:var(--accent-pink); font-size:11px; margin-top:8px; font-weight:800; text-transform:uppercase">${userData.gen}</p>
-                    <p style="color:#777; max-width:85%; font-size:14px; margin-top:5px">${userData.status}</p>
-                </div>`;
 
-            // POSTS PRIVADOS NO PERFIL DE OUTRO USUÁRIO (AJUSTE QUE VOCÊ PEDIU ANTES)
+                    <div class="stat-row">
+                        <div><b>${(userData.followers || []).length}</b><span>Seguidores</span></div>
+                        <div><b>${(userData.following || []).length}</b><span>Seguindo</span></div>
+                    </div>
+
+                    <div style="display:flex; gap:12px; width:100%">
+                        <button class="btn-premium" onclick="toggleFollow('${username}')" style="flex:1; background:${isFollowing ? '#1a1a1e' : ''}">
+                            ${isFollowing ? 'Seguindo' : 'Seguir'}
+                        </button>
+                        <button class="btn-premium" onclick="openPrivateChat('${username}')" style="width:65px; background:#1a1a1e; border:1px solid #333">
+                            <i class="far fa-comment-dots" style="font-size:20px"></i>
+                        </button>
+                    </div>
+
+                    <p style="color:var(--accent-pink); font-size:11px; margin-top:8px; font-weight:800; text-transform:uppercase">
+                        ${userData.gen}
+                    </p>
+                    <p style="color:#777; max-width:85%; font-size:14px; margin-top:5px">
+                        ${userData.status}
+                    </p>
+                </div>
+            `;
+
+            // Se quiser posts privados, deixe assim:
             document.getElementById('view-posts-grid').innerHTML =
                 "<p style='padding:40px; color:#555; text-align:center'>As publicações desse perfil são privadas.</p>";
         }
@@ -840,8 +959,10 @@
             openUserProfile(targetUser);
         }
 
-        // FUNÇÕES DE UI E LOGOUT
-        function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
+        // UI
+        function openPostModal() { 
+            document.getElementById('modal-post').style.display = 'flex'; 
+        }
 
         function openEditModal() { 
             document.getElementById('edit-status-input').value = currentUser.status; 
@@ -860,15 +981,19 @@
             await db.collection("usuarios").doc(currentUser.user).update(update);
 
             currentUser = {...currentUser, ...update};
+
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
 
             loadProfile(); 
+
             document.getElementById('modal-edit').style.display = 'none';
 
             alert("Perfil sincronizado com sucesso!");
         }
 
-        function searchContent(val) { listenPosts(val.toLowerCase()); }
+        function searchContent(val) { 
+            listenPosts(val.toLowerCase()); 
+        }
 
         function logout() { 
             if(confirm("Deseja sair da sua conta?")) { 
