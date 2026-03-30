@@ -7,8 +7,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
@@ -559,8 +557,7 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const storage = firebase.storage(); // 👈 AQUI
+        const db = firebase.firestore();
 
         let currentUser = null;
         let base64Avatar = "";
@@ -707,19 +704,27 @@ const storage = firebase.storage(); // 👈 AQUI
         }
 
         function previewMedia(input) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
 
-        const container = document.getElementById('post-media-preview');
-        const url = URL.createObjectURL(file);
+                reader.onload = async (e) => {
+                    let base64 = e.target.result;
 
-        if(file.type.includes('video')) {
-            container.innerHTML = `<video src="${url}" style="width:100%" autoplay muted loop playsinline></video>`;
-        } else {
-            container.innerHTML = `<img src="${url}" style="width:100%">`;
-        }
-    }
-}
+                    // Se for imagem, comprime.
+                    if(file.type.includes("image")) {
+                        base64 = await compressImageBase64(base64, 900, 0.75);
+                    }
+
+                    base64PostMedia = base64;
+
+                    const container = document.getElementById('post-media-preview');
+                    if(file.type.includes('video')) {
+                        container.innerHTML = `<video src="${base64PostMedia}" style="width:100%" autoplay muted loop playsinline></video>`;
+                    } else {
+                        container.innerHTML = `<img src="${base64PostMedia}" style="width:100%">`;
+                    }
+                };
 
                 reader.readAsDataURL(file);
             }
@@ -907,46 +912,7 @@ async function submitPost() {
                 time: Date.now(), 
                 likes: 0, 
                 likes_list: []
-            });async function submitPost() {
-    const text = document.getElementById('post-text-input').value;
-    const fileInput = document.getElementById('post-file-input');
-    const file = fileInput.files[0];
-
-    if(!text && !file) return;
-
-    const btn = document.getElementById('btn-submit-post');
-    btn.innerText = "Enviando...";
-    btn.disabled = true;
-
-    let mediaUrl = "";
-
-    try {
-        if(file) {
-            mediaUrl = await uploadSmart(file); // 👈 AQUI ESTÁ A MUDANÇA
-        }
-
-        await db.collection("posts").add({
-            author: currentUser.user,
-            authorPic: currentUser.pic || "",
-            content: text,
-            media: mediaUrl,
-            time: Date.now(),
-            likes: 0,
-            likes_list: []
-        });
-
-        document.getElementById('modal-post').style.display = 'none';
-        document.getElementById('post-text-input').value = "";
-        document.getElementById('post-media-preview').innerHTML = "";
-        fileInput.value = "";
-
-    } catch(e) {
-        alert("Erro ao enviar: " + e.message);
-    }
-
-    btn.innerText = "Publicar Agora";
-    btn.disabled = false;
-}
+            });
 
             document.getElementById('modal-post').style.display = 'none';
             base64PostMedia = ""; 
@@ -1541,4 +1507,4 @@ async function submitPost() {
 
     </script>
 </body>
-</html>
+    </html>
