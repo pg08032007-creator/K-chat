@@ -37,6 +37,10 @@
         .post-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin: 15px; border: 1px solid #1f1f23; position: relative; }
         .user-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
         
+        /* AJUSTE DE MÍDIA NO FEED */
+        .post-media-wrapper { width: 100%; margin-top: 12px; border-radius: 15px; overflow: hidden; border: 1px solid #27272a; background: #000; display: flex; justify-content: center; align-items: center; }
+        .post-media-wrapper img, .post-media-wrapper video { width: 100%; max-height: 450px; object-fit: contain; display: block; }
+
         nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; background: rgba(15, 15, 18, 0.9); border-radius: 30px; display: flex; justify-content: space-around; align-items: center; padding: 12px; backdrop-filter: blur(15px); border: 1px solid #222; z-index: 1000; }
         nav div { cursor: pointer; color: #555; font-size: 18px; }
         .plus-fab { background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); width: 60px; height: 60px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: white !important; margin-top: -40px; }
@@ -66,7 +70,6 @@
         .stat-row b { display: block; font-size: 16px; color: var(--accent-pink); }
         .stat-row span { font-size: 10px; color: #555; }
 
-        /* ADIÇÃO DE CAPA NO PERFIL - ESTILO MANTENDO A IDENTIDADE */
         .banner-container { width: 100%; height: 130px; background: #1a1a1e; position: relative; border-radius: 20px 20px 0 0; overflow: hidden; }
         #my-banner-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
         .comment-item { padding: 8px; border-bottom: 1px solid #1a1a1e; font-size: 12px; }
@@ -240,9 +243,9 @@
 
         let currentUser = null;
         let base64Avatar = "";
-        let base64Banner = ""; // NOVA VARIAVEL
+        let base64Banner = ""; 
         let base64PostMedia = "";
-        let currentPostId = null; // PARA COMENTARIOS
+        let currentPostId = null; 
 
         function timeAgo(timestamp) {
             const diff = Date.now() - timestamp;
@@ -286,7 +289,6 @@
             }
         }
 
-        // FUNÇÃO NOVA PARA CAPA
         function processBanner(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -377,7 +379,10 @@
                                 ${post.author === currentUser.user ? `<i class="fas fa-trash" style="color:#444; font-size:14px" onclick="deletePost('${postId}')"></i>` : ''}
                             </div>
                             <p>${post.content}</p>
-                            ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
+                            ${post.media ? `
+                                <div class="post-media-wrapper">
+                                    ${post.media.includes('video') ? `<video src="${post.media}" autoplay muted loop playsinline></video>` : `<img src="${post.media}">`}
+                                </div>` : ''}
                             <div style="margin-top:10px; display:flex; gap:15px; align-items:center">
                                 <div onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])}, '${post.author}')" style="cursor:pointer">
                                     <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}"></i>
@@ -392,7 +397,6 @@
             });
         }
 
-        // LÓGICA DE COMENTÁRIOS
         function openComments(id) {
             currentPostId = id;
             document.getElementById('modal-comments').style.display = 'flex';
