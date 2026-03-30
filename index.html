@@ -303,14 +303,16 @@
                     return;
                 }
 
-                const userData = { 
-                    user: user, 
-                    pass: pass, 
-                    status: status, 
-                    gen: gen, 
-                    pic: base64Avatar || "", 
-                    joined: Date.now() 
-                };
+               const birthDate = document.getElementById('onb-date').value;
+const userData = { 
+    user: user, 
+    pass: pass, 
+    status: status, 
+    gen: gen, 
+    birth: birthDate || "",
+    pic: base64Avatar || "", 
+    joined: Date.now() 
+};
 
                 await db.collection("usuarios").doc(user).set(userData);
                 currentUser = userData; 
