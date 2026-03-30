@@ -346,16 +346,12 @@ const userData = {
                         <div class="post-card">
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px" onclick="openUserProfile('${post.author}')">
                                 <img src="${post.authorPic || 'https://via.placeholder.com/40'}" class="user-avatar">
-                                <strong>@${post.author}</strong>
-                            </div>
-                            <p>${post.content}</p>
-                            ${post.media ? (post.media.includes('video') ? `<video src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px" autoplay muted loop></video>` : `<img src="${post.media}" style="width:100%; border-radius:10px; margin-top:10px">`) : ''}
-                            <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
-                                <i class="${isLiked ? 'fas' : 'far'} fa-heart" style="color:${isLiked ? '#ec4899' : '#444'}" onclick="toggleLike('${postId}', ${JSON.stringify(post.likes_list || [])})"></i>
-                                <span style="font-size:14px; color:#666">${post.likes || 0}</span>
-                            </div>
-                        </div>`;
-                });
+                                            <strong>@${post.author}</strong>
+        </div>
+        <div style="float: right; margin-top: -40px;">
+            ${post.author === currentUser.user ? `<i class="fas fa-trash" style="color:#444; padding:10px" onclick="deletePost('${postId}')"></i>` : ''}
+        </div>
+
             });
         }
 
