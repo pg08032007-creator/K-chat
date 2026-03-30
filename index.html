@@ -279,15 +279,23 @@
         }
 
         async function handleRegister() {
-            const user = document.getElementById('reg-user').value.toLowerCase().trim();
-            const pass = document.getElementById('reg-pass').value;
-            const gen = document.querySelector('input[name="gen"]:checked').value;
-            const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
-            const userData = { user, pass, status, gen, pic: base64Avatar || "", joined: Date.now() };
-            await db.collection("usuarios").doc(user).set(userData);
-            currentUser = userData; 
-            enterApp();
-        }
+    const user = document.getElementById('reg-user').value.toLowerCase().trim();
+    const pass = document.getElementById('reg-pass').value;
+    const gen = document.querySelector('input[name="gen"]:checked') ? document.querySelector('input[name="gen"]:checked').value : "Neutro";
+    const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
+
+    if(user.length < 3) return alert("O nome de usuário deve ter pelo menos 3 caracteres.");
+    if(pass.length < 4) return alert("A senha deve ter pelo menos 4 caracteres.");
+
+    const doc = await db.collection("usuarios").doc(user).get();
+    if (doc.exists) return alert("Este nome de usuário já existe!");
+
+    const userData = { user, pass, status, gen, pic: base64Avatar || "", joined: Date.now() };
+    await db.collection("usuarios").doc(user).set(userData);
+    currentUser = userData; 
+    enterApp();
+}
+
 
         function enterApp() { 
             localStorage.setItem('kchat_user', JSON.stringify(currentUser));
