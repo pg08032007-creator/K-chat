@@ -25,7 +25,6 @@
         
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
         
-        /* Scrollbar Custom */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent-purple); border-radius: 10px; }
 
@@ -147,7 +146,7 @@
         </div>
     </div>
 
-    <!-- MODAL POST DETAILS + COMMENTS (EMBED ÚNICA) -->
+    <!-- MODAL POST DETAILS + COMMENTS -->
     <div id="modal-view-post" class="modal-embed" onclick="if(event.target == this) this.style.display='none'">
         <div class="modal-body" style="height: 85vh; display:flex; flex-direction:column;">
             <div id="view-post-content" style="flex:1; overflow-y:auto;"></div>
@@ -209,10 +208,11 @@
             <div class="custom-input-group"><i class="fas fa-pen-nib"></i><input type="text" id="onb-status" placeholder="Bio: No que você é bom?"></div>
             
             <div class="gender-selector">
-                <label class="gender-option"><input type="radio" name="gen" value="Ele" checked><i class="fas fa-mars"></i><span>Ele</span></label>
+                <label class="gender-option"><input type="radio" name="gen" value="Ele"><i class="fas fa-mars"></i><span>Ele</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="Ela"><i class="fas fa-venus"></i><span>Ela</span></label>
                 <label class="gender-option"><input type="radio" name="gen" value="Neutro"><i class="fas fa-genderless"></i><span>Neutro</span></label>
             </div>
+
             <button class="btn-premium" onclick="handleRegister()">Entrar na Comunidade</button>
         </div>
     </div>
@@ -257,7 +257,7 @@
             <i class="fas fa-ellipsis-v"></i>
         </header>
         <div id="chat-content"></div>
-        <div style="position: fixed; bottom: 95px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark); border-top: 1px solid #1a1a1e">
+        <div style="position: fixed; bottom: 20px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark); border-top: 1px solid #1a1a1e">
             <input type="text" id="chat-input" placeholder="Escreva sua mensagem..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 25px; padding: 15px; color: white; outline: none; font-size: 14px;">
             <button id="btn-send-msg" style="background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border: none; width: 50px; height: 50px; border-radius: 50%; color: white; box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3);"><i class="fas fa-paper-plane"></i></button>
         </div>
@@ -308,7 +308,6 @@
     </nav>
 
     <script>
-        // CONFIGURAÇÕES E FIREBASE (MANTIDOS)
         const firebaseConfig = {
             apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
             authDomain: "kchat-web-8415c.firebaseapp.com",
@@ -331,7 +330,6 @@
 
         const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000";
 
-        // LÓGICA DE TEMPO
         function timeAgo(timestamp) {
             if(!timestamp) return "...";
             const diff = Date.now() - timestamp;
@@ -352,7 +350,6 @@
             }
         }
 
-        // MEDIA
         function selectAvatar(url, el) {
             base64Avatar = url;
             document.getElementById('img-preview').src = url;
@@ -404,7 +401,6 @@
             }
         }
 
-        // AUTH
         async function checkUserExists(user) {
             if(!user) return;
             const doc = await db.collection("usuarios").doc(user.toLowerCase().trim()).get();
@@ -415,7 +411,9 @@
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
 
-            if(!user || !pass) return alert("Preencha usuário e senha primeiro.");
+            if(!user || user.length < 4) return alert("Usuário precisa ter no mínimo 4 caracteres.");
+            if(!pass || pass.length < 6) return alert("Senha precisa ter no mínimo 6 caracteres.");
+
             showScreen('onboarding');
         }
 
@@ -424,13 +422,22 @@
             document.getElementById('screen-' + id).classList.add('active');
             
             document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+
             if(id === 'feed') document.getElementById('nav-feed').classList.add('active');
             if(id === 'profile') {
                 document.getElementById('nav-profile').classList.add('active');
                 loadProfile();
             }
+
             if(id === 'chat-list') loadChatList();
             if(id === 'notifications') markNotificationsAsSeen();
+
+            if(id === 'chat' || id === 'chat-list' || id === 'notifications') {
+                document.getElementById("main-nav").style.display = "none";
+            } else {
+                if(currentUser) document.getElementById("main-nav").style.display = "flex";
+            }
+
             window.scrollTo(0,0);
         }
 
@@ -440,33 +447,35 @@
             if(!user || !pass) return alert("Preencha tudo!");
 
             const doc = await db.collection("usuarios").doc(user).get();
-
             if (!doc.exists) return alert("Usuário não encontrado.");
 
             const data = doc.data();
-
             if(data.pass !== pass) return alert("Senha incorreta.");
 
-            currentUser = {
-                ...data,
-                user: data.user || user
-            };
-
+            currentUser = { ...data, user: data.user || user };
             enterApp();
         }
 
         async function handleRegister() {
             const user = document.getElementById('reg-user').value.toLowerCase().trim();
             const pass = document.getElementById('reg-pass').value;
-            const gen = document.querySelector('input[name="gen"]:checked').value;
+            const date = document.getElementById('onb-date').value;
             const status = document.getElementById('onb-status').value || "Oi! Estou no k.chat";
-            if(!user || !pass) return alert("Preencha os campos obrigatórios");
+
+            const genInput = document.querySelector('input[name="gen"]:checked');
+            const gen = genInput ? genInput.value : null;
+
+            if(!user || user.length < 4) return alert("Usuário precisa ter no mínimo 4 caracteres.");
+            if(!pass || pass.length < 6) return alert("Senha precisa ter no mínimo 6 caracteres.");
+            if(!date) return alert("Selecione sua data antes de continuar.");
+            if(!gen) return alert("Escolha seu gênero antes de continuar.");
 
             const check = await db.collection("usuarios").doc(user).get();
             if(check.exists) return alert("Esse usuário já existe.");
 
             const userData = { 
-                user, pass, status, gen, 
+                user, pass, status, gen,
+                birth: date,
                 pic: base64Avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed="+user, 
                 banner: DEFAULT_BANNER, 
                 followers: [], following: [], joined: Date.now() 
@@ -493,7 +502,6 @@
             listenNotifications();
         }
 
-        // FEED
         function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
@@ -576,7 +584,6 @@
             }
         }
 
-        // LIKE (CORRIGIDO DEFINITIVO)
         async function toggleLike(postId, author) {
             const ref = db.collection("posts").doc(postId);
             const doc = await ref.get();
@@ -599,7 +606,6 @@
             }
         }
 
-        // NOTIFICAÇÕES
         async function sendNotification(toUser, text) {
             if(toUser === currentUser.user) return;
             await db.collection("notificacoes").add({ 
@@ -652,7 +658,6 @@
             await batch.commit();
         }
 
-        // POST DETAILS + COMMENTS (EMBED ÚNICA)
         async function openPostDetails(postId) {
             currentPostId = postId;
 
@@ -665,6 +670,8 @@
 
             const post = postDoc.data();
             const isVideo = post.media && post.media.includes("data:video");
+
+            const liked = (post.likes_list || []).includes(currentUser.user);
 
             document.getElementById("view-post-content").innerHTML = `
                 <div style="display:flex; gap:12px; align-items:center; margin-bottom:15px">
@@ -685,21 +692,14 @@
 
                 <div style="margin-top:15px; display:flex; justify-content:space-between; align-items:center">
                     <div onclick="toggleLike('${postId}', '${post.author}')" style="cursor:pointer; display:flex; align-items:center; gap:6px">
-                        <i class="far fa-heart" style="color:#666; font-size:18px"></i>
-                        <span style="font-size:13px; color:#999; font-weight:600" id="post-like-count">0</span>
+                        <i class="${liked ? 'fas' : 'far'} fa-heart" style="color:${liked ? '#ec4899' : '#666'}; font-size:18px"></i>
+                        <span style="font-size:13px; color:#999; font-weight:600" id="post-like-count">${post.likes || 0}</span>
                     </div>
                 </div>
 
                 <h4 style="margin-top:18px; margin-bottom:10px; font-size:14px; color:#aaa">Comentários</h4>
                 <div id="comments-list"></div>
             `;
-
-            db.collection("posts").doc(postId).onSnapshot(doc => {
-                if(!doc.exists) return;
-                const d = doc.data();
-                const likeEl = document.getElementById("post-like-count");
-                if(likeEl) likeEl.innerText = d.likes || 0;
-            });
 
             postDetailsUnsub = db.collection("posts")
                 .doc(postId)
@@ -752,7 +752,6 @@
             }
         }
 
-        // CHAT PRIVADO
         async function openPrivateChat(targetUser) {
             activeChatTarget = targetUser;
             document.getElementById('chat-target-name').innerText = "@" + targetUser;
@@ -793,7 +792,6 @@
         async function sendPrivateMsg(chatId, targetUser) {
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
-
             if(!text) return;
 
             input.value = "";
@@ -816,17 +814,30 @@
             sendNotification(targetUser, "te enviou uma mensagem no chat");
         }
 
-        async function loadChatList() {
+        function loadChatList() {
             db.collection("chats_privados")
             .where("participants", "array-contains", currentUser.user)
-            .orderBy("lastTime", "desc")
             .onSnapshot(snap => {
 
                 const container = document.getElementById('chat-list-content');
-                container.innerHTML = snap.empty ? "<p style='padding:40px; color:#555; text-align:center'>Ninguém te chamou ainda.</p>" : "";
+
+                if(snap.empty) {
+                    container.innerHTML = "<p style='padding:40px; color:#555; text-align:center'>Ninguém te chamou ainda.</p>";
+                    return;
+                }
+
+                let chats = [];
 
                 snap.forEach(doc => {
                     const data = doc.data();
+                    chats.push({ id: doc.id, ...data });
+                });
+
+                chats.sort((a,b) => (b.lastTime || 0) - (a.lastTime || 0));
+
+                container.innerHTML = "";
+
+                chats.forEach(data => {
                     const other = (data.participants || []).find(p => p !== currentUser.user);
 
                     container.innerHTML += `
@@ -834,7 +845,7 @@
                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${other}" style="width:50px; height:50px; border-radius:50%">
                             <div style="flex:1">
                                 <strong>@${other}</strong><br>
-                                <small style="color:#666">${(data.lastMsg || "").substring(0,30)}...</small>
+                                <small style="color:#666">${(data.lastMsg || "Conversa iniciada...").substring(0,30)}...</small>
                             </div>
                             <span style="font-size:10px; color:#444">${timeAgo(data.lastTime)}</span>
                         </div>`;
@@ -842,7 +853,6 @@
             });
         }
 
-        // PERFIL
         async function loadProfile() {
             const doc = await db.collection("usuarios").doc(currentUser.user).get();
             if(!doc.exists) return;
@@ -935,7 +945,6 @@
                 </div>
             `;
 
-            // Se quiser posts privados, deixe assim:
             document.getElementById('view-posts-grid').innerHTML =
                 "<p style='padding:40px; color:#555; text-align:center'>As publicações desse perfil são privadas.</p>";
         }
@@ -959,7 +968,6 @@
             openUserProfile(targetUser);
         }
 
-        // UI
         function openPostModal() { 
             document.getElementById('modal-post').style.display = 'flex'; 
         }
@@ -1003,4 +1011,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
