@@ -245,7 +245,7 @@
             <i class="fas fa-ellipsis-v"></i>
         </header>
         <div id="chat-content"></div>
-        <div style="position: fixed; bottom: 95px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark); border-top: 1px solid #1a1a1e">
+        <div style="position: fixed; bottom: 20px; width: 100%; padding: 15px; display: flex; gap: 10px; background: var(--bg-dark); border-top: 1px solid #1a1a1e">
             <input type="text" id="chat-input" placeholder="Escreva sua mensagem..." style="flex:1; background: #1a1a1e; border: 1px solid #333; border-radius: 25px; padding: 15px; color: white; outline: none; font-size: 14px;">
             <button id="btn-send-msg" style="background: linear-gradient(45deg, var(--accent-purple), var(--accent-pink)); border: none; width: 50px; height: 50px; border-radius: 50%; color: white; box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3);"><i class="fas fa-paper-plane"></i></button>
         </div>
@@ -293,7 +293,6 @@
     </nav>
 
     <script>
-        // CONFIGURAÇÕES E FIREBASE (MANTIDOS)
         const firebaseConfig = {
             apiKey: "AIzaSyCA1CnnU0yBuLdeEYBp1MX4KqEhEtH98aE",
             authDomain: "kchat-web-8415c.firebaseapp.com",
@@ -315,7 +314,6 @@
 
         const DEFAULT_BANNER = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=1000";
 
-        // LÓGICA DE TEMPO RESTAURADA
         function timeAgo(timestamp) {
             if(!timestamp) return "...";
             const diff = Date.now() - timestamp;
@@ -336,7 +334,6 @@
             }
         }
 
-        // LÓGICAS DE MEDIA RESTAURADAS COM TODOS OS DETALHES
         function selectAvatar(url, el) {
             base64Avatar = url;
             document.getElementById('img-preview').src = url;
@@ -388,7 +385,6 @@
             }
         }
 
-        // AUTH COMPLETA
         async function checkUserExists(user) {
             if(!user) return;
             const doc = await db.collection("usuarios").doc(user.toLowerCase().trim()).get();
@@ -399,6 +395,14 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + id).classList.add('active');
             
+            // LÓGICA DE OCULTAR NAV
+            const nav = document.getElementById('main-nav');
+            if(['notifications', 'chat-list', 'chat'].includes(id)) {
+                nav.style.display = 'none';
+            } else if(currentUser) {
+                nav.style.display = 'flex';
+            }
+
             document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
             if(id === 'feed') document.getElementById('nav-feed').classList.add('active');
             if(id === 'profile') {
@@ -447,7 +451,6 @@
             listenNotifications();
         }
 
-        // FEED E POSTS (COM TODAS AS INTERAÇÕES RESTAURADAS)
         function listenPosts(filter = "") {
             db.collection("posts").orderBy("time", "desc").onSnapshot(snapshot => {
                 const container = document.getElementById('feed-content');
@@ -455,7 +458,11 @@
                 snapshot.forEach(doc => {
                     const post = doc.data();
                     const postId = doc.id;
-                    if(filter && !post.content.toLowerCase().includes(filter) && !post.author.toLowerCase().includes(filter)) return;
+                    
+                    // LÓGICA DE PESQUISA POR POST E PERFIL
+                    const matchPost = post.content.toLowerCase().includes(filter);
+                    const matchUser = post.author.toLowerCase().includes(filter);
+                    if(filter && !matchPost && !matchUser) return;
                     
                     const isLiked = post.likes_list && post.likes_list.includes(currentUser.user);
                     const isVideo = post.media && post.media.includes("data:video");
@@ -523,7 +530,6 @@
             }
         }
 
-        // COMENTÁRIOS E NOTIFICAÇÕES (RECUPERADAS AS MENSAGENS COMPLETAS)
         async function openComments(id) {
             currentPostId = id;
             document.getElementById('modal-comments').style.display = 'flex';
@@ -554,10 +560,17 @@
 
         async function toggleLike(postId, likesList, author) {
             const ref = db.collection("posts").doc(postId);
+            // LÓGICA DE REMOVER CURTIDA
             if(likesList.includes(currentUser.user)) {
-                await ref.update({ likes: firebase.firestore.FieldValue.increment(-1), likes_list: firebase.firestore.FieldValue.arrayRemove(currentUser.user) });
+                await ref.update({ 
+                    likes: firebase.firestore.FieldValue.increment(-1), 
+                    likes_list: firebase.firestore.FieldValue.arrayRemove(currentUser.user) 
+                });
             } else {
-                await ref.update({ likes: firebase.firestore.FieldValue.increment(1), likes_list: firebase.firestore.FieldValue.arrayUnion(currentUser.user) });
+                await ref.update({ 
+                    likes: firebase.firestore.FieldValue.increment(1), 
+                    likes_list: firebase.firestore.FieldValue.arrayUnion(currentUser.user) 
+                });
                 sendNotification(author, "curtiu sua publicação");
             }
         }
@@ -595,7 +608,6 @@
             await batch.commit();
         }
 
-        // CHAT PRIVADO COMPLETO
         async function openPrivateChat(targetUser) {
             activeChatTarget = targetUser;
             document.getElementById('chat-target-name').innerText = "@" + targetUser;
@@ -620,6 +632,7 @@
             const text = input.value.trim();
             if(!text) return;
             input.value = "";
+            // GRAVAÇÃO DA MENSAGEM NO PRIVADO
             await db.collection("chats_privados").doc(chatId).collection("mensagens").add({ sender: currentUser.user, text, time: Date.now() });
             await db.collection("chats_privados").doc(chatId).set({ lastMsg: text, lastTime: Date.now(), participants: [currentUser.user, targetUser] });
             sendNotification(targetUser, "te enviou um segredo no chat");
@@ -642,7 +655,6 @@
             });
         }
 
-        // PERFIL E GRIDS RESTAURADAS
         async function loadProfile() {
             const doc = await db.collection("usuarios").doc(currentUser.user).get();
             const data = doc.data();
@@ -713,7 +725,6 @@
             openUserProfile(targetUser);
         }
 
-        // FUNÇÕES DE UI E LOGOUT
         function openPostModal() { document.getElementById('modal-post').style.display = 'flex'; }
         function openEditModal() { document.getElementById('edit-status-input').value = currentUser.status; document.getElementById('edit-img-preview').src = currentUser.pic; document.getElementById('edit-banner-preview').src = currentUser.banner || DEFAULT_BANNER; document.getElementById('modal-edit').style.display = 'flex'; }
         async function saveFullEdit() {
