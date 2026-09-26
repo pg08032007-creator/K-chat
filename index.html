@@ -26,6 +26,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -37,10 +38,48 @@
             text-align: center;
         }
 
+        /* --------------------------------------------------
+           ANIMAÇÕES (KEYFRAMES)
+        -------------------------------------------------- */
+        /* Entrada Suave de Baixo para Cima */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Animação Flutuante e Brilho Pulsante na Foto */
+        @keyframes floatAndGlow {
+            0%, 100% {
+                transform: translateY(0);
+                box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            }
+            50% {
+                transform: translateY(-8px);
+                box-shadow: 0 0 32px rgba(168, 85, 247, 0.85);
+            }
+        }
+
+        /* Efeito de Luz Passando sobre os Botões */
+        @keyframes shine {
+            100% {
+                left: 125%;
+            }
+        }
+
+        /* --------------------------------------------------
+           ELEMENTOS
+        -------------------------------------------------- */
         /* Foto de Perfil */
         .profile-container {
             position: relative;
             margin-bottom: 16px;
+            animation: fadeInUp 0.8s ease-out forwards;
         }
 
         .profile-img {
@@ -49,13 +88,12 @@
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #a855f7;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: floatAndGlow 4s ease-in-out infinite;
+            transition: transform 0.3s ease;
         }
 
         .profile-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
+            transform: scale(1.08);
         }
 
         /* Nome de Usuário */
@@ -66,6 +104,8 @@
             margin-bottom: 24px;
             color: #ffffff;
             text-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
+            animation: fadeInUp 0.8s ease-out 0.2s forwards;
+            opacity: 0;
         }
 
         /* Container dos Links */
@@ -76,7 +116,7 @@
             gap: 16px;
         }
 
-        /* Botão de Link */
+        /* Botão de Link com Animações */
         .link-btn {
             display: flex;
             align-items: center;
@@ -93,29 +133,60 @@
             font-weight: 600;
             letter-spacing: 0.5px;
             backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
         }
+
+        /* Efeito de brilho varrendo o botão */
+        .link-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.15),
+                transparent
+            );
+            transform: skewX(-25deg);
+        }
+
+        .link-btn:hover::before {
+            animation: shine 0.75s ease;
+        }
+
+        /* Efeito de Entrada Escalonada (Delay para cada botão) */
+        .link-btn:nth-child(1) { animation-delay: 0.3s; }
+        .link-btn:nth-child(2) { animation-delay: 0.45s; }
+        .link-btn:nth-child(3) { animation-delay: 0.6s; }
+        .link-btn:nth-child(4) { animation-delay: 0.75s; }
 
         .link-btn i {
             position: absolute;
             left: 20px;
             font-size: 1.3rem;
             color: #c084fc;
-            transition: color 0.3s ease;
+            transition: color 0.3s ease, transform 0.3s ease;
         }
 
-        /* Efeito de Hover nos Botões */
+        /* Efeito Hover nos Botões */
         .link-btn:hover {
             background: linear-gradient(135deg, #7e22ce, #581c87);
             border-color: #c084fc;
             color: #ffffff;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.5);
         }
 
         .link-btn:hover i {
             color: #ffffff;
+            transform: scale(1.15);
         }
 
         /* Rodapé sutil */
@@ -123,13 +194,15 @@
             margin-top: 32px;
             font-size: 0.8rem;
             color: #71717a;
+            animation: fadeInUp 0.8s ease-out 0.9s forwards;
+            opacity: 0;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Foto de Perfil -->
+        <!-- Foto de Perfil com Animação Flutuante -->
         <div class="profile-container">
             <img src="Foto.jpg" alt="𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟" class="profile-img">
         </div>
@@ -137,7 +210,7 @@
         <!-- Nome do Perfil -->
         <h1 class="username">𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟</h1>
 
-        <!-- Botões de Redes/Links -->
+        <!-- Botões de Redes/Links com Entrada Escalonada -->
         <div class="links-container">
             
             <a href="https://onlyfans.com/SEU_USUARIO" target="_blank" class="link-btn">
