@@ -3,308 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pizza House - Delivery & Sistema Integrado</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            orange: '#FF5722',
-                            amber: '#FF9800',
-                            dark: '#0F0F12',
-                            card: '#18181C',
-                            border: '#27272A',
-                            lightBg: '#FAFAFA'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif'],
-                    }
-                }
-            }
-        }
-
-        // DECLARAÇÃO GLOBAL DAS FUNÇÕES DE TROCA DE TELA PARA EVITAR ReferenceError
-        function switchView(viewName) {
-            const views = ['customer', 'waiter', 'kitchen'];
-            views.forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                const btn = document.getElementById(`btn-view-${v}`);
-                if (el && btn) {
-                    if (v === viewName) {
-                        el.classList.remove('hidden');
-                        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 bg-brand-orange text-white shadow-md";
-                    } else {
-                        el.classList.add('hidden');
-                        btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all duration-200 flex items-center gap-1.5 relative";
-                    }
-                }
-            });
-        }
-    </script>
-
+    <title>𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟 | Links</title>
+    <!-- Ícones via Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        ::-webkit-scrollbar-track {
-            background: #18181C;
+
+        body {
+            background-color: #0d0b14;
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(138, 43, 226, 0.25), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(75, 0, 130, 0.2), transparent 40%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #3F3F46;
-            border-radius: 9999px;
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #FF5722;
+
+        /* Foto de Perfil */
+        .profile-container {
+            position: relative;
+            margin-bottom: 16px;
         }
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+
+        .profile-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.8);
         }
-        @keyframes pulse-subtle {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.85; }
+
+        /* Nome de Usuário */
+        .username {
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 24px;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
         }
-        .animate-pulse-subtle {
-            animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+        /* Container dos Links */
+        .links-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Botão de Link */
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(22, 18, 36, 0.85);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            color: #f3e8ff;
+            text-decoration: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .link-btn i {
+            position: absolute;
+            left: 20px;
+            font-size: 1.3rem;
+            color: #c084fc;
+            transition: color 0.3s ease;
+        }
+
+        /* Efeito de Hover nos Botões */
+        .link-btn:hover {
+            background: linear-gradient(135deg, #7e22ce, #581c87);
+            border-color: #c084fc;
+            color: #ffffff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
+        }
+
+        .link-btn:hover i {
+            color: #ffffff;
+        }
+
+        /* Rodapé sutil */
+        footer {
+            margin-top: 32px;
+            font-size: 0.8rem;
+            color: #71717a;
         }
     </style>
 </head>
-<body class="bg-brand-dark text-slate-100 font-sans antialiased min-h-screen pb-20 md:pb-0 flex flex-col justify-between">
+<body>
 
-    <!-- Top Header / App Mode Selector -->
-    <header class="sticky top-0 z-40 bg-brand-dark/95 backdrop-blur-md border-b border-brand-border px-4 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-3 cursor-pointer" onclick="switchView('customer')">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-orange to-brand-amber flex items-center justify-center text-white shadow-lg shadow-brand-orange/30">
-                    <i class="fa-solid font-black fa-pizza-slice text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-lg leading-tight tracking-tight text-white flex items-center gap-1.5">
-                        PIZZA<span class="text-brand-orange">HOUSE</span>
-                    </h1>
-                    <p class="text-[10px] text-slate-400 font-medium tracking-wider uppercase">Artisanal & Wood Oven</p>
-                </div>
-            </div>
-
-            <!-- View Switcher -->
-            <div class="flex bg-brand-card p-1 rounded-2xl border border-brand-border">
-                <button id="btn-view-customer" onclick="switchView('customer')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 bg-brand-orange text-white shadow-md">
-                    <i class="fa-solid fa-store"></i> <span class="hidden sm:inline">Cliente</span>
-                </button>
-                <button id="btn-view-waiter" onclick="switchView('waiter')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all duration-200 flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-ninja"></i> <span class="hidden sm:inline">Garçom</span>
-                </button>
-                <button id="btn-view-kitchen" onclick="switchView('kitchen')" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-all duration-200 flex items-center gap-1.5 relative">
-                    <i class="fa-solid fa-fire"></i> <span class="hidden sm:inline">Cozinha (KDS)</span>
-                    <span id="kitchen-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center font-extrabold animate-bounce">0</span>
-                </button>
-            </div>
-
-            <!-- Cart Trigger -->
-            <div class="flex items-center gap-3">
-                <button onclick="openCartModal()" class="relative p-2.5 bg-brand-card hover:bg-slate-800 rounded-2xl border border-brand-border transition-colors">
-                    <i class="fa-solid fa-cart-shopping text-slate-200"></i>
-                    <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-brand-orange text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-brand-dark">0</span>
-                </button>
-            </div>
+    <div class="container">
+        <!-- Foto de Perfil -->
+        <div class="profile-container">
+            <img src="Foto.jpg" alt="𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟" class="profile-img">
         </div>
-    </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+        <!-- Nome do Perfil -->
+        <h1 class="username">𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟</h1>
 
-        <!-- VIEW 1: CLIENTE -->
-        <section id="view-customer" class="space-y-6">
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-neutral-900 via-zinc-900 to-brand-card border border-brand-border p-6 sm:p-8 min-h-[220px] flex flex-col justify-center">
-                <div class="relative z-10 max-w-md space-y-3">
-                    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold bg-brand-orange/20 text-brand-orange border border-brand-orange/30 tracking-wider uppercase">
-                        🔥 Hot & Fresh Today
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white leading-tight">
-                        PIZZAS ARTESANAIS NO <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-brand-amber">FORNO A LENHA!</span>
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-400">Ingredientes selecionados, massa de fermentação natural de 48h e muito queijo derretido.</p>
-                    <div class="pt-2">
-                        <button onclick="scrollToCategory('pizzas')" class="px-5 py-2.5 bg-gradient-to-r from-brand-orange to-brand-amber text-white font-bold text-xs rounded-2xl shadow-lg shadow-brand-orange/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
-                            Peça Agora <i class="fa-solid fa-arrow-right text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-10 sm:translate-x-0 w-52 sm:w-80 opacity-40 sm:opacity-90 pointer-events-none">
-                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80" alt="Pizza Ilustrativa" class="w-full h-auto object-cover rounded-full shadow-2xl border-4 border-brand-orange/20">
-                </div>
-            </div>
+        <!-- Botões de Redes/Links -->
+        <div class="links-container">
+            
+            <a href="https://onlyfans.com/SEU_USUARIO" target="_blank" class="link-btn">
+                <i class="fa-solid fa-star"></i>
+                OnlyFans
+            </a>
 
-            <!-- Custom Pizza Builder Banner -->
-            <div class="bg-gradient-to-r from-amber-500/10 via-brand-orange/10 to-transparent border border-brand-orange/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-brand-orange/20 text-brand-orange flex items-center justify-center text-xl font-bold flex-shrink-0">
-                        <i class="fa-solid fa-sliders"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-sm sm:text-base text-white">Monte Sua Pizza Meio a Meio</h3>
-                        <p class="text-xs text-slate-400">Escolha 2 sabores, tamanho da pizza e borda recheada personalizada!</p>
-                    </div>
-                </div>
-                <button onclick="openCustomPizzaModal()" class="w-full sm:w-auto px-4 py-2.5 bg-brand-orange hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Criar Meio a Meio
-                </button>
-            </div>
+            <a href="https://privacy.com.br/checkout/SEU_USUARIO" target="_blank" class="link-btn">
+                <i class="fa-solid fa-lock"></i>
+                Privacy
+            </a>
 
-            <!-- Search and Filter Bar -->
-            <div class="space-y-4">
-                <div class="flex items-center gap-3">
-                    <div class="relative flex-grow">
-                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" id="search-input" onkeyup="filterProducts()" placeholder="Buscar pizza, bebidas, sobremesas..." class="w-full pl-11 pr-4 py-3 bg-brand-card border border-brand-border rounded-2xl text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-orange transition-colors">
-                    </div>
-                </div>
+            <a href="https://discord.gg/SEU_CONVITE" target="_blank" class="link-btn">
+                <i class="fa-brands fa-discord"></i>
+                Discord VIP
+            </a>
 
-                <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar" id="categories-container"></div>
-            </div>
+            <a href="https://t.me/SEU_CANAL" target="_blank" class="link-btn">
+                <i class="fa-brands fa-telegram"></i>
+                Telegram
+            </a>
 
-            <!-- Promo Banner -->
-            <div class="bg-gradient-to-r from-zinc-900 to-brand-card rounded-2xl p-4 border border-brand-border flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center font-extrabold text-sm">20%</span>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-brand-amber tracking-wider">OFERTA DE FIM DE SEMANA</span>
-                        <h4 class="text-xs sm:text-sm font-bold text-white">20% OFF em Todos os Combos Especiais</h4>
-                    </div>
-                </div>
-                <span class="text-xs text-slate-400 bg-brand-dark px-3 py-1.5 rounded-xl border border-brand-border font-mono">CÓD: PIZZA20</span>
-            </div>
+        </div>
 
-            <!-- Product Grid -->
-            <div>
-                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2" id="catalog-title">
-                    <i class="fa-solid fa-fire text-brand-orange"></i> Mais Pedidos & Destaques
-                </h3>
-                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"></div>
-            </div>
-        </section>
+        <footer>
+            &copy; 𝔐𝔬𝔬𝔫𝔖𝔲𝔠𝔲𝔟 • Todos os direitos reservados
+        </footer>
+    </div>
 
-        <!-- VIEW 2: MODO GARÇOM -->
-        <section id="view-waiter" class="hidden space-y-6">
-            <div class="bg-brand-card border border-brand-border p-4 sm:p-6 rounded-3xl space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-border pb-4">
-                    <div>
-                        <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-utensils text-brand-orange"></i> Painel do Garçom
-                        </h2>
-                        <p class="text-xs text-slate-400">Lance pedidos direto para a cozinha por mesa ou comanda.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Mesa / Comanda</label>
-                            <input type="text" id="waiter-table" placeholder="Ex: Mesa 04" value="Mesa 01" class="px-3 py-2 bg-brand-dark border border-brand-border rounded-xl text-xs text-white font-bold w-28 focus:outline-none focus:border-brand-orange">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Cliente (Opcional)</label>
-                            <input type="text" id="waiter-customer" placeholder="Nome" class="px-3 py-2 bg-brand-dark border border-brand-border rounded-xl text-xs text-white w-32 focus:outline-none focus:border-brand-orange">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-slate-200">Selecione os Itens</h3>
-                            <div class="flex gap-2 overflow-x-auto" id="waiter-cat-filter"></div>
-                        </div>
-                        <div id="waiter-menu-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1"></div>
-                    </div>
-
-                    <div class="bg-brand-dark p-4 rounded-2xl border border-brand-border flex flex-col justify-between h-full min-h-[400px]">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between border-b border-brand-border pb-2">
-                                <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-receipt text-brand-orange"></i> Comanda Atual
-                                </h3>
-                                <button onclick="clearWaiterOrder()" class="text-[11px] text-red-400 hover:text-red-300 font-bold">Limpar</button>
-                            </div>
-
-                            <div id="waiter-cart-list" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                                <p class="text-xs text-slate-500 italic text-center py-8">Nenhum item adicionado à comanda.</p>
-                            </div>
-
-                            <div class="pt-2">
-                                <label class="block text-[10px] font-bold text-slate-400 mb-1">Observações Gerais para Cozinha</label>
-                                <textarea id="waiter-notes" rows="2" placeholder="Ex: Caprichar no molho..." class="w-full p-2 bg-brand-card border border-brand-border rounded-xl text-xs text-slate-200 focus:outline-none focus:border-brand-orange resize-none"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 border-t border-brand-border space-y-3">
-                            <div class="flex justify-between items-center text-sm font-bold">
-                                <span class="text-slate-400">Total da Comanda:</span>
-                                <span id="waiter-total" class="text-brand-orange text-lg">R$ 0,00</span>
-                            </div>
-                            <button onclick="sendWaiterOrderToKitchen()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-paper-plane"></i> Enviar Pedido para Cozinha
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- VIEW 3: COZINHA (KDS) -->
-        <section id="view-kitchen" class="hidden space-y-6">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-brand-card p-4 rounded-2xl border border-brand-border">
-                <div>
-                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-fire-burner text-brand-orange"></i> KDS - Monitor da Cozinha
-                    </h2>
-                    <p class="text-xs text-slate-400">Gestão de preparo de pedidos em tempo real (Garçom + Delivery)</p>
-                </div>
-                <div class="flex items-center gap-2 text-xs">
-                    <span class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20 font-bold">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Pendentes: <span id="count-pending">0</span>
-                    </span>
-                    <span class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 rounded-xl border border-blue-500/20 font-bold">
-                        Em Preparo: <span id="count-prep">0</span>
-                    </span>
-                    <span class="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20 font-bold">
-                        No Forno: <span id="count-oven">0</span>
-                    </span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" id="kitchen-kanban">
-                <div class="space-y-3">
-                    <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-2xl flex justify-between items-center text-amber-400 font-extrabold text-xs uppercase tracking-wider">
-                        <span><i class="fa-solid fa-clock"></i> 1. Pendentes</span>
-                        <span id="col-count-pending" class="bg-amber-500/20 px-2 py-0.5 rounded-lg">0</span>
-                    </div>
-                    <div id="col-pending" class="space-y-3 min-h-[200px]"></div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="bg-blue-500/10 border border-blue-500/30 p-3 rounded-2xl flex justify-between items-center text-blue-400 font-extrabold text-xs uppercase tracking-wider">
-                        <span><i class="fa-solid fa-hand-holding-hand"></i> 2. Preparando</span>
-                        <span id="col-count-prep" class="bg-blue-500/20 px-2 py-0.5 rounded-lg">0</span>
-                    </div>
-                    <div id="col-prep" class="space-y-3 min-h-[200px]"></div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-2xl flex justify-between items-center text-orange-400 font-extrabold text-xs uppercase tracking-wider">
-                        <span><i class="fa-solid fa-fire"></i> 3. No Forno</span>
-                        <span id="col-count-oven" class="bg-orange-500/20 px-2 py-0.5 rounded-lg">0</span>
-                    </div>
-                    <div id="col-oven" class="space-y-3 min-h-[200px]"></div>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-2xl flex justify-between items-center text-emerald-400 font-extrabold text-xs uppercase
+</body>
+</html>
